@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -14,13 +17,42 @@ class _AuthScreenState extends State<AuthScreen> {
 
   bool _isInLoginMode = true;
 
-  void _submit() {
+  void _submit() async {
     final isValid = _formKey.currentState!.validate();
 
-    if (isValid) {
-      _formKey.currentState!.save();  // triggers the onSave function on the Form widget
-      print(_enteredEmail);
-      print(_enteredPassword);
+    if (!isValid) {
+      return;
+    }
+
+    _formKey.currentState!.save(); // triggers the onSave function on the Form widget
+
+    try {
+      if (_isInLoginMode) {
+        final userCredentials = await _firebase.signInWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
+      } else {
+        // behind the scenes, this method from the Firebase SDK will send a HTTP request to Firebase
+        // to store and validate the data (email and password), and also generates an auth token string
+        // this token can be used to attach it to future requests that are trying to access protected resources
+        // It helps for error handling and it is much easier
+        final userCredentials = await _firebase.createUserWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
+      }
+    } on FirebaseAuthException catch (error) {
+      if (!ScaffoldMessenger.of(context).mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message ?? 'Authentication failed'),
+        ),
+      );
     }
   }
 
