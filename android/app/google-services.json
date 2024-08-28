@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "896323058310",
+    "project_id": "pdf-points-de6d9",
+    "storage_bucket": "pdf-points-de6d9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:896323058310:android:98b546962e518e6431af07",
+        "android_client_info": {
+          "package_name": "com.example.pdf_points"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_kX4-8Uzgk6t9xI8ntqlC4FTCsoxm8Gg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
