@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/screens/auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:pdf_points/screens/home.dart';
+import 'package:pdf_points/screens/home_super.dart';
 import 'package:pdf_points/screens/splah.dart';
 import 'firebase_options.dart';
 
@@ -47,7 +49,7 @@ class MyApp extends StatelessWidget {
           }
 
           if (snapshot.hasData) {
-            // this means that i have that token, the user did log in
+            // snapshot.hasData -> this means that i have that token, the user did log in
             return const HomeScreen();
           }
 

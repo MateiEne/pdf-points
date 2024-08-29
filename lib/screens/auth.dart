@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   String _enteredEmail = '';
   String _enteredPassword = '';
+  String _enteredUsername = '';
 
   bool _isInLoginMode = true;
   bool _isAuthenticating = false;
@@ -55,13 +57,28 @@ class _AuthScreenState extends State<AuthScreen> {
 
         // ref() -> gives a reference of the firebase cloud storage (it gives access to that storage)
         // child(path) -> creates a new path in that storage bucket
-        final storageRef =
-            FirebaseStorage.instance.ref().child('user_images').child('${userCredentials.user!.uid}.jpg');
+        final storageRef = FirebaseStorage.instance //
+            .ref()
+            .child('user_images')
+            .child('${userCredentials.user!.uid}.jpg');
         await storageRef.putFile(_selectedImage!);
         // this gives a URL that can be used to display the image that was stored on firebase storage
         // so the image is not stored locally, on the user's device, but it is stored on a remote machine on a server operated by firebase
         final imageUrl = await storageRef.getDownloadURL();
-        print(imageUrl);
+
+        // this instance can be used for talking to Firestore database, and for uploading and fetching data
+        // Firestore works with "collections" (folders that contain data)
+        // this collections contain "documents" witch are the actual data entries
+        // a document then could have more nested collections
+        // set() -> tells firebase witch data should be stored in that document
+        await FirebaseFirestore.instance //
+            .collection('users')
+            .doc(userCredentials.user!.uid)
+            .set({
+          'username': _enteredUsername,
+          'email': _enteredEmail,
+          'image_url': imageUrl,
+        });
       }
     } on FirebaseAuthException catch (error) {
       if (!ScaffoldMessenger.of(context).mounted) {
@@ -132,6 +149,21 @@ class _AuthScreenState extends State<AuthScreen> {
                               _enteredEmail = value!;
                             },
                           ),
+                          if (!_isInLoginMode)
+                            TextFormField(
+                              decoration: const InputDecoration(labelText: 'Username'),
+                              enableSuggestions: false,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty || value.trim().length < 4) {
+                                  return 'Please enter at least 4 characters';
+                                }
+
+                                return null;
+                              },
+                              onSaved: (value) {
+                                _enteredUsername = value!;
+                              },
+                            ),
                           TextFormField(
                             decoration: const InputDecoration(labelText: 'Password'),
                             obscureText: true,
