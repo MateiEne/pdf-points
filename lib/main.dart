@@ -1,12 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/screens/auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:pdf_points/screens/home.dart';
-import 'package:pdf_points/screens/home_super.dart';
-import 'package:pdf_points/screens/splah.dart';
+import 'package:pdf_points/screens/splash.dart';
 import 'firebase_options.dart';
+
+final ColorScheme kColorScheme = ColorScheme.fromSeed(
+  seedColor: const Color.fromARGB(255, 60, 100, 100),
+);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,8 +28,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PdF Points',
       theme: ThemeData().copyWith(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 60, 100, 100),
+        colorScheme: kColorScheme,
+        appBarTheme: const AppBarTheme().copyWith(
+          backgroundColor: kColorScheme.onPrimaryContainer,
+          foregroundColor: kColorScheme.onPrimary,
         ),
       ),
       // the existence of an auth token proves that the user provided valid data => the user did log in => show a different screen

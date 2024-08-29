@@ -52,24 +52,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Home',
-          style: TextStyle(
-            /// TO DO: inherit this style for all the app bars, from main
-            color: Theme.of(context).colorScheme.onSecondary,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text('Home'),
         actions: [
           IconButton(
             onPressed: () {
               FirebaseAuth.instance.signOut();
             },
             icon: const Icon(Icons.logout),
-            color: Theme.of(context).colorScheme.onSecondary,
           ),
         ],
       ),
+      drawer: const Drawer(),
       body: content,
     );
   }
