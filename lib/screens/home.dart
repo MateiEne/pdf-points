@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:excel/excel.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pdf_points/utils/context_utils.dart';
+import 'package:pdf_points/utils/participants_exel_parser.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +15,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isSuperUser = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSuperUser();
+  }
 
   void _checkSuperUser() async {
     final user = FirebaseAuth.instance.currentUser!;
@@ -32,24 +42,33 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _checkSuperUser();
+  Future<void> _selectFile() async {
+    FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+      allowMultiple: false,
+    );
+
+    if (pickedFile == null) {
+      if (context.mounted) {
+        context.showToast("Could not open the file", negative: true);
+      }
+      return;
+    }
+
+    var path = pickedFile.files.first.path;
+    if (path == null) {
+      if (context.mounted) {
+        context.showToast("Could not open the file", negative: true);
+      }
+      return;
+    }
+
+    var participants = await ParticipantsExelParser.parseParticipantsExcel(path);
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = const Center(
-      child: Text('Coming soon ...'),
-    );
-
-    if (_isSuperUser) {
-      content = const Center(
-        child: Text('Coming soon ... super user .......'),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -63,7 +82,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: const Drawer(),
-      body: content,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Coming soon ... ${_isSuperUser ? 'super user' : 'normal user'}'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _selectFile,
+              child: const Text("Import participants excel"),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
