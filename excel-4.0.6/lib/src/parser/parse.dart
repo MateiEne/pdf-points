@@ -316,12 +316,16 @@ class Parser {
 
       document.findAllElements('numFmts').forEach((node1) {
         node1.findAllElements('numFmt').forEach((node) {
-          final numFmtId = int.parse(node.getAttribute('numFmtId')!);
+          /// CUSTOM MODIFICATION - BEGIN
+          /// https://github.com/justkawal/excel/issues/296#issuecomment-2013009390
+          int numFmtId = int.parse(node.getAttribute('numFmtId')!);
           final formatCode = node.getAttribute('formatCode')!;
           if (numFmtId < 164) {
-            throw Exception(
-                'custom numFmtId starts at 164 but found a value of $numFmtId');
+            numFmtId += 164;
+            // throw Exception(
+            //     'custom numFmtId starts at 164 but found a value of $numFmtId');
           }
+          /// CUSTOM MODIFICATION - END
 
           _excel._numFormats
               .add(numFmtId, NumFormat.custom(formatCode: formatCode));
@@ -460,8 +464,19 @@ class Parser {
 
           var numFormat = _excel._numFormats.getByNumFmtId(numFmtId);
           if (numFormat == null) {
-            assert(false, 'missing numFmt for $numFmtId');
-            numFormat = NumFormat.standard_0;
+            /// CUSTOM MODIFICATION - BEGIN
+            /// https://github.com/justkawal/excel/issues/296#issuecomment-2138814398
+            numFormat = _excel._numFormats.getByNumFmtId(numFmtId + 164);
+            if (numFormat == null) {
+              // assert(false, 'missing numFmt for $numFmtId');
+              numFormat = NumFormat.standard_0;
+            } else {
+              _excel._numFmtIds.remove(numFmtId);
+              _excel._numFmtIds.add(numFmtId + 164);
+            }
+            // assert(false, 'missing numFmt for $numFmtId');
+            // numFormat = NumFormat.standard_0;
+            /// CUSTOM MODIFICATION - END
           }
 
           CellStyle cellStyle = CellStyle(
@@ -642,11 +657,19 @@ class Parser {
           } else if (s1 != null) {
             final v = _parseValue(vNode);
             var numFmtId = _excel._numFmtIds[s];
-            final numFormat = _excel._numFormats.getByNumFmtId(numFmtId);
+            /// CUSTOM MODIFICATION - BEGIN
+            /// https://github.com/justkawal/excel/issues/296#issuecomment-2138814398
+            NumFormat? numFormat = _excel._numFormats.getByNumFmtId(numFmtId);
             if (numFormat == null) {
-              assert(
-                  false, 'found no number format spec for numFmtId $numFmtId');
-              value = NumFormat.defaultNumeric.read(v);
+              numFormat = _excel._numFormats.getByNumFmtId(numFmtId + 164);
+              if (numFormat == null) {
+                // assert(
+                // false, 'found no number format spec for numFmtId $numFmtId');
+                value = NumFormat.defaultNumeric.read(v);
+              } else {
+                value = numFormat.read(v);
+              }
+              /// CUSTOM MODIFICATION - END
             } else {
               value = numFormat.read(v);
             }
@@ -842,8 +865,8 @@ class Parser {
 
     /* parse custom column height
       example XML content
-      <col min="2" max="2" width="71.83203125" customWidth="1"/>, 
-      <col min="4" max="4" width="26.5" customWidth="1"/>, 
+      <col min="2" max="2" width="71.83203125" customWidth="1"/>,
+      <col min="4" max="4" width="26.5" customWidth="1"/>,
       <col min="6" max="6" width="31.33203125" customWidth="1"/>
     */
     results = worksheet.findAllElements("col");
