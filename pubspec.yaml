@@ -40,8 +40,9 @@ dependencies:
   firebase_storage: ^12.2.0
   image_picker: ^1.1.2
   cloud_firestore: ^5.3.0
-  excel:
-    path: excel-4.0.6
+  # using flutter_excel instead of excel package because of this issue on files edited with WPS:
+  # https://github.com/justkawal/excel/issues/296
+  flutter_excel: ^1.0.1
   file_picker: ^8.0.7
 
 dev_dependencies:

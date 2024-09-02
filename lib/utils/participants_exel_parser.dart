@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:excel/excel.dart';
+import 'package:flutter_excel/excel.dart';
 import 'package:pdf_points/data/participant.dart';
 
 class ParticipantsExelParser {
@@ -19,7 +19,6 @@ class ParticipantsExelParser {
 
     print(firstNameCell);
     print(lastNameCell);
-
 
     return participants;
   }
