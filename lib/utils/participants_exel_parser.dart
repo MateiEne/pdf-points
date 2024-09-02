@@ -50,32 +50,16 @@ class ParticipantsExelParser {
     print(firstNameCell);
     print(lastNameCell);
 
-    for (int row = lastNameCell.rowIndex + 1; row < instructorsCell.rowIndex; row++) {
-      var firstName = pointsSheet.rows[row][firstNameCell.colIndex]?.value.toString();
-      var lastName = pointsSheet.rows[row][lastNameCell.colIndex]?.value.toString();
-
-      if (firstName == null && lastName == null) {
-        continue;
-      }
-
-      var group = groupCell == null ? null : pointsSheet.rows[row][groupCell.colIndex]?.value.toString();
-      print("Group: $group, firstName: $firstName, lastName: $lastName");
-
-      participants.add(
-        Participant(
-          firstName: firstName,
-          lastName: lastName,
-          groupId: group == null ? null : int.parse(group),
-        ),
-      );
-    }
+    participants.addAll(
+      _getParticipantsFromSheet(pointsSheet, lastNameCell, firstNameCell, groupCell, instructorsCell),
+    );
 
     return participants;
   }
 
-  static Data? _findCellWithValue(Sheet sheet, String value, {bool caseSensitive = false}) {
-    for (var row in sheet.rows) {
-      for (var cell in row) {
+  static Data? _findCellWithValue(Sheet sheet, String value, {bool caseSensitive = false, startRowIndex = 0}) {
+    for (var rowIndex = startRowIndex; rowIndex < sheet.rows.length; rowIndex++) {
+      for (var cell in sheet.rows[rowIndex]) {
         if (cell == null) {
           continue;
         }
@@ -88,6 +72,38 @@ class ParticipantsExelParser {
     }
 
     return null;
+  }
+
+  static List<Participant> _getParticipantsFromSheet(
+    Sheet sheet,
+    Data lastNameCell,
+    Data firstNameCell,
+    Data? groupCell,
+    Data instructorsCell,
+  ) {
+    List<Participant> participants = [];
+
+    for (int row = lastNameCell.rowIndex + 1; row < instructorsCell.rowIndex; row++) {
+      var firstName = sheet.rows[row][firstNameCell.colIndex]?.value.toString();
+      var lastName = sheet.rows[row][lastNameCell.colIndex]?.value.toString();
+
+      if (firstName == null && lastName == null) {
+        continue;
+      }
+
+      var group = groupCell == null ? null : sheet.rows[row][groupCell.colIndex]?.value.toString();
+      print("Group: $group, firstName: $firstName, lastName: $lastName");
+
+      participants.add(
+        Participant(
+          firstName: firstName,
+          lastName: lastName,
+          groupId: group == null ? null : int.parse(group),
+        ),
+      );
+    }
+
+    return participants;
   }
 
   static List<Participant> dummyListParticipants() {
