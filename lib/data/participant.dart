@@ -1,10 +1,11 @@
 class Participant {
-  final String firstName;
-  final String lastName;
+  final String? firstName;
+  final String? lastName;
   final String? phone;
   final int? groupId;
 
-  Participant({required this.firstName, required this.lastName, this.phone, this.groupId});
+  Participant({this.firstName, this.lastName, this.phone, this.groupId})
+      : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
 
   Participant copyWith({String? firstName, String? lastName, String? phone, int? groupId}) {
     return Participant(

@@ -9,6 +9,7 @@ const kSkiAndSnowboardInstructors = "Ski & SB Instructors";
 const kFirstName = "First Name";
 const kLastName = "Last Name";
 const kPoints = "Points";
+const kGroup = "Group";
 
 class ParticipantsExelParser {
   static Future<List<Participant>> parseParticipantsExcel(String path) async {
@@ -33,10 +34,41 @@ class ParticipantsExelParser {
     print(instructorsCell);
 
     var firstNameCell = _findCellWithValue(pointsSheet, kFirstName);
+    if (firstNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kFirstName' column in the participants table in '$kPoints' sheet");
+    }
+
     var lastNameCell = _findCellWithValue(pointsSheet, kLastName);
+    if (lastNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kLastName' column in the participants table in '$kPoints' sheet");
+    }
+
+    var groupCell = _findCellWithValue(pointsSheet, kGroup);
 
     print(firstNameCell);
     print(lastNameCell);
+
+    for (int row = lastNameCell.rowIndex + 1; row < instructorsCell.rowIndex; row++) {
+      var firstName = pointsSheet.rows[row][firstNameCell.colIndex]?.value.toString();
+      var lastName = pointsSheet.rows[row][lastNameCell.colIndex]?.value.toString();
+
+      if (firstName == null && lastName == null) {
+        continue;
+      }
+
+      var group = groupCell == null ? null : pointsSheet.rows[row][groupCell.colIndex]?.value.toString();
+      print("Group: $group, firstName: $firstName, lastName: $lastName");
+
+      participants.add(
+        Participant(
+          firstName: firstName,
+          lastName: lastName,
+          groupId: group == null ? null : int.parse(group),
+        ),
+      );
+    }
 
     return participants;
   }
