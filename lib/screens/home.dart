@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/participants_exel_parser.dart';
 
@@ -63,7 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    var participants = await ParticipantsExelParser.parseParticipantsExcel(path);
+    try {
+      var participants = await ParticipantsExelParser.parseParticipantsExcel(path);
+    } on ExcelParseException catch (e) {
+      if (context.mounted) {
+        context.showToast(e.message, negative: true);
+      }
+    }
   }
 
   @override
