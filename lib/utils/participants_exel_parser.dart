@@ -31,27 +31,12 @@ class ParticipantsExelParser {
           message: "Could not find '$kSkiAndSnowboardInstructors' or '$kSkiInstructors' in '$kPoints' sheet");
     }
 
-    print(instructorsCell);
-
-    var firstNameCell = _findCellWithValue(pointsSheet, kFirstName);
-    if (firstNameCell == null) {
-      throw const ExcelParseException(
-          message: "Could not find '$kFirstName' column in the participants table in '$kPoints' sheet");
-    }
-
-    var lastNameCell = _findCellWithValue(pointsSheet, kLastName);
-    if (lastNameCell == null) {
-      throw const ExcelParseException(
-          message: "Could not find '$kLastName' column in the participants table in '$kPoints' sheet");
-    }
-
-    var groupCell = _findCellWithValue(pointsSheet, kGroup);
-
-    print(firstNameCell);
-    print(lastNameCell);
+    participants.addAll(
+      _getParticipantsFromSheet(pointsSheet, instructorsCell),
+    );
 
     participants.addAll(
-      _getParticipantsFromSheet(pointsSheet, lastNameCell, firstNameCell, groupCell, instructorsCell),
+      _getInstructorsFromSheet(pointsSheet, instructorsCell)
     );
 
     return participants;
@@ -74,13 +59,61 @@ class ParticipantsExelParser {
     return null;
   }
 
-  static List<Participant> _getParticipantsFromSheet(
-    Sheet sheet,
-    Data lastNameCell,
-    Data firstNameCell,
-    Data? groupCell,
-    Data instructorsCell,
-  ) {
+  static List<Participant> _getInstructorsFromSheet(Sheet sheet, Data instructorsCell) {
+    var firstNameCell = _findCellWithValue(sheet, kFirstName, startRowIndex: instructorsCell.rowIndex + 1);
+    if (firstNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kFirstName' column for the instructors table in '$kPoints' sheet");
+    }
+
+    var lastNameCell = _findCellWithValue(sheet, kLastName, startRowIndex: instructorsCell.rowIndex + 1);
+    if (lastNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kLastName' column for the instructors table in '$kPoints' sheet");
+    }
+
+    var groupCell = _findCellWithValue(sheet, kGroup, startRowIndex: instructorsCell.rowIndex + 1);
+
+    List<Participant> instructors = [];
+
+    for (int row = lastNameCell.rowIndex + 1; row < sheet.rows.length; row++) {
+      var firstName = sheet.rows[row][firstNameCell.colIndex]?.value.toString();
+      var lastName = sheet.rows[row][lastNameCell.colIndex]?.value.toString();
+
+      if (firstName == null && lastName == null) {
+        break;
+      }
+
+      var group = groupCell == null ? null : sheet.rows[row][groupCell.colIndex]?.value.toString();
+
+      instructors.add(
+        Participant(
+          firstName: firstName,
+          lastName: lastName,
+          groupId: group == null ? row - lastNameCell.rowIndex : int.parse(group),
+          isInstructor: true,
+        ),
+      );
+    }
+
+    return instructors;
+  }
+
+  static List<Participant> _getParticipantsFromSheet(Sheet sheet, Data instructorsCell) {
+    var firstNameCell = _findCellWithValue(sheet, kFirstName);
+    if (firstNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kFirstName' column for the participants table in '$kPoints' sheet");
+    }
+
+    var lastNameCell = _findCellWithValue(sheet, kLastName);
+    if (lastNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kLastName' column for the participants table in '$kPoints' sheet");
+    }
+
+    var groupCell = _findCellWithValue(sheet, kGroup);
+
     List<Participant> participants = [];
 
     for (int row = lastNameCell.rowIndex + 1; row < instructorsCell.rowIndex; row++) {
@@ -92,7 +125,6 @@ class ParticipantsExelParser {
       }
 
       var group = groupCell == null ? null : sheet.rows[row][groupCell.colIndex]?.value.toString();
-      print("Group: $group, firstName: $firstName, lastName: $lastName");
 
       participants.add(
         Participant(

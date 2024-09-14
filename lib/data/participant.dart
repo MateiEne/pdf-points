@@ -5,8 +5,13 @@ class Participant {
   final int? groupId;
   final bool isInstructor;
 
-  Participant({this.firstName, this.lastName, this.phone, this.groupId, this.isInstructor = false})
-      : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
+  Participant({
+    this.firstName,
+    this.lastName,
+    this.phone,
+    this.groupId,
+    this.isInstructor = false,
+  }) : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
 
   Participant copyWith({String? firstName, String? lastName, String? phone, int? groupId, bool? isInstructor}) {
     return Participant(
