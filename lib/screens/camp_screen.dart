@@ -71,6 +71,7 @@ class _CampScreenState extends State<CampScreen> {
                   children: [
                     // Instructors
                     Expanded(
+                      flex: 5,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
