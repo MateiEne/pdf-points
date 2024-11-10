@@ -1,6 +1,9 @@
+import 'package:collection/collection.dart';
+import 'package:data_table_2/data_table_2.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
+import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/utils/context_utils.dart';
@@ -41,7 +44,7 @@ class _CampScreenState extends State<CampScreen> {
     }
 
     try {
-      var participants = await ParticipantsExelParser.parseParticipantsExcel(fileBytes);
+      var participants = await ParticipantsExelParser.getParticipantsFromExcel(fileBytes);
       safeSetState(() {
         _participants = participants;
       });
@@ -54,8 +57,6 @@ class _CampScreenState extends State<CampScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Participant> students = _participants.where((p) => !p.isInstructor).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Camp Name'),
@@ -73,18 +74,72 @@ class _CampScreenState extends State<CampScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Students
-                    const Text(
-                      'Participants',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Text(
+                      'Participants: ${_participants.length}',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
+
+                    const SizedBox(height: 8),
+
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: students.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text('${students[index].lastName} ${students[index].firstName}'),
-                          );
-                        },
+                      child: DataTable2(
+                        headingRowColor: WidgetStateColor.resolveWith((states) => kAppSeedColor),
+                        headingTextStyle: const TextStyle(color: Colors.white),
+                        isHorizontalScrollBarVisible: true,
+                        isVerticalScrollBarVisible: true,
+                        columnSpacing: 6,
+                        horizontalMargin: 0,
+                        border: const TableBorder(
+                            top: BorderSide(color: Colors.grey),
+                            bottom: BorderSide(color: Colors.grey),
+                            left: BorderSide(color: Colors.grey),
+                            right: BorderSide(color: Colors.grey),
+                            verticalInside: BorderSide(color: Colors.grey),
+                            horizontalInside: BorderSide(color: Colors.grey, width: 1)),
+                        dividerThickness: 1,
+                        // this one will be ignored if [border] is set above
+                        columns: const [
+                          DataColumn2(
+                            label: Text('No.'),
+                            numeric: true,
+                            fixedWidth: 32,
+                          ),
+                          DataColumn2(
+                            label: Text('Group'),
+                            size: ColumnSize.S,
+                          ),
+                          DataColumn2(
+                            label: Text('Last Name'),
+                            size: ColumnSize.L,
+                          ),
+                          DataColumn2(
+                            label: Text('First Name'),
+                            size: ColumnSize.L,
+                          ),
+                        ],
+                        rows: _participants
+                            .mapIndexed((index, p) => DataRow(
+                                  color: WidgetStateColor.resolveWith(
+                                      (states) => index.isEven ? kAppSeedColor.withOpacity(0.3) : Colors.white),
+                                  cells: [
+                                    DataCell(
+                                      Text(
+                                        "${index + 1}.",
+                                        style: TextStyle(color: Colors.grey[600]),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Center(child: Text("${p.groupId ?? 'N/A'}")),
+                                    ),
+                                    DataCell(
+                                      Text(p.lastName ?? 'N/A'),
+                                    ),
+                                    DataCell(
+                                      Text(p.firstName ?? 'N/A'),
+                                    ),
+                                  ],
+                                ))
+                            .toList(),
                       ),
                     ),
                   ],

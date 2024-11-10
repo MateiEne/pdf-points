@@ -5,6 +5,8 @@ class Participant {
   final int? groupId;
   final bool isInstructor;
 
+  String get fullName => [firstName, lastName].where((name) => name != null).join(' ');
+
   Participant({
     this.firstName,
     this.lastName,

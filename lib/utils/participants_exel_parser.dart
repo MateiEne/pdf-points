@@ -48,7 +48,7 @@ class ParticipantsExelParser {
     return participants;
   }
 
-  static Future<List<Participant>> getParticipantsExcel(Uint8List bytes) async {
+  static Future<List<Participant>> getParticipantsFromExcel(Uint8List bytes) async {
     var excel = Excel.decodeBytes(bytes);
 
     List<Participant> participants = [];

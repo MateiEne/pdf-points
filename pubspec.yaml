@@ -46,6 +46,8 @@ dependencies:
   file_picker: ^8.0.7
   expandable: ^5.0.1
   material_loading_buttons: ^1.2.1
+  styled_text: ^8.1.0
+  data_table_2: ^2.5.15
 
 dev_dependencies:
   flutter_test:
