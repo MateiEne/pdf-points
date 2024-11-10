@@ -54,8 +54,6 @@ class _CampScreenState extends State<CampScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter instructors and students
-    List<Participant> instructors = _participants.where((p) => p.isInstructor).toList();
     List<Participant> students = _participants.where((p) => !p.isInstructor).toList();
 
     return Scaffold(
@@ -74,52 +72,19 @@ class _CampScreenState extends State<CampScreen> {
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Instructors
-                    Expanded(
-                      flex: 5,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Instructors',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: instructors.length,
-                              itemBuilder: (context, index) {
-                                return ListTile(
-                                  title: Text('${instructors[index].firstName} ${instructors[index].lastName}'),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
                     // Students
+                    const Text(
+                      'Participants',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Participants',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: students.length,
-                              itemBuilder: (context, index) {
-                                return ListTile(
-                                  title: Text('${students[index].firstName} ${students[index].lastName}'),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                      child: ListView.builder(
+                        itemCount: students.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text('${students[index].lastName} ${students[index].firstName}'),
+                          );
+                        },
                       ),
                     ),
                   ],

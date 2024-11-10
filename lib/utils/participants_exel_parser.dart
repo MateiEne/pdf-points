@@ -48,6 +48,31 @@ class ParticipantsExelParser {
     return participants;
   }
 
+  static Future<List<Participant>> getParticipantsExcel(Uint8List bytes) async {
+    var excel = Excel.decodeBytes(bytes);
+
+    List<Participant> participants = [];
+
+    Sheet pointsSheet = excel[kPoints];
+    if (pointsSheet.maxRows == 0) {
+      throw const ExcelParseException(message: "Could not find '$kPoints' sheet");
+    }
+
+    var instructorsCell = _findCellWithValue(pointsSheet, kSkiAndSnowboardInstructors);
+    instructorsCell ??= _findCellWithValue(pointsSheet, kSkiInstructors);
+
+    if (instructorsCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kSkiAndSnowboardInstructors' or '$kSkiInstructors' in '$kPoints' sheet");
+    }
+
+    participants.addAll(
+      _getParticipantsFromSheet(pointsSheet, instructorsCell),
+    );
+
+    return participants;
+  }
+
   static Data? _findCellWithValue(Sheet sheet, String value, {bool caseSensitive = false, startRowIndex = 0}) {
     for (var rowIndex = startRowIndex; rowIndex < sheet.rows.length; rowIndex++) {
       for (var cell in sheet.rows[rowIndex]) {
@@ -106,16 +131,16 @@ class ParticipantsExelParser {
   }
 
   static List<Participant> _getParticipantsFromSheet(Sheet sheet, Data instructorsCell) {
-    var firstNameCell = _findCellWithValue(sheet, kFirstName);
-    if (firstNameCell == null) {
-      throw const ExcelParseException(
-          message: "Could not find '$kFirstName' column for the participants table in '$kPoints' sheet");
-    }
-
     var lastNameCell = _findCellWithValue(sheet, kLastName);
     if (lastNameCell == null) {
       throw const ExcelParseException(
           message: "Could not find '$kLastName' column for the participants table in '$kPoints' sheet");
+    }
+
+    var firstNameCell = _findCellWithValue(sheet, kFirstName);
+    if (firstNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kFirstName' column for the participants table in '$kPoints' sheet");
     }
 
     var groupCell = _findCellWithValue(sheet, kGroup);
@@ -136,7 +161,7 @@ class ParticipantsExelParser {
         Participant(
           firstName: firstName,
           lastName: lastName,
-          groupId: group == null ? null : int.parse(group),
+          groupId: group == null ? null : int.tryParse(group),
         ),
       );
     }
