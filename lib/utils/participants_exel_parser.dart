@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_excel/excel.dart';
 import 'package:pdf_points/data/participant.dart';
@@ -12,8 +13,13 @@ const kPoints = "Points";
 const kGroup = "Group";
 
 class ParticipantsExelParser {
-  static Future<List<Participant>> parseParticipantsExcel(String path) async {
-    var bytes = File(path).readAsBytesSync();
+  static Future<List<Participant>> parseParticipantsFromExcel(String path) async {
+    Uint8List bytes = File(path).readAsBytesSync();
+
+    return parseParticipantsExcel(bytes);
+  }
+
+  static Future<List<Participant>> parseParticipantsExcel(Uint8List bytes) async {
     var excel = Excel.decodeBytes(bytes);
 
     List<Participant> participants = [];

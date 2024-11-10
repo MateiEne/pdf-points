@@ -1,9 +1,11 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/participants_exel_parser.dart';
+import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class CampScreen extends StatefulWidget {
@@ -23,25 +25,28 @@ class _CampScreenState extends State<CampScreen> {
       allowMultiple: false,
     );
 
-    if (pickedFile == null) {
+    if (!mounted || pickedFile == null) {
       return;
     }
 
-    var path = pickedFile.files.first.path;
-    if (path == null) {
-      if (context.mounted) {
-        context.showToast("Could not open the file", negative: true);
-      }
+    if (pickedFile.files.isEmpty) {
+      context.showToast("Empty selection", negative: true);
+      return;
+    }
+
+    final fileBytes = pickedFile.files.first.getBytes();
+    if (fileBytes == null) {
+      context.showToast("Could not open the file", negative: true);
       return;
     }
 
     try {
-      var participants = await ParticipantsExelParser.parseParticipantsExcel(path);
+      var participants = await ParticipantsExelParser.parseParticipantsExcel(fileBytes);
       safeSetState(() {
         _participants = participants;
       });
     } on ExcelParseException catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         context.showToast(e.message, negative: true);
       }
     }
@@ -62,7 +67,7 @@ class _CampScreenState extends State<CampScreen> {
         padding: const EdgeInsets.all(8.0),
         child: Center(
           child: _participants.isEmpty
-              ? ElevatedButton(
+              ? ElevatedAutoLoadingButton(
                   onPressed: _selectFile,
                   child: const Text("Import participants excel"),
                 )

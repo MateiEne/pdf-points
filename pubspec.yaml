@@ -45,6 +45,7 @@ dependencies:
   flutter_excel: ^1.0.1
   file_picker: ^8.0.7
   expandable: ^5.0.1
+  material_loading_buttons: ^1.2.1
 
 dev_dependencies:
   flutter_test:
