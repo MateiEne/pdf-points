@@ -23,7 +23,15 @@ extension DateTimeUtils on DateTime {
     return year == other.year && month == other.month && day == other.day;
   }
 
+  bool isBeforeOrEqual(DateTime other) {
+    return isBefore(other) || other == this;
+  }
+
   DateTime nextYear() {
     return copyWith(year: year + 1);
+  }
+
+  static DateTime today() {
+    return DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
   }
 }

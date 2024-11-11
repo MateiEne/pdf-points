@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
+import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
@@ -65,13 +66,13 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
+    // close the fab
+    _fabKey.currentState?.toggle();
+
     // start fab loading animation
     safeSetState(() {
       _loadingFab = true;
     });
-
-    // close the fab
-    _fabKey.currentState?.toggle();
 
     // open file picker
     FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
@@ -105,9 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // TODO: get the camp object from the excel file
       var camp = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       showDialog(context: context, builder: (_) => AddCampDialog(campInfo: camp));
     } catch (e) {
@@ -117,6 +116,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     stopFabLoading();
+  }
+
+  void _onManuallyAddCamp({ExcelCampInfo? campInfo}) {
+    // close the fab
+    _fabKey.currentState?.toggle();
+
+    showDialog(context: context, builder: (_) => AddCampDialog(campInfo: campInfo));
   }
 
   @override
@@ -170,9 +176,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               : const Icon(Icons.add),
         ),
+        afterOpen: () {
+          if (_loadingFab) {
+            // close the fab since is in the loading state
+            _fabKey.currentState?.toggle();
+          }
+        },
         children: [
           FloatingActionButton.extended(
-            onPressed: () {},
+            onPressed: _onManuallyAddCamp,
             label: const Text("Manually"),
             icon: const Icon(Icons.edit),
           ),
