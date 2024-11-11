@@ -40,6 +40,14 @@ dependencies:
   firebase_storage: ^12.2.0
   image_picker: ^1.1.2
   cloud_firestore: ^5.3.0
+  # using flutter_excel instead of excel package because of this issue on files edited with WPS:
+  # https://github.com/justkawal/excel/issues/296
+  flutter_excel: ^1.0.1
+  file_picker: ^8.0.7
+  expandable: ^5.0.1
+  material_loading_buttons: ^1.2.1
+  styled_text: ^8.1.0
+  data_table_2: ^2.5.15
 
 dev_dependencies:
   flutter_test:

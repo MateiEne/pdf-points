@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pdf_points/screens/camp_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +12,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isSuperUser = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSuperUser();
+  }
 
   void _checkSuperUser() async {
     final user = FirebaseAuth.instance.currentUser!;
@@ -33,23 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _checkSuperUser();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    Widget content = const Center(
-      child: Text('Coming soon ...'),
-    );
-
-    if (_isSuperUser) {
-      content = const Center(
-        child: Text('Coming soon ... super user .......'),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -63,7 +54,23 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: const Drawer(),
-      body: content,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Coming soon ... ${_isSuperUser ? 'super user' : 'normal user'}'),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CampScreen()),
+                );
+              },
+              child: const Text("Go to camp"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

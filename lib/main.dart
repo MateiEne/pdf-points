@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/screens/auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:pdf_points/screens/home.dart';
@@ -7,7 +8,7 @@ import 'package:pdf_points/screens/splash.dart';
 import 'firebase_options.dart';
 
 final ColorScheme kColorScheme = ColorScheme.fromSeed(
-  seedColor: const Color.fromARGB(255, 60, 100, 100),
+  seedColor: kAppSeedColor,
 );
 
 void main() async {
