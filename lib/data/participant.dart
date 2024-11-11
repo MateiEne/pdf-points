@@ -24,4 +24,9 @@ class Participant {
       isInstructor: isInstructor ?? this.isInstructor,
     );
   }
+
+  @override
+  String toString() {
+    return 'Participant(firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId, isInstructor: $isInstructor)';
+  }
 }

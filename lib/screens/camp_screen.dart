@@ -7,7 +7,7 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/utils/context_utils.dart';
-import 'package:pdf_points/utils/participants_exel_parser.dart';
+import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
@@ -44,7 +44,7 @@ class _CampScreenState extends State<CampScreen> {
     }
 
     try {
-      var participants = await ParticipantsExelParser.getParticipantsFromExcel(fileBytes);
+      var participants = await PdfPointsExelParser.getParticipantsFromExcel(fileBytes);
       safeSetState(() {
         _participants = participants;
       });

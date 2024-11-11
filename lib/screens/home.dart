@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
+import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
+import 'package:pdf_points/utils/context_utils.dart';
+import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
+import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,7 +18,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _key = GlobalKey<ExpandableFabState>();
+  final _fabKey = GlobalKey<ExpandableFabState>();
+  bool _loadingFab = false;
 
   bool _isSuperUser = false;
   bool _isLoading = true;
@@ -52,6 +58,63 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _onAddCampFromExcel() async {
+    void stopFabLoading() {
+      safeSetState(() {
+        _loadingFab = false;
+      });
+    }
+
+    // start fab loading animation
+    safeSetState(() {
+      _loadingFab = true;
+    });
+
+    // close the fab
+    _fabKey.currentState?.toggle();
+
+    // open file picker
+    FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+      allowMultiple: false,
+    );
+
+    if (!mounted || pickedFile == null) {
+      // no file picked => stop fab loading animation
+      stopFabLoading();
+      return;
+    }
+
+    if (pickedFile.files.isEmpty) {
+      // empty file selection => stop fab loading animation
+      stopFabLoading();
+      context.showToast("Empty selection", negative: true);
+      return;
+    }
+
+    final fileBytes = pickedFile.files.first.getBytes();
+    if (fileBytes == null) {
+      // no file bytes => stop fab loading animation
+      stopFabLoading();
+      context.showToast("Could not open the file", negative: true);
+      return;
+    }
+
+    try {
+      // TODO: get the camp object from the excel file
+      var camp = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
+      print(camp);
+
+    } catch (e) {
+      if (mounted) {
+        context.showToast(e.toString(), negative: true);
+      }
+    }
+
+    stopFabLoading();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,6 +148,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+      ),
+      floatingActionButtonLocation: ExpandableFab.location,
+      floatingActionButton: ExpandableFab(
+        key: _fabKey,
+        // type: ExpandableFabType.up,
+        distance: 75,
+        overlayStyle: ExpandableFabOverlayStyle(
+          color: Colors.black.withOpacity(0.5),
+          blur: 3,
+        ),
+        openButtonBuilder: RotateFloatingActionButtonBuilder(
+          child: _loadingFab
+              ? const Padding(
+                  padding: EdgeInsets.all(14.0),
+                  child: CircularProgressIndicator(),
+                )
+              : const Icon(Icons.add),
+        ),
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () {},
+            label: const Text("Manually"),
+            icon: const Icon(Icons.edit),
+          ),
+          FloatingActionButton.extended(
+            onPressed: _onAddCampFromExcel,
+            label: const Text("From Excel"),
+            icon: const Icon(Icons.file_open),
+          ),
+        ],
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:any_date/any_date.dart';
 import 'package:flutter_excel/excel.dart';
+import 'package:pdf_points/data/excel_camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
 
@@ -11,8 +13,9 @@ const kFirstName = "First Name";
 const kLastName = "Last Name";
 const kPoints = "Points";
 const kGroup = "Group";
+const kTotal = "Total";
 
-class ParticipantsExelParser {
+class PdfPointsExelParser {
   static Future<List<Participant>> parseParticipantsFromExcel(String path) async {
     Uint8List bytes = File(path).readAsBytesSync();
 
@@ -41,9 +44,7 @@ class ParticipantsExelParser {
       _getParticipantsFromSheet(pointsSheet, instructorsCell),
     );
 
-    participants.addAll(
-      _getInstructorsFromSheet(pointsSheet, instructorsCell)
-    );
+    participants.addAll(_getInstructorsFromSheet(pointsSheet, instructorsCell));
 
     return participants;
   }
@@ -73,8 +74,42 @@ class ParticipantsExelParser {
     return participants;
   }
 
-  static Data? _findCellWithValue(Sheet sheet, String value, {bool caseSensitive = false, startRowIndex = 0}) {
-    for (var rowIndex = startRowIndex; rowIndex < sheet.rows.length; rowIndex++) {
+  static Future<ExcelCamp> getCampInfoFromExcel(Uint8List bytes) async {
+    var excel = Excel.decodeBytes(bytes);
+
+    Sheet pointsSheet = excel[kPoints];
+    if (pointsSheet.maxRows == 0) {
+      throw const ExcelParseException(message: "Could not find '$kPoints' sheet");
+    }
+
+    var instructorsCell = _findCellWithValue(pointsSheet, kSkiAndSnowboardInstructors);
+    instructorsCell ??= _findCellWithValue(pointsSheet, kSkiInstructors);
+
+    if (instructorsCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kSkiAndSnowboardInstructors' or '$kSkiInstructors' in '$kPoints' sheet");
+    }
+
+    var campName = _getCampName(pointsSheet);
+    var startDate = _getCampStartDate(pointsSheet);
+    var endDate = _getCampEndDate(pointsSheet);
+    List<Participant> participants = _getParticipantsFromSheet(pointsSheet, instructorsCell);
+
+    return ExcelCamp(
+      name: campName,
+      startDate: startDate,
+      endDate: endDate,
+      participants: participants,
+    );
+  }
+
+  static Data? _findCellWithValue(Sheet sheet, String value,
+      {bool caseSensitive = false, int startRowIndex = 0, int endRowIndex = -1}) {
+    if (endRowIndex == -1) {
+      endRowIndex = sheet.rows.length;
+    }
+
+    for (var rowIndex = startRowIndex; rowIndex < endRowIndex; rowIndex++) {
       for (var cell in sheet.rows[rowIndex]) {
         if (cell == null) {
           continue;
@@ -167,6 +202,82 @@ class ParticipantsExelParser {
     }
 
     return participants;
+  }
+
+  static String _getCampName(Sheet sheet) {
+    // in The PdF points chart excel the camp name is in the B1 cell
+    return sheet.rows[0][1]!.value.toString();
+  }
+
+  static DateTime? _getCampStartDate(Sheet sheet) {
+    // in The PdF points chart excel the camp start date is the right cell of the First name cell
+    var firstNameCell = _findCellWithValue(sheet, kFirstName);
+    if (firstNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kFirstName' column for the participants table in '$kPoints' sheet");
+    }
+
+    var campStartDateCell = sheet.rows[firstNameCell.rowIndex][firstNameCell.colIndex + 1];
+    if (campStartDateCell == null) {
+      throw const ExcelParseException(
+          message:
+              "Could not find the start date after the '$kFirstName' column for the participants table in '$kPoints' sheet");
+    }
+    var value = campStartDateCell.value.toString();
+
+    // add the current year to the date (in the excel file the date is only the day and month)
+    var estimateDate = "$value-${DateTime.now().year}";
+
+    // parse the value
+    const parser = AnyDate();
+    var date = parser.parse(estimateDate);
+
+    // check if the date is after the current date. If not, it means that we added the wrong year to the date.
+    if (date.isBefore(DateTime.now())) {
+      estimateDate = "$value-${DateTime.now().year + 1}";
+      date = parser.parse(estimateDate);
+    }
+
+    return date;
+  }
+
+  static DateTime? _getCampEndDate(Sheet sheet) {
+    // in The PdF points chart excel the camp end date is the left cell of the Total cell from the First name row
+    var firstNameCell = _findCellWithValue(sheet, kFirstName);
+    if (firstNameCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kFirstName' column for the participants table in '$kPoints' sheet");
+    }
+
+    var totalCell = _findCellWithValue(sheet, kTotal,
+        startRowIndex: firstNameCell.rowIndex, endRowIndex: firstNameCell.rowIndex + 1);
+    if (totalCell == null) {
+      throw const ExcelParseException(
+          message: "Could not find '$kTotal' column for the participants table in '$kPoints' sheet");
+    }
+
+    var campEndDateCell = sheet.rows[totalCell.rowIndex][totalCell.colIndex - 1];
+    if (campEndDateCell == null) {
+      throw const ExcelParseException(
+          message:
+              "Could not find the end date before the '$kTotal' column for the participants table from '$kPoints' sheet");
+    }
+    var value = campEndDateCell.value.toString();
+
+    // add the current year to the date (in the excel file the date is only the day and month)
+    var estimateDate = "$value-${DateTime.now().year}";
+
+    // parse the value
+    const parser = AnyDate();
+    var date = parser.parse(estimateDate);
+
+    // check if the date is after the current date. If not, it means that we added the wrong year to the date.
+    if (date.isBefore(DateTime.now())) {
+      estimateDate = "$value-${DateTime.now().year + 1}";
+      date = parser.parse(estimateDate);
+    }
+
+    return date;
   }
 
   static List<Participant> dummyListParticipants() {
