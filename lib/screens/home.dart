@@ -3,12 +3,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
-import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
+import 'package:pdf_points/widgets/add_camp_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -104,8 +104,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // TODO: get the camp object from the excel file
       var camp = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
-      print(camp);
 
+      if (!mounted) {
+        return;
+      }
+
+      showDialog(context: context, builder: (_) => AddCampDialog(campInfo: camp));
     } catch (e) {
       if (mounted) {
         context.showToast(e.toString(), negative: true);

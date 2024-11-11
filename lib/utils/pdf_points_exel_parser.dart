@@ -3,9 +3,10 @@ import 'dart:typed_data';
 
 import 'package:any_date/any_date.dart';
 import 'package:flutter_excel/excel.dart';
-import 'package:pdf_points/data/excel_camp.dart';
+import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
+import 'package:pdf_points/utils/date_utils.dart';
 
 const kSkiInstructors = "Ski Instructors";
 const kSkiAndSnowboardInstructors = "Ski & SB Instructors";
@@ -74,7 +75,7 @@ class PdfPointsExelParser {
     return participants;
   }
 
-  static Future<ExcelCamp> getCampInfoFromExcel(Uint8List bytes) async {
+  static Future<ExcelCampInfo> getCampInfoFromExcel(Uint8List bytes) async {
     var excel = Excel.decodeBytes(bytes);
 
     Sheet pointsSheet = excel[kPoints];
@@ -95,10 +96,10 @@ class PdfPointsExelParser {
     var endDate = _getCampEndDate(pointsSheet);
     List<Participant> participants = _getParticipantsFromSheet(pointsSheet, instructorsCell);
 
-    return ExcelCamp(
+    return ExcelCampInfo(
       name: campName,
-      startDate: startDate,
-      endDate: endDate,
+      startSkiDate: startDate,
+      endSkiDate: endDate,
       participants: participants,
     );
   }
@@ -234,7 +235,7 @@ class PdfPointsExelParser {
 
     // check if the date is after the current date. If not, it means that we added the wrong year to the date.
     if (date.isBefore(DateTime.now())) {
-      estimateDate = "$value-${DateTime.now().year + 1}";
+      estimateDate = "$value-${DateTime.now().nextYear()}";
       date = parser.parse(estimateDate);
     }
 
@@ -273,7 +274,7 @@ class PdfPointsExelParser {
 
     // check if the date is after the current date. If not, it means that we added the wrong year to the date.
     if (date.isBefore(DateTime.now())) {
-      estimateDate = "$value-${DateTime.now().year + 1}";
+      estimateDate = "$value-${DateTime.now().nextYear()}";
       date = parser.parse(estimateDate);
     }
 
