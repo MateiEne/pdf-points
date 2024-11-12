@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
@@ -27,6 +30,8 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+
+  File? _image;
 
   @override
   void initState() {
@@ -59,11 +64,24 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
     });
   }
 
+  Future<void> _onAddImage() async {
+    final ImagePicker imagePicker = ImagePicker();
+    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) {
+      return;
+    }
+
+    safeSetState(() {
+      _image = File(pickedFile.path);
+    });
+  }
+
   Future<void> _onAddCamp() async {
-    // var valid = _formKey.currentState?.validate() ?? false;
-    // if (!valid) {
-    //   return;
-    // }
+    var valid = _formKey.currentState?.validate() ?? false;
+    if (!valid) {
+      return;
+    }
 
     // TODO: save the camp to firebase:
     // FirebaseManager.instance.addCamp(
@@ -134,22 +152,19 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
           // Camp Image
           ConstrainedBox(
             constraints: const BoxConstraints(
-              maxHeight: 400,
+              maxHeight: 300,
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                AnimatedSizeAndFade.showHide(
-                  show: true,
-                  child: const Image(
-                    image: NetworkImage(
-                      // 'https://www.pdf.ro/wp-content/uploads/2020/10/SCHY4148_export.jpg',
-                      'https://www.pdf.ro/wp-content/uploads/2020/10/Andy_export.jpg',
-                      // 'https://www.pdf.ro/wp-content/uploads/2020/10/Jerry_export.jpg',
+                if (_image != null)
+                  AnimatedSizeAndFade.showHide(
+                    show: true,
+                    child: Image(
+                      image: FileImage(_image!),
+                      fit: BoxFit.cover,
                     ),
-                    fit: BoxFit.cover,
                   ),
-                ),
                 IconButton(
                   icon: Container(
                     decoration: BoxDecoration(
@@ -163,7 +178,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
                       size: 32,
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: _onAddImage,
                 ),
               ],
             ),
