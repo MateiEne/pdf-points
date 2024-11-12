@@ -10,7 +10,7 @@ import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_camp_content.dart';
-import 'package:pdf_points/widgets/add_camp_image_content.dart';
+import 'package:pdf_points/widgets/image_picker_with_defaults.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddCampFab extends StatefulWidget {
@@ -152,9 +152,9 @@ class _AddCampFabState extends State<AddCampFab> {
           mainContentSliversBuilder: (context) => [
             SliverPadding(
               padding: const EdgeInsets.all(16),
-              sliver: AddCampImageContent(
+              sliver: ImagePickerWithDefaults(
                 crossAxisCount: 3,
-                defaultImages: kDefaultCampImages,
+                assetsImages: kDefaultCampImages,
                 onImageSelected: (Uint8List image) {
                   Navigator.of(modalSheetContext).pop(image);
                 },

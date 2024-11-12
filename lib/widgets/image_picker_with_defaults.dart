@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
-class AddCampImageContent extends StatelessWidget {
-  const AddCampImageContent({
+class ImagePickerWithDefaults extends StatelessWidget {
+  const ImagePickerWithDefaults({
     super.key,
     this.crossAxisCount = 3,
-    this.defaultImages = const [],
+    this.assetsImages = const [],
     required this.onImageSelected,
   });
 
-  final List<String> defaultImages;
+  final List<String> assetsImages;
   final int crossAxisCount;
   final void Function(Uint8List image) onImageSelected;
 
@@ -37,7 +37,7 @@ class AddCampImageContent extends StatelessWidget {
       ),
       delegate: SliverChildBuilderDelegate(
         (BuildContext _, int index) {
-          if (index == defaultImages.length) {
+          if (index == assetsImages.length) {
             return ElevatedButton(
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -63,7 +63,7 @@ class AddCampImageContent extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
               image: DecorationImage(
-                image: AssetImage(defaultImages[index]),
+                image: AssetImage(assetsImages[index]),
                 fit: BoxFit.cover,
               ),
             ),
@@ -71,13 +71,13 @@ class AddCampImageContent extends StatelessWidget {
               splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
               borderRadius: BorderRadius.circular(4),
               onTap: () async {
-                final data = await rootBundle.load(defaultImages[index]);
+                final data = await rootBundle.load(assetsImages[index]);
                 onImageSelected(data.buffer.asUint8List());
               },
             ),
           );
         },
-        childCount: defaultImages.length + 1,
+        childCount: assetsImages.length + 1,
       ),
     );
   }
