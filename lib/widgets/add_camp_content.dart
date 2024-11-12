@@ -132,13 +132,40 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Camp Image
-          AnimatedSizeAndFade.showHide(
-            show: true,
-            child: const Image(
-              image: NetworkImage(
-                'https://www.pdf.ro/wp-content/uploads/2020/10/SCHY4148_export.jpg',
-              ),
-              fit: BoxFit.cover,
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxHeight: 400,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedSizeAndFade.showHide(
+                  show: true,
+                  child: const Image(
+                    image: NetworkImage(
+                      // 'https://www.pdf.ro/wp-content/uploads/2020/10/SCHY4148_export.jpg',
+                      'https://www.pdf.ro/wp-content/uploads/2020/10/Andy_export.jpg',
+                      // 'https://www.pdf.ro/wp-content/uploads/2020/10/Jerry_export.jpg',
+                    ),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                IconButton(
+                  icon: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    width: 100,
+                    height: 100,
+                    child: const Icon(
+                      Icons.add_a_photo_rounded,
+                      size: 32,
+                    ),
+                  ),
+                  onPressed: () {},
+                ),
+              ],
             ),
           ),
 
