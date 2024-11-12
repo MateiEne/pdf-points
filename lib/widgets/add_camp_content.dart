@@ -12,9 +12,14 @@ import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/date_time_picker_widget.dart';
 
 class AddCampContentWidget extends StatefulWidget {
-  const AddCampContentWidget({super.key, this.campInfo});
+  const AddCampContentWidget({
+    super.key,
+    this.campInfo,
+    this.onAddImage,
+  });
 
   final ExcelCampInfo? campInfo;
+  final Future<Uint8List?> Function()? onAddImage;
 
   @override
   State<AddCampContentWidget> createState() => _AddCampContentWidgetState();
@@ -32,7 +37,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  File? _image;
+  Uint8List? _image;
 
   @override
   void initState() {
@@ -66,6 +71,24 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
   }
 
   Future<void> _onAddImage() async {
+    if (widget.onAddImage == null) {
+      await _openGallery();
+      return;
+    }
+
+    var image = await widget.onAddImage!();
+    if (image == null) {
+      return;
+    }
+
+    safeSetState(() {
+      _image = image;
+    });
+
+    return;
+  }
+
+  Future<void> _openGallery() async {
     final ImagePicker imagePicker = ImagePicker();
     final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
 
@@ -73,8 +96,10 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
       return;
     }
 
+    var data = await pickedFile.readAsBytes();
+
     safeSetState(() {
-      _image = File(pickedFile.path);
+      _image = data;
     });
   }
 
@@ -92,6 +117,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
     //   endDate: _endDate,
     //   participants: widget.campInfo?.participants ?? [],
     //   instructors: [],
+    //   image: _image,
     // );
     await Future.delayed(const Duration(seconds: 1));
 
@@ -162,9 +188,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
                   AnimatedSizeAndFade.showHide(
                     show: true,
                     child: Image(
-                      image: kIsWeb
-                          ? NetworkImage(_image!.path)
-                          : FileImage(File(_image!.path)),
+                      image: MemoryImage(_image!),
                       fit: BoxFit.cover,
                     ),
                   ),

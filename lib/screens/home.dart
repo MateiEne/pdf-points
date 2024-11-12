@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +14,7 @@ import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_camp_content.dart';
+import 'package:pdf_points/widgets/add_camp_image_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -134,7 +138,10 @@ class _HomeScreenState extends State<HomeScreen> {
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(
           hasSabGradient: false,
-          topBarTitle: Text('Add Camp', style: Theme.of(context).textTheme.titleLarge),
+          topBarTitle: Text(
+            'Add Camp',
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
+          ),
           isTopBarLayerAlwaysVisible: true,
           trailingNavBarWidget: IconButton(
             padding: const EdgeInsets.all(16.0),
@@ -143,7 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: AddCampContentWidget(campInfo: campInfo),
+            child: AddCampContentWidget(
+              campInfo: campInfo,
+              onAddImage: _openPicturesModal,
+            ),
           ),
         ),
       ],
@@ -158,6 +168,50 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.of(context).pop();
       },
     );
+  }
+
+  Future<Uint8List?> _openPicturesModal() async {
+    return WoltModalSheet.show<void>(
+      context: context,
+      pageListBuilder: (modalSheetContext) => [
+        SliverWoltModalSheetPage(
+          topBarTitle: Text(
+            'Add Picture',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          isTopBarLayerAlwaysVisible: true,
+          trailingNavBarWidget: IconButton(
+            padding: const EdgeInsets.all(16),
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              Navigator.of(modalSheetContext).pop();
+            },
+          ),
+          mainContentSliversBuilder: (context) => [
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: AddCampImageContent(
+                crossAxisCount: 3,
+                defaultImages: kDefaultCampImages,
+                onImageSelected: (Uint8List image) {
+                  Navigator.of(modalSheetContext).pop(image);
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+      modalTypeBuilder: (context) {
+        final size = MediaQuery.sizeOf(context).width;
+
+        return size < kPageWidthBreakpoint //
+            ? const WoltBottomSheetType()
+            : const WoltDialogType();
+      },
+      onModalDismissedWithBarrierTap: () {
+        Navigator.of(context).pop();
+      },
+    ).then((value) => value as Uint8List?);
   }
 
   @override
