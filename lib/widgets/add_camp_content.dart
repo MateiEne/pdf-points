@@ -1,3 +1,4 @@
+import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
@@ -131,11 +132,14 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Camp Image
-          const Image(
-            image: NetworkImage(
-              'https://raw.githubusercontent.com/woltapp/wolt_modal_sheet/main/example/lib/assets/images/material_colors_hero_light.png',
+          AnimatedSizeAndFade.showHide(
+            show: true,
+            child: const Image(
+              image: NetworkImage(
+                'https://www.pdf.ro/wp-content/uploads/2020/10/SCHY4148_export.jpg',
+              ),
+              fit: BoxFit.cover,
             ),
-            fit: BoxFit.cover,
           ),
 
           const SizedBox(height: 4),
