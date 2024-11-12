@@ -3,13 +3,15 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
+import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_camp_dialog.dart';
+import 'package:pdf_points/widgets/add_camp_content.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -103,12 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      // TODO: get the camp object from the excel file
-      var camp = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
+      var campInfo = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
 
       if (!mounted) return;
 
-      showDialog(context: context, builder: (_) => AddCampDialog(campInfo: camp));
+      // open the modal to add the necessary camp data
+      _openModal(campInfo: campInfo);
     } catch (e) {
       if (mounted) {
         context.showToast(e.toString(), negative: true);
@@ -118,11 +120,44 @@ class _HomeScreenState extends State<HomeScreen> {
     stopFabLoading();
   }
 
-  void _onManuallyAddCamp({ExcelCampInfo? campInfo}) {
+  void _onManuallyAddCamp() {
     // close the fab
     _fabKey.currentState?.toggle();
 
-    showDialog(context: context, builder: (_) => AddCampDialog(campInfo: campInfo));
+    // open the modal to add the necessary camp data
+    _openModal();
+  }
+
+  void _openModal({ExcelCampInfo? campInfo}) {
+    WoltModalSheet.show<void>(
+      context: context,
+      pageListBuilder: (modalSheetContext) => [
+        WoltModalSheetPage(
+          hasSabGradient: false,
+          topBarTitle: Text('Add Camp', style: Theme.of(context).textTheme.titleLarge),
+          isTopBarLayerAlwaysVisible: true,
+          trailingNavBarWidget: IconButton(
+            padding: const EdgeInsets.all(16.0),
+            icon: const Icon(Icons.close),
+            onPressed: Navigator.of(modalSheetContext).pop,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: AddCampContentWidget(campInfo: campInfo),
+          ),
+        ),
+      ],
+      modalTypeBuilder: (context) {
+        final size = MediaQuery.sizeOf(context).width;
+
+        return size < kPageWidthBreakpoint //
+            ? const WoltBottomSheetType()
+            : const WoltDialogType();
+      },
+      onModalDismissedWithBarrierTap: () {
+        Navigator.of(context).pop();
+      },
+    );
   }
 
   @override
@@ -184,11 +219,13 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         children: [
           FloatingActionButton.extended(
+            heroTag: 'manually',
             onPressed: _onManuallyAddCamp,
             label: const Text("Manually"),
             icon: const Icon(Icons.edit),
           ),
           FloatingActionButton.extended(
+            heroTag: 'from_excel',
             onPressed: _onAddCampFromExcel,
             label: const Text("From Excel"),
             icon: const Icon(Icons.file_open),
