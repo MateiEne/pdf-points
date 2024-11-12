@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:animated_size_and_fade/animated_size_and_fade.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
@@ -161,7 +162,9 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
                   AnimatedSizeAndFade.showHide(
                     show: true,
                     child: Image(
-                      image: FileImage(_image!),
+                      image: kIsWeb
+                          ? NetworkImage(_image!.path)
+                          : FileImage(File(_image!.path)),
                       fit: BoxFit.cover,
                     ),
                   ),
