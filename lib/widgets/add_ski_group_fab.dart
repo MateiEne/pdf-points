@@ -1,22 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/data/excel_camp_info.dart';
-import 'package:pdf_points/utils/context_utils.dart';
-import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
-import 'package:pdf_points/utils/platform_file_utils.dart';
-import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_camp_content.dart';
+import 'package:pdf_points/widgets/add_ski_group_content.dart';
 import 'package:pdf_points/widgets/image_picker_with_defaults.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddSkiGroupFab extends StatefulWidget {
-  /// The location of the ExpandableFab on the screen.
-  static final FloatingActionButtonLocation location = ExpandableFab.location;
-
   const AddSkiGroupFab({super.key, required this.instructorId});
 
   final String instructorId;
@@ -26,84 +16,14 @@ class AddSkiGroupFab extends StatefulWidget {
 }
 
 class _AddSkiGroupFabState extends State<AddSkiGroupFab> {
-  final _fabKey = GlobalKey<ExpandableFabState>();
-  bool _loadingFab = false;
-
-  Future<void> _onAddCampFromExcel() async {
-    void stopFabLoading() {
-      safeSetState(() {
-        _loadingFab = false;
-      });
-    }
-
-    // close the fab
-    _fabKey.currentState?.toggle();
-
-    // start fab loading animation
-    safeSetState(() {
-      _loadingFab = true;
-    });
-
-    // open file picker
-    FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['xlsx'],
-      allowMultiple: false,
-    );
-
-    if (!mounted || pickedFile == null) {
-      // no file picked => stop fab loading animation
-      stopFabLoading();
-      return;
-    }
-
-    if (pickedFile.files.isEmpty) {
-      // empty file selection => stop fab loading animation
-      stopFabLoading();
-      context.showToast("Empty selection", negative: true);
-      return;
-    }
-
-    final fileBytes = pickedFile.files.first.getBytes();
-    if (fileBytes == null) {
-      // no file bytes => stop fab loading animation
-      stopFabLoading();
-      context.showToast("Could not open the file", negative: true);
-      return;
-    }
-
-    try {
-      var campInfo = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
-
-      if (!mounted) return;
-
-      // open the modal to add the necessary camp data
-      _openModal(campInfo: campInfo);
-    } catch (e) {
-      if (mounted) {
-        context.showToast(e.toString(), negative: true);
-      }
-    }
-
-    stopFabLoading();
-  }
-
-  void _onManuallyAddCamp() {
-    // close the fab
-    _fabKey.currentState?.toggle();
-
-    // open the modal to add the necessary camp data
-    _openModal();
-  }
-
-  void _openModal({ExcelCampInfo? campInfo}) {
+  void _onAddSkiGroup() {
     WoltModalSheet.show<void>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(
           hasSabGradient: false,
           topBarTitle: Text(
-            'Add Camp',
+            'Add Group',
             style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
           ),
           isTopBarLayerAlwaysVisible: true,
@@ -114,8 +34,7 @@ class _AddSkiGroupFabState extends State<AddSkiGroupFab> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: AddCampContentWidget(
-              campInfo: campInfo,
+            child: AddSkiGroupContentWidget(
               onAddImage: _openPicturesModal,
             ),
           ),
@@ -180,36 +99,9 @@ class _AddSkiGroupFabState extends State<AddSkiGroupFab> {
 
   @override
   Widget build(BuildContext context) {
-    return ExpandableFab(
-      key: _fabKey,
-      // type: ExpandableFabType.up,
-      distance: 75,
-      overlayStyle: ExpandableFabOverlayStyle(
-        color: Colors.black.withOpacity(0.5),
-        blur: 3,
-      ),
-      openButtonBuilder: RotateFloatingActionButtonBuilder(
-        child: _loadingFab
-            ? const Padding(
-                padding: EdgeInsets.all(14.0),
-                child: CircularProgressIndicator(),
-              )
-            : const Icon(Icons.add),
-      ),
-      afterOpen: () {
-        if (_loadingFab) {
-          // close the fab since is in the loading state
-          _fabKey.currentState?.toggle();
-        }
-      },
-      children: [
-        FloatingActionButton.extended(
-          heroTag: 'manually',
-          onPressed: _onManuallyAddCamp,
-          label: const Text("Manually"),
-          icon: const Icon(Icons.edit),
-        ),
-      ],
+    return FloatingActionButton(
+      onPressed: _onAddSkiGroup,
+      child: const Icon(Icons.add),
     );
   }
 }

@@ -64,7 +64,6 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
                 ],
               ),
       ),
-      floatingActionButtonLocation: AddSkiGroupFab.location,
       floatingActionButton: _isLoading
           ? null
           : _group == null
