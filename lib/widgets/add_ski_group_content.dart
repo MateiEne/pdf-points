@@ -1,4 +1,3 @@
-import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -67,6 +66,8 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
       return;
     }
 
+    FocusManager.instance.primaryFocus?.unfocus();
+
     // TODO: save the group to firebase:
     // FirebaseManager.instance.addSkiGroup(
     //   name: _name,
@@ -107,45 +108,46 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Camp Image
-          ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxHeight: 300,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                if (_image != null)
-                  AnimatedSizeAndFade.showHide(
-                    show: true,
-                    child: Image(
-                      image: MemoryImage(_image!),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                IconButton(
-                  icon: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    width: 100,
-                    height: 100,
-                    child: const Icon(
-                      Icons.add_a_photo_rounded,
-                      size: 32,
-                    ),
-                  ),
-                  onPressed: _onAddImage,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 4),
+          // ConstrainedBox(
+          //   constraints: const BoxConstraints(
+          //     maxHeight: 300,
+          //   ),
+          //   child: Stack(
+          //     alignment: Alignment.center,
+          //     children: [
+          //       if (_image != null)
+          //         AnimatedSizeAndFade.showHide(
+          //           show: true,
+          //           child: Image(
+          //             image: MemoryImage(_image!),
+          //             fit: BoxFit.cover,
+          //           ),
+          //         ),
+          //       IconButton(
+          //         icon: Container(
+          //           decoration: BoxDecoration(
+          //             color: Colors.white.withOpacity(0.6),
+          //             borderRadius: BorderRadius.circular(50),
+          //           ),
+          //           width: 100,
+          //           height: 100,
+          //           child: const Icon(
+          //             Icons.add_a_photo_rounded,
+          //             size: 32,
+          //           ),
+          //         ),
+          //         onPressed: _onAddImage,
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          //
+          // const SizedBox(height: 4),
 
           // Camp name
           TextFormField(
             initialValue: _name,
+            autofocus: true,
             decoration: const InputDecoration(labelText: "Name"),
             keyboardType: TextInputType.name,
             textCapitalization: TextCapitalization.words,
@@ -157,7 +159,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
             },
             onChanged: (value) {
               safeSetState(() {
-                _name = value;
+                _name = value.trim();
               });
             },
           ),

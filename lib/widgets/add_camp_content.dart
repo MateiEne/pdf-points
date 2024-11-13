@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -227,7 +225,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
             },
             onChanged: (value) {
               safeSetState(() {
-                _name = value;
+                _name = value.trim();
               });
             },
           ),
