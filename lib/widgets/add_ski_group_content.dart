@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class AddSkiGroupContentWidget extends StatefulWidget {
   const AddSkiGroupContentWidget({
     super.key,
+    this.defaultName = "",
     this.onAddImage,
     required this.onAddSkiCamp,
   });
 
+  final String defaultName;
   final Future<Uint8List?> Function()? onAddImage;
   final Future<void> Function(String name) onAddSkiCamp;
 
@@ -22,12 +23,26 @@ class AddSkiGroupContentWidget extends StatefulWidget {
 
 class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
   final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController _nameController = TextEditingController();
+
   String _name = "";
   Uint8List? _image;
 
   @override
   void initState() {
     super.initState();
+
+    _name = widget.defaultName;
+    _nameController.text = _name;
+
+    _nameController.addListener(_onNameChanged);
+  }
+
+  void _onNameChanged() {
+    safeSetState(() {
+      _name = _nameController.text.trim();
+    });
   }
 
   Future<void> _onAddImage() async {
@@ -137,9 +152,15 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
 
           // Camp name
           TextFormField(
-            initialValue: _name,
+            controller: _nameController,
             autofocus: true,
-            decoration: const InputDecoration(labelText: "Name"),
+            decoration: InputDecoration(
+              labelText: "Name",
+              suffixIcon: IconButton(
+                onPressed: _nameController.clear,
+                icon: const Icon(Icons.clear),
+              ),
+            ),
             keyboardType: TextInputType.name,
             textCapitalization: TextCapitalization.words,
             validator: (value) {
@@ -147,11 +168,6 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
                 return "Please enter a name";
               }
               return null;
-            },
-            onChanged: (value) {
-              safeSetState(() {
-                _name = value.trim();
-              });
             },
           ),
 
@@ -172,5 +188,11 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 }

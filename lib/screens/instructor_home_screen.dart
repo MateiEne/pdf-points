@@ -62,6 +62,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: AddSkiGroupContentWidget(
+              defaultName: "${widget.instructor.shortName}'s Group",
               onAddSkiCamp: (name) => _onAddSkiCamp(modalSheetContext, name),
             ),
           ),

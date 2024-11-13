@@ -8,6 +8,18 @@ class Participant {
 
   String get fullName => [firstName, lastName].where((name) => name != null).join(' ');
 
+  String get shortName {
+    if (firstName != null) {
+      return firstName!;
+    }
+
+    if (lastName != null) {
+      return lastName!;
+    }
+
+    return "";
+  }
+
   Participant({
     required this.id,
     this.firstName,
