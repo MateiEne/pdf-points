@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class AddSkiGroupContentWidget extends StatefulWidget {
   const AddSkiGroupContentWidget({
     super.key,
     this.onAddImage,
+    required this.onAddSkiCamp,
   });
 
   final Future<Uint8List?> Function()? onAddImage;
+  final Future<void> Function(String name) onAddSkiCamp;
 
   @override
   State<AddSkiGroupContentWidget> createState() => _AddSkiGroupContentWidgetState();
@@ -68,19 +71,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
 
     FocusManager.instance.primaryFocus?.unfocus();
 
-    // TODO: save the group to firebase:
-    // FirebaseManager.instance.addSkiGroup(
-    //   name: _name,
-    //   image: _image,
-    //   instructor: _instructor,
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) {
-      return;
-    }
-
-    Navigator.of(context).pop();
+    await widget.onAddSkiCamp(_name);
   }
 
   bool _validName(String? value) {

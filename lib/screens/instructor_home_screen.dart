@@ -2,15 +2,16 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_ski_group_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class InstructorHomeScreen extends StatefulWidget {
-  const InstructorHomeScreen({super.key, required this.user});
+  const InstructorHomeScreen({super.key, required this.instructor});
 
-  final User user;
+  final Participant instructor;
 
   @override
   State<InstructorHomeScreen> createState() => _InstructorHomeScreenState();
@@ -24,7 +25,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
   void initState() {
     super.initState();
 
-    _fetchGroup(widget.user.uid);
+    _fetchGroup(widget.instructor.id);
   }
 
   Future<void> _fetchGroup(String uid) async {
@@ -58,9 +59,11 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
             icon: const Icon(Icons.close),
             onPressed: Navigator.of(modalSheetContext).pop,
           ),
-          child: const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: AddSkiGroupContentWidget(),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: AddSkiGroupContentWidget(
+              onAddSkiCamp: (name) => _onAddSkiCamp(modalSheetContext, name),
+            ),
           ),
         ),
       ],
@@ -77,6 +80,23 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     );
   }
 
+  Future<void> _onAddSkiCamp(BuildContext modalSheetContext, String name) async {
+    // TODO: save the group to firebase:
+    // FirebaseManager.instance.addSkiGroup(
+    //   name: _name,
+    //   ...
+    // );
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!modalSheetContext.mounted) return;
+
+    safeSetState(() {
+      _group = SkiGroup(name: name, instructor: widget.instructor);
+    });
+
+    Navigator.of(modalSheetContext).pop();
+  }
+
   Widget _noGroupScreen() {
     return Column(
       children: [
@@ -89,7 +109,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 48),
 
         // Instructions to add ski group
         Text(
@@ -102,7 +122,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
           style: Theme.of(context).textTheme.bodyLarge,
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
 
         // Add ski group button
         ElevatedButton(

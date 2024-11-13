@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
 import 'package:pdf_points/screens/instructor_home_screen.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
@@ -86,7 +87,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => InstructorHomeScreen(user: FirebaseAuth.instance.currentUser!)),
+                        MaterialPageRoute(
+                          builder: (context) => InstructorHomeScreen(
+                            instructor: Participant(
+                              id: "129",
+                              firstName: "Abi",
+                            ),
+                          ),
+                        ),
                       );
                     },
                     child: const Text("Go instructor home"),
