@@ -5,8 +5,7 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_ski_group_content.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
+import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';
 
 class InstructorHomeScreen extends StatefulWidget {
   const InstructorHomeScreen({super.key, required this.instructor});
@@ -19,7 +18,7 @@ class InstructorHomeScreen extends StatefulWidget {
 
 class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
   bool _isLoading = true;
-  SkiGroup? _group;
+  SkiGroup? _skiGroup;
 
   @override
   void initState() {
@@ -38,90 +37,48 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
 
     safeSetState(() {
       _isLoading = false;
-      _group = null;
+      _skiGroup = null;
       // _group = SkiGroup(name: "name", instructor: Participant(firstName: "Abi"));
     });
   }
 
-  void _addSkiGroup() {
-    WoltModalSheet.show<void>(
-      context: context,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          hasSabGradient: false,
-          topBarTitle: Text(
-            'Add Group',
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
-          ),
-          isTopBarLayerAlwaysVisible: true,
-          trailingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16.0),
-            icon: const Icon(Icons.close),
-            onPressed: Navigator.of(modalSheetContext).pop,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: AddSkiGroupContentWidget(
-              defaultName: "${widget.instructor.shortName}'s Group",
-              onAddSkiCamp: (name) => _onAddSkiCamp(modalSheetContext, name),
-            ),
-          ),
-        ),
-      ],
-      modalTypeBuilder: (context) {
-        final size = MediaQuery.sizeOf(context).width;
-
-        return size < kPageWidthBreakpoint //
-            ? const WoltBottomSheetType()
-            : const WoltDialogType();
-      },
-      onModalDismissedWithBarrierTap: () {
-        Navigator.of(context).pop();
-      },
-    );
-  }
-
-  Future<void> _onAddSkiCamp(BuildContext modalSheetContext, String name) async {
-    // TODO: save the group to firebase:
-    // FirebaseManager.instance.addSkiGroup(
-    //   name: _name,
-    //   ...
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!modalSheetContext.mounted) return;
-
+  void _onAddSkiGroup(SkiGroup skiGroup) {
     safeSetState(() {
-      _group = SkiGroup(name: name, instructor: widget.instructor);
+      _skiGroup = skiGroup;
     });
-
-    Navigator.of(modalSheetContext).pop();
   }
 
-  Widget _noGroupScreen() {
+  Widget _showGroupScreen() {
+    SkiGroup? skiGroup = _skiGroup;
+
+    if (skiGroup == null) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       children: [
-        // top padding
-        SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
+        if (skiGroup.participants.isEmpty) ...[
+          // top padding
+          SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
 
-        // Title
-        Text(
-          "You don't have a group yet.",
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+          // Title
+          Text(
+            "You don't have students yet.",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
 
-        const SizedBox(height: 48),
+          const SizedBox(height: 48),
 
-        // Instructions to add ski group
-        Text(
-          '1. First add your group',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '2. Then add your participants',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
+          // Instructions to add ski group
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Add all your students to this group using the button below.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
 
         const SizedBox(height: 32),
 
@@ -132,9 +89,9 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
             foregroundColor: Colors.white,
             maximumSize: const Size(double.infinity, 56),
           ),
-          onPressed: _addSkiGroup,
+          onPressed: () {},
           child: const Center(
-            child: Text('Add Your Group'),
+            child: Text('Add Student'),
           ),
         ),
       ],
@@ -145,8 +102,11 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const AutoSizeText(
-          'Instructor Name / Group Name',
+        centerTitle: true,
+        title: AutoSizeText(
+          _skiGroup == null //
+              ? widget.instructor.shortName
+              : _skiGroup!.name,
           maxLines: 1,
         ),
         actions: [
@@ -163,16 +123,9 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-                child: _group == null
-                    ? _noGroupScreen()
-                    : Column(
-                        children: [
-                          Text(
-                            'Group Name: ${_group!.name}',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
-                      ),
+                child: _skiGroup == null //
+                    ? NoSkiGroup(instructor: widget.instructor, onAddSkiGroup: _onAddSkiGroup)
+                    : _showGroupScreen(),
               ),
       ),
     );

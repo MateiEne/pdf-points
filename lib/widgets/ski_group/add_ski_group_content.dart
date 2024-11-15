@@ -8,12 +8,12 @@ import 'package:pdf_points/utils/safe_setState.dart';
 class AddSkiGroupContentWidget extends StatefulWidget {
   const AddSkiGroupContentWidget({
     super.key,
-    this.defaultName = "",
+    this.defaultName,
     this.onAddImage,
     required this.onAddSkiCamp,
   });
 
-  final String defaultName;
+  final String? defaultName;
   final Future<Uint8List?> Function()? onAddImage;
   final Future<void> Function(String name) onAddSkiCamp;
 
@@ -33,7 +33,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
   void initState() {
     super.initState();
 
-    _name = widget.defaultName;
+    _name = widget.defaultName ?? "";
     _nameController.text = _name;
 
     _nameController.addListener(_onNameChanged);
@@ -182,7 +182,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
             ),
             onPressed: _validData() ? _onAddSkiGroup : null,
             child: const Center(
-              child: Text('Add Group'),
+              child: Text('Create Group'),
             ),
           ),
         ],
