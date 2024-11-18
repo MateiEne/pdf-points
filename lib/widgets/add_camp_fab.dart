@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
+import 'package:pdf_points/modals/open_pictures.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_camp_content.dart';
-import 'package:pdf_points/widgets/image_picker_with_defaults.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddCampFab extends StatefulWidget {
@@ -133,47 +133,10 @@ class _AddCampFabState extends State<AddCampFab> {
   }
 
   Future<Uint8List?> _openPicturesModal() async {
-    return WoltModalSheet.show<void>(
+    return OpenPicturesModal.show<Uint8List?>(
       context: context,
-      pageListBuilder: (modalSheetContext) => [
-        SliverWoltModalSheetPage(
-          topBarTitle: Text(
-            'Add Picture',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          isTopBarLayerAlwaysVisible: true,
-          trailingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16),
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(modalSheetContext).pop();
-            },
-          ),
-          mainContentSliversBuilder: (context) => [
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: ImagePickerWithDefaults(
-                crossAxisCount: 3,
-                assetsImages: kDefaultCampImages,
-                onImageSelected: (Uint8List image) {
-                  Navigator.of(modalSheetContext).pop(image);
-                },
-              ),
-            ),
-          ],
-        ),
-      ],
-      modalTypeBuilder: (context) {
-        final size = MediaQuery.sizeOf(context).width;
-
-        return size < kPageWidthBreakpoint //
-            ? const WoltBottomSheetType()
-            : const WoltDialogType();
-      },
-      onModalDismissedWithBarrierTap: () {
-        Navigator.of(context).pop();
-      },
-    ).then((value) => value as Uint8List?);
+      title: "Add Picture",
+    );
   }
 
   @override
