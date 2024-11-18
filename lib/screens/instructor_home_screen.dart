@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
+import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';
 
@@ -37,8 +38,8 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
 
     safeSetState(() {
       _isLoading = false;
-      _skiGroup = null;
-      // _group = SkiGroup(name: "name", instructor: Participant(firstName: "Abi"));
+      // _skiGroup = null;
+      _skiGroup = SkiGroup(name: "Abi", instructor: widget.instructor);
     });
   }
 
@@ -89,12 +90,71 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
             foregroundColor: Colors.white,
             maximumSize: const Size(double.infinity, 56),
           ),
-          onPressed: () {},
+          onPressed: _openParticipantsSearchModal,
           child: const Center(
             child: Text('Add Student'),
           ),
         ),
       ],
+    );
+
+    // DropDownState(
+    //   DropDown(
+    //     bottomSheetTitle: const Text(
+    //       kCities,
+    //       style: TextStyle(
+    //         fontWeight: FontWeight.bold,
+    //         fontSize: 20.0,
+    //       ),
+    //     ),
+    //     submitButtonChild: const Text(
+    //       'Done',
+    //       style: TextStyle(
+    //         fontSize: 16,
+    //         fontWeight: FontWeight.bold,
+    //       ),
+    //     ),
+    //     data: widget.cities ?? [],
+    //     onSelected: (List<dynamic> selectedList) {
+    //       List<String> list = [];
+    //       for(var item in selectedList) {
+    //         if(item is SelectedListItem) {
+    //           list.add(item.name);
+    //         }
+    //       }
+    //       showSnackBar(list.toString());
+    //     },
+    //     enableMultipleSelection: true,
+    //   ),
+    // ).showModal(context);
+  }
+
+  void _onAddParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) {
+    print(participant);
+  }
+
+  void _openParticipantsSearchModal() {
+    // showModalBottomSheet(
+    //   context: context,
+    //   isScrollControlled: true,
+    //   useRootNavigator: true,
+    //   useSafeArea: true,
+    //   shape: const RoundedRectangleBorder(
+    //     borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+    //   ),
+    //   showDragHandle: true,
+    //   constraints: BoxConstraints.loose(
+    //     Size.fromHeight(MediaQuery.of(context).size.height * 0.8),
+    //   ),
+    //   builder: (context) {
+    //     return SearchParticipantContent(onSelected: (_) {});
+    //   },
+    // );
+
+    SearchParticipantModal.show(
+      context: context,
+      onSelected: _onAddParticipantToSkiGroup,
+      showNavBar: false,
     );
   }
 
