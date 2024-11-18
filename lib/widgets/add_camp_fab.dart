@@ -3,15 +3,14 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
-import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
+import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/modals/add_camp.dart';
 import 'package:pdf_points/modals/open_pictures.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_camp_content.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddCampFab extends StatefulWidget {
   /// The location of the ExpandableFab on the screen.
@@ -95,41 +94,36 @@ class _AddCampFabState extends State<AddCampFab> {
   }
 
   void _openModal({ExcelCampInfo? campInfo}) {
-    WoltModalSheet.show<void>(
-      context: context,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          hasSabGradient: false,
-          topBarTitle: Text(
-            'Add Camp',
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
-          ),
-          isTopBarLayerAlwaysVisible: true,
-          trailingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16.0),
-            icon: const Icon(Icons.close),
-            onPressed: Navigator.of(modalSheetContext).pop,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: AddCampContentWidget(
-              campInfo: campInfo,
-              onAddImage: _openPicturesModal,
-            ),
-          ),
-        ),
-      ],
-      modalTypeBuilder: (context) {
-        final size = MediaQuery.sizeOf(context).width;
+    AddCampModal.show(context: context, onAddCamp: _onAddCamp, onAddPicture: _openPicturesModal);
+  }
 
-        return size < kPageWidthBreakpoint //
-            ? const WoltBottomSheetType()
-            : const WoltDialogType();
-      },
-      onModalDismissedWithBarrierTap: () {
-        Navigator.of(context).pop();
-      },
-    );
+  Future<void> _onAddCamp(
+    BuildContext modalSheetContext,
+    String name,
+    String password,
+    DateTime startDate,
+    DateTime endDate,
+    Uint8List? image,
+    List<Participant> participants,
+  ) async {
+    // TODO: save the camp to firebase:
+    // FirebaseManager.instance.addCamp(
+    //   name: _name,
+    //   password: _password,
+    //   startDate: _startDate,
+    //   endDate: _endDate,
+    //   participants: widget.campInfo?.participants ?? [],
+    //   instructors: [],
+    //   image: _image,
+    // );
+    print(name);
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!modalSheetContext.mounted) {
+      return;
+    }
+
+    Navigator.of(modalSheetContext).pop();
   }
 
   Future<Uint8List?> _openPicturesModal() async {
