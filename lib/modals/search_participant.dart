@@ -5,12 +5,12 @@ import 'package:pdf_points/widgets/search_participant_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SearchParticipantModal {
-  static Future<void> show({
+  static Future<T?> show<T>({
     required BuildContext context,
-    required void Function(BuildContext context, Participant participant) onSelected,
+    required Future<T> Function(BuildContext context, Participant participant) onSelected,
     bool showNavBar = true,
   }) {
-    return WoltModalSheet.show<void>(
+    return WoltModalSheet.show<T>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(

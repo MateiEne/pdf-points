@@ -129,7 +129,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     // ).showModal(context);
   }
 
-  void _onAddParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) {
+  Future<void> _onAddParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) async {
     print(participant);
   }
 

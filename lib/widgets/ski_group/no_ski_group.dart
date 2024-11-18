@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
-import 'package:pdf_points/widgets/ski_group/add_ski_group_content.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
+import 'package:pdf_points/modals/add_ski_group.dart';
 
 class NoSkiGroup extends StatelessWidget {
   const NoSkiGroup({
@@ -16,41 +15,7 @@ class NoSkiGroup extends StatelessWidget {
   final void Function(SkiGroup skiGroup) onAddSkiGroup;
 
   void _addSkiGroup(BuildContext context) {
-    WoltModalSheet.show<void>(
-      context: context,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          hasSabGradient: false,
-          topBarTitle: Text(
-            'Create Group',
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
-          ),
-          isTopBarLayerAlwaysVisible: true,
-          trailingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16.0),
-            icon: const Icon(Icons.close),
-            onPressed: Navigator.of(modalSheetContext).pop,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: AddSkiGroupContentWidget(
-              defaultName: "${instructor.shortName}'s Group",
-              onAddSkiCamp: (name) => _onAddSkiCamp(modalSheetContext, name),
-            ),
-          ),
-        ),
-      ],
-      modalTypeBuilder: (context) {
-        final size = MediaQuery.sizeOf(context).width;
-
-        return size < kPageWidthBreakpoint //
-            ? const WoltBottomSheetType()
-            : const WoltDialogType();
-      },
-      onModalDismissedWithBarrierTap: () {
-        Navigator.of(context).pop();
-      },
-    );
+    AddSkiGroupModal.show(context: context, onAddSkiCamp: _onAddSkiCamp);
   }
 
   Future<void> _onAddSkiCamp(BuildContext modalSheetContext, String name) async {
