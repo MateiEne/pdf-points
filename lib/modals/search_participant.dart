@@ -9,7 +9,25 @@ class SearchParticipantModal {
     required BuildContext context,
     required Future<T> Function(BuildContext context, Participant participant) onSelected,
     bool showNavBar = true,
+    int? excludeGroupId,
   }) {
+    // showModalBottomSheet(
+    //   context: context,
+    //   isScrollControlled: true,
+    //   useRootNavigator: true,
+    //   useSafeArea: true,
+    //   shape: const RoundedRectangleBorder(
+    //     borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+    //   ),
+    //   showDragHandle: true,
+    //   constraints: BoxConstraints.loose(
+    //     Size.fromHeight(MediaQuery.of(context).size.height * 0.8),
+    //   ),
+    //   builder: (context) {
+    //     return SearchParticipantContent(onSelected: (_) {});
+    //   },
+    // );
+
     return WoltModalSheet.show<T>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
@@ -38,6 +56,7 @@ class SearchParticipantModal {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: SearchParticipantContent(
+                  excludeGroupId: excludeGroupId,
                   onSelected: (participant) => onSelected(modalSheetContext, participant),
                 ),
               ),

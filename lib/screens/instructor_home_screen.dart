@@ -131,30 +131,19 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
 
   Future<void> _onAddParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) async {
     print(participant);
+
+    // Check if the participant is in another group
+    if (participant.groupId != null) {
+      
+    }
   }
 
   void _openParticipantsSearchModal() {
-    // showModalBottomSheet(
-    //   context: context,
-    //   isScrollControlled: true,
-    //   useRootNavigator: true,
-    //   useSafeArea: true,
-    //   shape: const RoundedRectangleBorder(
-    //     borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-    //   ),
-    //   showDragHandle: true,
-    //   constraints: BoxConstraints.loose(
-    //     Size.fromHeight(MediaQuery.of(context).size.height * 0.8),
-    //   ),
-    //   builder: (context) {
-    //     return SearchParticipantContent(onSelected: (_) {});
-    //   },
-    // );
-
     SearchParticipantModal.show(
       context: context,
       onSelected: _onAddParticipantToSkiGroup,
       showNavBar: false,
+      excludeGroupId: widget.instructor.groupId,
     );
   }
 
