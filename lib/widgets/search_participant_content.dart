@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/modals/add_participant.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
@@ -8,10 +9,12 @@ class SearchParticipantContent extends StatefulWidget {
     super.key,
     required this.onSelected,
     this.excludeGroupId,
+    this.addParticipantIfNotFound = true,
   });
 
   final void Function(Participant participant) onSelected;
   final int? excludeGroupId;
+  final bool addParticipantIfNotFound;
 
   @override
   State<SearchParticipantContent> createState() => _SearchParticipantContentState();
@@ -87,6 +90,46 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
     });
   }
 
+  void _openAddParticipantModal() {
+    var indexOfSpace = _searchController.text.indexOf(' ');
+    var firstName = indexOfSpace == -1 ? _searchController.text : _searchController.text.substring(0, indexOfSpace);
+    var lastName = indexOfSpace == -1 ? '' : _searchController.text.substring(indexOfSpace + 1);
+
+    AddParticipantModal.show(
+      context: context,
+      onAddParticipant: _onAddParticipant,
+      defaultFirstName: firstName,
+      defaultLastName: lastName,
+    );
+  }
+
+  Future<void> _onAddParticipant(
+    BuildContext modalSheetContext,
+    String firstName,
+    String lastName,
+    String phone,
+  ) async {
+    // TODO: add participant to firebase:
+    // FirebaseManager.instance.addParticipantToSkiGroup(
+    //   ...
+    // );
+    await Future.delayed(const Duration(seconds: 1));
+    var participant = Participant(id: '1', firstName: firstName, lastName: lastName, phone: phone);
+    _allParticipants.add(participant);
+    _allParticipants = _sortParticipants(_allParticipants);
+
+    safeSetState(() {
+      _allParticipants = _allParticipants;
+      _filterParticipantsByName();
+    });
+
+    if (!modalSheetContext.mounted) return;
+
+    Navigator.of(modalSheetContext).pop();
+
+    widget.onSelected(participant);
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -98,10 +141,12 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
             decoration: InputDecoration(
               labelText: 'Search name',
               prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(
-                onPressed: _searchController.clear,
-                icon: const Icon(Icons.clear),
-              ),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      onPressed: _searchController.clear,
+                      icon: const Icon(Icons.clear),
+                    )
+                  : null,
             ),
           ),
         ),
@@ -117,8 +162,17 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
               )
             : SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  childCount: _showParticipants.length,
+                  childCount: _showParticipants.length + 1,
                   (BuildContext context, int index) {
+                    if (index == _showParticipants.length) {
+                      return widget.addParticipantIfNotFound
+                          ? TextButton(
+                              onPressed: _openAddParticipantModal,
+                              child: const Text('Add Participant'),
+                            )
+                          : const SizedBox.shrink();
+                    }
+
                     Participant participant = _showParticipants[index];
                     return ListTile(
                       title: Text(participant.fullName),

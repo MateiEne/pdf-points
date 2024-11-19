@@ -156,10 +156,12 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
             autofocus: true,
             decoration: InputDecoration(
               labelText: "Name",
-              suffixIcon: IconButton(
-                onPressed: _nameController.clear,
-                icon: const Icon(Icons.clear),
-              ),
+              suffixIcon: _nameController.text.isNotEmpty
+                  ? IconButton(
+                      onPressed: _nameController.clear,
+                      icon: const Icon(Icons.clear),
+                    )
+                  : null,
             ),
             keyboardType: TextInputType.name,
             textCapitalization: TextCapitalization.words,

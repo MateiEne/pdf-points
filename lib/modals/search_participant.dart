@@ -57,6 +57,7 @@ class SearchParticipantModal {
                 padding: const EdgeInsets.all(16.0),
                 child: SearchParticipantContent(
                   excludeGroupId: excludeGroupId,
+                  addParticipantIfNotFound: true,
                   onSelected: (participant) => onSelected(modalSheetContext, participant),
                 ),
               ),
