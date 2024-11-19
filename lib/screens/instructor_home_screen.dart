@@ -118,23 +118,19 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
   }
 
   Future<void> _onSelectedParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) async {
+    // close the search participants modal
+    if (!modalSheetContext.mounted) return;
+
+    Navigator.of(modalSheetContext).pop();
+
     // if the participant is not in any group => add to my group
     if (participant.groupId == null) {
       await _onAddParticipantToSkiGroup(participant);
-
-      // close the search participants modal
-      if (!modalSheetContext.mounted) return;
-
-      Navigator.of(modalSheetContext).pop();
       return;
     }
 
     // if the participant is already in my group => do nothing
     if (participant.groupId == widget.instructor.groupId) {
-      // close the search participants modal
-      if (!modalSheetContext.mounted) return;
-
-      Navigator.of(modalSheetContext).pop();
       return;
     }
 
@@ -162,22 +158,21 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         ],
       ),
     );
-
-    // close the search participants modal
-    if (!modalSheetContext.mounted) return;
-
-    Navigator.of(modalSheetContext).pop();
   }
 
   Future<void> _onAddParticipantToSkiGroup(Participant participant) async {
+    safeSetState(() {
+      _isLoading = true;
+    });
     // TODO: add participant to my group in firebase:
     // FirebaseManager.instance.addParticipantToSkiGroup(
     //   ...
     // );
-    // await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
 
     safeSetState(() {
       _skiGroup!.addParticipant(participant);
+      _isLoading = false;
     });
   }
 
@@ -212,13 +207,19 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: _skiGroup == null //
-                    ? NoSkiGroup(instructor: widget.instructor, onAddSkiGroup: _onAddSkiGroup)
-                    : _showGroupScreen(),
-              ),
+        child: Stack(
+          children: [
+            // page content
+            SingleChildScrollView(
+              child: _skiGroup == null //
+                  ? NoSkiGroup(instructor: widget.instructor, onAddSkiGroup: _onAddSkiGroup)
+                  : _showGroupScreen(),
+            ),
+
+            // loading indicator
+            if (_isLoading) const Center(child: CircularProgressIndicator()),
+          ],
+        ),
       ),
     );
   }

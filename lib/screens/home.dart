@@ -90,8 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => InstructorHomeScreen(
                             instructor: Participant(
+                              isInstructor: true,
                               id: "129",
                               firstName: "Abi",
+                              phone: "+40751561142",
+                              groupId: 1,
                             ),
                           ),
                         ),
