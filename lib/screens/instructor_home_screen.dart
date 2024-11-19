@@ -101,11 +101,12 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         const SizedBox(height: 32),
 
         // Add ski group button
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kAppSeedColor,
-            foregroundColor: Colors.white,
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            backgroundColor: skiGroup.hasParticipants ? null : kAppSeedColor,
+            foregroundColor: skiGroup.hasParticipants ? Theme.of(context).colorScheme.primary : Colors.white,
             maximumSize: const Size(double.infinity, 56),
+            side: BorderSide(color: Theme.of(context).colorScheme.primary),
           ),
           onPressed: _openParticipantsSearchModal,
           child: const Center(
@@ -236,6 +237,12 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
           ],
         ),
       ),
+      floatingActionButton: _skiGroup != null && _skiGroup!.hasParticipants
+          ? FloatingActionButton(
+              onPressed: () {},
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

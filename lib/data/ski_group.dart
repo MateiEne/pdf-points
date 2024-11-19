@@ -15,6 +15,8 @@ class SkiGroup {
     this.participants.addAll(participants);
   }
 
+  get hasParticipants => participants.isNotEmpty;
+
   void addParticipant(Participant participant) {
     participants.add(participant);
   }
