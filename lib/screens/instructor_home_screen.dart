@@ -5,6 +5,7 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
+import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';
 
@@ -123,6 +124,18 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
 
     Navigator.of(modalSheetContext).pop();
 
+    // if the participant has no phone number => update phone number
+    if (participant.phone == null) {
+      Participant? updatedParticipant = await UpdateParticipantModal.show(
+        context: context,
+        participant: participant,
+      );
+
+      if (updatedParticipant == null) return;
+
+      participant = updatedParticipant;
+    }
+
     // if the participant is not in any group => add to my group
     if (participant.groupId == null) {
       await _onAddParticipantToSkiGroup(participant);
@@ -133,6 +146,8 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     if (participant.groupId == widget.instructor.groupId) {
       return;
     }
+
+    if (!context.mounted) return;
 
     // the participant is in another group => ask to remove from that group and add to my group
     await showDialog(

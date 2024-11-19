@@ -10,6 +10,7 @@ class AddParticipantContentWidget extends StatefulWidget {
     required this.onAddParticipant,
     this.defaultFirstName,
     this.defaultLastName,
+    this.defaultPhone,
   });
 
   final Future<void> Function(
@@ -19,6 +20,7 @@ class AddParticipantContentWidget extends StatefulWidget {
   ) onAddParticipant;
   final String? defaultFirstName;
   final String? defaultLastName;
+  final String? defaultPhone;
 
   @override
   State<AddParticipantContentWidget> createState() => _AddParticipantContentWidgetState();
@@ -44,6 +46,9 @@ class _AddParticipantContentWidgetState extends State<AddParticipantContentWidge
 
     _lastName = widget.defaultLastName?.capitalize() ?? "";
     _lastNameController.text = _lastName;
+
+    _phone = widget.defaultPhone ?? "";
+    _phoneController.text = _phone;
 
     _firstNameController.addListener(_onFirstNameChanged);
     _lastNameController.addListener(_onLastNameChanged);
@@ -117,7 +122,7 @@ class _AddParticipantContentWidgetState extends State<AddParticipantContentWidge
               Expanded(
                 child: TextFormField(
                   controller: _firstNameController,
-                  autofocus: true,
+                  autofocus: _firstNameController.text.isEmpty,
                   decoration: InputDecoration(
                     labelText: "First Name",
                     suffixIcon: _firstNameController.text.isNotEmpty
@@ -151,7 +156,7 @@ class _AddParticipantContentWidgetState extends State<AddParticipantContentWidge
           // Last name
           TextFormField(
             controller: _lastNameController,
-            autofocus: true,
+            autofocus: _lastNameController.text.isEmpty,
             decoration: InputDecoration(
               labelText: "Last Name",
               suffixIcon: _lastNameController.text.isNotEmpty
@@ -174,7 +179,7 @@ class _AddParticipantContentWidgetState extends State<AddParticipantContentWidge
           // phone
           TextFormField(
             controller: _phoneController,
-            autofocus: true,
+            autofocus: _phoneController.text.isEmpty,
             decoration: InputDecoration(
               labelText: "Phone number",
               suffixIcon: _phoneController.text.isNotEmpty

@@ -90,42 +90,24 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
     });
   }
 
-  void _openAddParticipantModal() {
+  Future<void> _openAddParticipantModal() async {
     var indexOfSpace = _searchController.text.indexOf(' ');
     var firstName = indexOfSpace == -1 ? _searchController.text : _searchController.text.substring(0, indexOfSpace);
     var lastName = indexOfSpace == -1 ? '' : _searchController.text.substring(indexOfSpace + 1);
 
-    AddParticipantModal.show(
+    Participant? participant = await AddParticipantModal.show(
       context: context,
-      onAddParticipant: _onAddParticipant,
       defaultFirstName: firstName,
       defaultLastName: lastName,
     );
-  }
 
-  Future<void> _onAddParticipant(
-    BuildContext modalSheetContext,
-    String firstName,
-    String lastName,
-    String phone,
-  ) async {
-    // TODO: add participant to firebase:
-    // FirebaseManager.instance.addParticipantToSkiGroup(
-    //   ...
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-    var participant = Participant(id: '1', firstName: firstName, lastName: lastName, phone: phone);
-    _allParticipants.add(participant);
-    _allParticipants = _sortParticipants(_allParticipants);
+    if (participant == null) return;
 
     safeSetState(() {
-      _allParticipants = _allParticipants;
+      _allParticipants.add(participant);
+      _allParticipants = _sortParticipants(_allParticipants);
       _filterParticipantsByName();
     });
-
-    if (!modalSheetContext.mounted) return;
-
-    Navigator.of(modalSheetContext).pop();
 
     widget.onSelected(participant);
   }
@@ -166,9 +148,13 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
                   (BuildContext context, int index) {
                     if (index == _showParticipants.length) {
                       return widget.addParticipantIfNotFound
-                          ? TextButton(
+                          ? OutlinedButton(
                               onPressed: _openAddParticipantModal,
-                              child: const Text('Add Participant'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Theme.of(context).colorScheme.primary,
+                                side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                              ),
+                              child: const Text('Add new participant'),
                             )
                           : const SizedBox.shrink();
                     }

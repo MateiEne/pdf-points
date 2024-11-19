@@ -4,12 +4,10 @@ import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/widgets/add_participant_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
-class AddParticipantModal {
+class UpdateParticipantModal {
   static Future<Participant?> show({
     required BuildContext context,
-    String? defaultFirstName,
-    String? defaultLastName,
-    String? defaultPhone,
+    required Participant participant,
   }) {
     return WoltModalSheet.show<Participant?>(
       context: context,
@@ -17,7 +15,7 @@ class AddParticipantModal {
         WoltModalSheetPage(
           hasSabGradient: false,
           topBarTitle: Text(
-            'Add Participant',
+            'Edit Participant',
             style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
           ),
           isTopBarLayerAlwaysVisible: true,
@@ -29,11 +27,11 @@ class AddParticipantModal {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: AddParticipantContentWidget(
-              defaultFirstName: defaultFirstName,
-              defaultLastName: defaultLastName,
-              defaultPhone: defaultPhone,
+              defaultFirstName: participant.firstName,
+              defaultLastName: participant.lastName,
+              defaultPhone: participant.phone,
               onAddParticipant: (firstName, lastName, phone) async {
-                var newParticipant = await _onAddParticipant(
+                Participant? updatedParticipant = await _onUpdateParticipant(
                   firstName,
                   lastName,
                   phone,
@@ -41,7 +39,7 @@ class AddParticipantModal {
 
                 if (!modalSheetContext.mounted) return;
 
-                Navigator.of(modalSheetContext).pop(newParticipant);
+                Navigator.of(modalSheetContext).pop(updatedParticipant);
               },
             ),
           ),
@@ -60,17 +58,18 @@ class AddParticipantModal {
     );
   }
 
-  static Future<Participant?> _onAddParticipant(
-    String firstName,
-    String lastName,
-    String phone,
-  ) async {
-    // TODO: add participant to firebase:
-    // FirebaseManager.instance.addParticipantToCamp(
+  static Future<Participant?> _onUpdateParticipant(String firstName, String lastName, String phone) async {
+    // TODO: update participant to firebase:
+    // FirebaseManager.instance.updateParticipant(
     //   ...
     // );
     await Future.delayed(const Duration(seconds: 1));
 
-    return Participant(id: '1', firstName: firstName, lastName: lastName, phone: phone);
+    return Participant(
+      id: '1',
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
+    );
   }
 }
