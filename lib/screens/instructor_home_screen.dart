@@ -81,6 +81,22 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
           ),
         ],
 
+        // Participants list
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: skiGroup.participants.length,
+          itemBuilder: (context, index) {
+            final participant = skiGroup.participants[index];
+
+            return ListTile(
+              title: Text(participant.fullName),
+              subtitle: Text(participant.phone ?? "No phone number"),
+              leading: Text("${index + 1}"),
+            );
+          },
+        ),
+
         const SizedBox(height: 32),
 
         // Add ski group button
@@ -95,53 +111,80 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
             child: Text('Add Student'),
           ),
         ),
+
+        const SizedBox(height: 32),
       ],
     );
-
-    // DropDownState(
-    //   DropDown(
-    //     bottomSheetTitle: const Text(
-    //       kCities,
-    //       style: TextStyle(
-    //         fontWeight: FontWeight.bold,
-    //         fontSize: 20.0,
-    //       ),
-    //     ),
-    //     submitButtonChild: const Text(
-    //       'Done',
-    //       style: TextStyle(
-    //         fontSize: 16,
-    //         fontWeight: FontWeight.bold,
-    //       ),
-    //     ),
-    //     data: widget.cities ?? [],
-    //     onSelected: (List<dynamic> selectedList) {
-    //       List<String> list = [];
-    //       for(var item in selectedList) {
-    //         if(item is SelectedListItem) {
-    //           list.add(item.name);
-    //         }
-    //       }
-    //       showSnackBar(list.toString());
-    //     },
-    //     enableMultipleSelection: true,
-    //   ),
-    // ).showModal(context);
   }
 
-  Future<void> _onAddParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) async {
-    print(participant);
+  Future<void> _onSelectedParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) async {
+    // if the participant is not in any group => add to my group
+    if (participant.groupId == null) {
+      await _onAddParticipantToSkiGroup(participant);
 
-    // Check if the participant is in another group
-    if (participant.groupId != null) {
-      
+      // close the search participants modal
+      if (!modalSheetContext.mounted) return;
+
+      Navigator.of(modalSheetContext).pop();
+      return;
     }
+
+    // if the participant is already in my group => do nothing
+    if (participant.groupId == widget.instructor.groupId) {
+      // close the search participants modal
+      if (!modalSheetContext.mounted) return;
+
+      Navigator.of(modalSheetContext).pop();
+      return;
+    }
+
+    // the participant is in another group => ask to remove from that group and add to my group
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Participant already in a group',
+          style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to remove ${participant.fullName} from the current group and add them to your group?',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'), // cancel button  -> close the dialog
+          ),
+          ElevatedButton(
+            onPressed: () => _onAddParticipantToSkiGroup(participant),
+            child: const Text('Add'), // add button  -> add the participant to ski group
+          ),
+        ],
+      ),
+    );
+
+    // close the search participants modal
+    if (!modalSheetContext.mounted) return;
+
+    Navigator.of(modalSheetContext).pop();
+  }
+
+  Future<void> _onAddParticipantToSkiGroup(Participant participant) async {
+    // TODO: add participant to my group in firebase:
+    // FirebaseManager.instance.addParticipantToSkiGroup(
+    //   ...
+    // );
+    // await Future.delayed(const Duration(seconds: 1));
+
+    safeSetState(() {
+      _skiGroup!.addParticipant(participant);
+    });
   }
 
   void _openParticipantsSearchModal() {
     SearchParticipantModal.show(
       context: context,
-      onSelected: _onAddParticipantToSkiGroup,
+      onSelected: _onSelectedParticipantToSkiGroup,
       showNavBar: false,
       excludeGroupId: widget.instructor.groupId,
     );
