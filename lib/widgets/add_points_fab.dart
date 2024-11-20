@@ -14,61 +14,70 @@ class AddPointsFab extends StatefulWidget {
 }
 
 class _AddPointsFabState extends State<AddPointsFab> {
-
   void _openAddPointsDialog() {
     WoltModalSheet.show(
       context: context,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          topBarTitle: Text(
-            'Add Lift Points',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          isTopBarLayerAlwaysVisible: true,
-          trailingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16),
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(modalSheetContext).pop();
-            },
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: LiftsSelectorWidget(
-              onLiftSelected: (String lift) {
-                WoltModalSheet.of(modalSheetContext).showNext();
+      pageListBuilder: (modalSheetContext) {
+        String? defaultLift;
+
+        return [
+          WoltModalSheetPage(
+            topBarTitle: Text(
+              'Add Lift Points',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            isTopBarLayerAlwaysVisible: true,
+            trailingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(modalSheetContext).pop();
               },
             ),
-          ),
-        ),
+            child: Builder(
+              builder: (context) {
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: LiftsSelectorWidget(
+                    defaultLift: defaultLift,
+                    onLiftSelected: (String lift) {
+                      defaultLift = lift;
 
-        WoltModalSheetPage(
-          topBarTitle: Text(
-            'Add Lift Points',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          isTopBarLayerAlwaysVisible: true,
-          trailingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16),
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(modalSheetContext).pop();
-            },
-          ),
-          leadingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16),
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: WoltModalSheet.of(modalSheetContext).showPrevious,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              height: 200,
-              color: Colors.red,
+                      WoltModalSheet.of(modalSheetContext).showNext();
+                    },
+                  ),
+                );
+              }
             ),
           ),
-        ),
-      ],
+          WoltModalSheetPage(
+            topBarTitle: Text(
+              'Add Lift Points',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            isTopBarLayerAlwaysVisible: true,
+            trailingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(modalSheetContext).pop();
+              },
+            ),
+            leadingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: WoltModalSheet.of(modalSheetContext).showPrevious,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                height: 200,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ];
+      },
       modalTypeBuilder: (context) {
         return const WoltDialogType();
 

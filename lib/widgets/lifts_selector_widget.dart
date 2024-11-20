@@ -4,9 +4,14 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class LiftsSelectorWidget extends StatefulWidget {
-  const LiftsSelectorWidget({super.key, required this.onLiftSelected});
+  const LiftsSelectorWidget({
+    super.key,
+    required this.onLiftSelected,
+    this.defaultLift,
+  });
 
   final void Function(String lift) onLiftSelected;
+  final String? defaultLift;
 
   @override
   State<LiftsSelectorWidget> createState() => _LiftsSelectorWidgetState();
@@ -15,6 +20,38 @@ class LiftsSelectorWidget extends StatefulWidget {
 class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
   int _selectedLiftIndex = 0;
   int _tabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    setDefaultLift(widget.defaultLift);
+  }
+
+  void setDefaultLift(String? defaultLift) {
+    if (defaultLift == null)  {
+      _selectedLiftIndex = 0;
+      _tabIndex = 0;
+      return;
+    }
+
+    if (kCableCars.contains(defaultLift)) {
+      _tabIndex = 0;
+      _selectedLiftIndex = kCableCars.indexOf(defaultLift);
+    } else if (kGondolas.contains(defaultLift)) {
+      _tabIndex = 1;
+      _selectedLiftIndex = kGondolas.indexOf(defaultLift);
+    } else if (kChairlifts.contains(defaultLift)) {
+      _tabIndex = 2;
+      _selectedLiftIndex = kChairlifts.indexOf(defaultLift);
+    } else if (kSkilifts.contains(defaultLift)) {
+      _tabIndex = 3;
+      _selectedLiftIndex = kSkilifts.indexOf(defaultLift);
+    } else {
+      _selectedLiftIndex = 0;
+      _tabIndex = 0;
+    }
+  }
 
   Widget _buildList(List<String> lifts) {
     return SingleChildScrollView(
@@ -90,6 +127,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
           height: MediaQuery.sizeOf(context).height * 0.5,
           width: double.infinity,
           child: ContainedTabBarView(
+            initialIndex: _tabIndex,
             tabs: [
               Image.asset(
                 "assets/images/skilifts/cable-car-2.png",
