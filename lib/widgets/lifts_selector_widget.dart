@@ -54,6 +54,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
   }
 
   Widget _buildList(List<String> lifts) {
+    final ScrollController scrollController = ScrollController();
     return Column(
       children: [
         Divider(
@@ -61,27 +62,36 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
           thickness: 2,
           color: kAppSeedColor,
         ),
-        ListView.builder(
-          shrinkWrap: true,
-          itemCount: lifts.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(
-                lifts[index],
-                style: _selectedLiftIndex == index //
-                    ? const TextStyle(fontWeight: FontWeight.bold)
-                    : null,
-              ),
-              selectedTileColor: kAppSeedColor.withOpacity(0.2),
-              selected: _selectedLiftIndex == index,
-              leading: Radio<int>(
-                value: index,
-                groupValue: _selectedLiftIndex,
-                onChanged: _onSelectedLiftIndexChanged,
-              ),
-              onTap: () => _onSelectedLiftIndexChanged(index),
-            );
-          },
+        Expanded(
+          child: Scrollbar(
+            controller: scrollController,
+            thumbVisibility: true,
+            trackVisibility: true,
+            child: ListView.builder(
+              // use shrinkWrap: true since the listview has maximum 5 items
+              shrinkWrap: true,
+              controller: scrollController,
+              itemCount: lifts.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    lifts[index],
+                    style: _selectedLiftIndex == index //
+                        ? const TextStyle(fontWeight: FontWeight.bold)
+                        : null,
+                  ),
+                  selectedTileColor: kAppSeedColor.withOpacity(0.2),
+                  selected: _selectedLiftIndex == index,
+                  leading: Radio<int>(
+                    value: index,
+                    groupValue: _selectedLiftIndex,
+                    onChanged: _onSelectedLiftIndexChanged,
+                  ),
+                  onTap: () => _onSelectedLiftIndexChanged(index),
+                );
+              },
+            ),
+          ),
         ),
       ],
     );
@@ -181,9 +191,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
             style: ElevatedButton.styleFrom(
               backgroundColor: kAppSeedColor,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              minimumSize: const Size(128, 56),
             ),
             onPressed: _onLiftSelected,
             child: const Text('Next'),

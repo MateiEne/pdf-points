@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/widgets/lifts_selector_widget.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
+import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/modals/add_points.dart';
 
 class AddPointsFab extends StatefulWidget {
   /// The location of the ExpandableFab on the screen.
   static const FloatingActionButtonLocation location = FloatingActionButtonLocation.endFloat;
 
-  const AddPointsFab({super.key});
+  const AddPointsFab({
+    super.key,
+    required this.students,
+  });
+
+  final List<Participant> students;
 
   @override
   State<AddPointsFab> createState() => _AddPointsFabState();
@@ -15,97 +19,21 @@ class AddPointsFab extends StatefulWidget {
 
 class _AddPointsFabState extends State<AddPointsFab> {
   void _openAddPointsDialog() {
-    WoltModalSheet.show(
-      context: context,
-      pageListBuilder: (modalSheetContext) {
-        String? defaultLift;
+    AddPointsModal.show(context: context, students: widget.students, onAddPoints: _onAddPoints);
+  }
 
-        return [
-          WoltModalSheetPage(
-            topBarTitle: Text(
-              'Add Lift Points',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            isTopBarLayerAlwaysVisible: true,
-            trailingNavBarWidget: IconButton(
-              padding: const EdgeInsets.all(16),
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                Navigator.of(modalSheetContext).pop();
-              },
-            ),
-            // hasSabGradient: false,
-            // stickyActionBar: Padding(
-            //   padding: const EdgeInsets.all(16),
-            //   child: Align(
-            //     alignment: Alignment.bottomRight,
-            //     child: ElevatedButton(
-            //       onPressed: WoltModalSheet.of(modalSheetContext).showNext,
-            //       style: ElevatedButton.styleFrom(
-            //         backgroundColor: kAppSeedColor,
-            //         foregroundColor: Colors.white,
-            //       ),
-            //       child: const Text("Next"),
-            //     ),
-            //   ),
-            // ),
-            child: Builder(
-              builder: (context) {
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: LiftsSelectorWidget(
-                    defaultLift: defaultLift,
-                    onLiftSelected: (String lift) {
-                      defaultLift = lift;
+  Future<void> _onAddPoints(BuildContext modalSheetContext, List<Participant> selectedStudents, String lift) async {
+    print("Adding lift: $lift to students: ${selectedStudents.map((s) => s.fullName).toList()}");
 
-                      WoltModalSheet.of(modalSheetContext).showNext();
-                    },
-                  ),
-                );
-              }
-            ),
-          ),
-          WoltModalSheetPage(
-            topBarTitle: Text(
-              'Add Lift Points',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            isTopBarLayerAlwaysVisible: true,
-            trailingNavBarWidget: IconButton(
-              padding: const EdgeInsets.all(16),
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                Navigator.of(modalSheetContext).pop();
-              },
-            ),
-            leadingNavBarWidget: IconButton(
-              padding: const EdgeInsets.all(16),
-              icon: const Icon(Icons.arrow_back_rounded),
-              onPressed: WoltModalSheet.of(modalSheetContext).showPrevious,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                height: 200,
-                color: Colors.red,
-              ),
-            ),
-          ),
-        ];
-      },
-      modalTypeBuilder: (context) {
-        return const WoltDialogType();
+    // TODO: add points to firebase:
+    await Future.delayed(const Duration(seconds: 1));
 
-        final size = MediaQuery.sizeOf(context).width;
 
-        return size < kPageWidthBreakpoint //
-            ? const WoltBottomSheetType()
-            : const WoltDialogType();
-      },
-      onModalDismissedWithBarrierTap: () {
-        Navigator.of(context).pop();
-      },
-    );
+    if (!modalSheetContext.mounted) {
+      return;
+    }
+
+    Navigator.of(modalSheetContext).pop();
   }
 
   @override

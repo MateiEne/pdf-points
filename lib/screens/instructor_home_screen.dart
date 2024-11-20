@@ -45,7 +45,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
       _skiGroup = SkiGroup(
         name: "Abi",
         instructor: widget.instructor,
-        participants: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
+        students: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
       );
     });
   }
@@ -65,7 +65,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
 
     return Column(
       children: [
-        if (skiGroup.participants.isEmpty) ...[
+        if (skiGroup.students.isEmpty) ...[
           // top padding
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
 
@@ -92,9 +92,9 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: skiGroup.participants.length,
+          itemCount: skiGroup.students.length,
           itemBuilder: (context, index) {
-            final participant = skiGroup.participants[index];
+            final participant = skiGroup.students[index];
 
             return ListTile(
               title: Text(participant.fullName),
@@ -109,8 +109,8 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         // Add ski group button
         OutlinedButton(
           style: OutlinedButton.styleFrom(
-            backgroundColor: skiGroup.hasParticipants ? null : kAppSeedColor,
-            foregroundColor: skiGroup.hasParticipants ? Theme.of(context).colorScheme.primary : Colors.white,
+            backgroundColor: skiGroup.hasStudents ? null : kAppSeedColor,
+            foregroundColor: skiGroup.hasStudents ? Theme.of(context).colorScheme.primary : Colors.white,
             maximumSize: const Size(double.infinity, 56),
             side: BorderSide(color: Theme.of(context).colorScheme.primary),
           ),
@@ -193,7 +193,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     safeSetState(() {
-      _skiGroup!.addParticipant(participant);
+      _skiGroup!.addStudent(participant);
       _isLoading = false;
     });
   }
@@ -244,8 +244,8 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         ),
       ),
       floatingActionButtonLocation: AddPointsFab.location,
-      floatingActionButton: _skiGroup != null && _skiGroup!.hasParticipants //
-          ? const AddPointsFab()
+      floatingActionButton: _skiGroup != null && _skiGroup!.hasStudents //
+          ? AddPointsFab(students: _skiGroup!.students)
           : null,
     );
   }

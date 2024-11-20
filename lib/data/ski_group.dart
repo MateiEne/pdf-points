@@ -3,26 +3,28 @@ import 'package:pdf_points/data/participant.dart';
 class SkiGroup {
   final String name;
   final String? image;
-  final List<Participant> participants = [];
   final Participant instructor;
+  final List<Participant> _students = [];
 
   SkiGroup({
     required this.name,
     required this.instructor,
     this.image,
-    List<Participant> participants = const [],
+    List<Participant> students = const [],
   }) {
-    this.participants.addAll(participants);
+    _students.addAll(students);
   }
 
-  get hasParticipants => participants.isNotEmpty;
+  get hasStudents => _students.isNotEmpty;
 
-  void addParticipant(Participant participant) {
-    participants.add(participant);
+  get students => _students.toList();
+
+  void addStudent(Participant participant) {
+    _students.add(participant);
   }
 
   @override
   String toString() {
-    return 'SkiGroup{name: $name, image: $image,  ${participants.length} participants, instructor: $instructor}';
+    return 'SkiGroup{name: $name, image: $image,  ${students.length} students, instructor: $instructor}';
   }
 }
