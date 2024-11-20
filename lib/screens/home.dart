@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
+import 'package:pdf_points/screens/instructor_home_screen.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_camp_fab.dart';
 
@@ -81,6 +82,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                     child: const Text("Go to camp"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InstructorHomeScreen(
+                            instructor: Participant(
+                              isInstructor: true,
+                              id: "129",
+                              firstName: "Abi",
+                              phone: "+40751561142",
+                              groupId: 1,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text("Go instructor home"),
                   ),
                 ],
               ),

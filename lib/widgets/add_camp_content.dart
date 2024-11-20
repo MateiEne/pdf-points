@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/utils/date_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/date_time_picker_widget.dart';
@@ -16,10 +15,19 @@ class AddCampContentWidget extends StatefulWidget {
     super.key,
     this.campInfo,
     this.onAddImage,
+    required this.onAddCamp,
   });
 
   final ExcelCampInfo? campInfo;
   final Future<Uint8List?> Function()? onAddImage;
+  final Future<void> Function(
+    String name,
+    String password,
+    DateTime startDate,
+    DateTime endDate,
+    Uint8List? image,
+    List<Participant> participants,
+  ) onAddCamp;
 
   @override
   State<AddCampContentWidget> createState() => _AddCampContentWidgetState();
@@ -109,23 +117,14 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
       return;
     }
 
-    // TODO: save the camp to firebase:
-    // FirebaseManager.instance.addCamp(
-    //   name: _name,
-    //   password: _password,
-    //   startDate: _startDate,
-    //   endDate: _endDate,
-    //   participants: widget.campInfo?.participants ?? [],
-    //   instructors: [],
-    //   image: _image,
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) {
-      return;
-    }
-
-    Navigator.of(context).pop();
+    await widget.onAddCamp(
+      _name,
+      _password,
+      _startDate,
+      _endDate,
+      _image,
+      widget.campInfo?.participants ?? [],
+    );
   }
 
   bool _validName(String? value) {
@@ -227,7 +226,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
             },
             onChanged: (value) {
               safeSetState(() {
-                _name = value;
+                _name = value.trim();
               });
             },
           ),
