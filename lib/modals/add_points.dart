@@ -7,6 +7,8 @@ import 'package:pdf_points/widgets/students_selector_widget.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddPointsModal {
+  static String? _defaultLift;
+
   static Future<void> show({
     required BuildContext context,
     required List<Participant> students,
@@ -19,56 +21,11 @@ class AddPointsModal {
     return WoltModalSheet.show(
       context: context,
       pageListBuilder: (modalSheetContext) {
-        String? defaultLift;
         List<Participant> selectedStudents = students;
 
         return [
           // Select lift page
-          WoltModalSheetPage(
-            topBarTitle: Text(
-              'Select Lift',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            isTopBarLayerAlwaysVisible: true,
-            trailingNavBarWidget: IconButton(
-              padding: const EdgeInsets.all(16),
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                Navigator.of(modalSheetContext).pop();
-              },
-            ),
-            hasSabGradient: true,
-            stickyActionBar: Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: WoltModalSheet.of(modalSheetContext).showNext,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kAppSeedColor,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.maxFinite, 56),
-                ),
-                child: const Text("Next"),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0).add(const EdgeInsets.only(bottom: 56 + 16)),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: kAppSeedColor.withOpacity(0.05),
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                ),
-                height: MediaQuery.sizeOf(context).height * 0.5,
-                child: Builder(builder: (context) {
-                  return LiftsSelectorWidget(
-                    defaultLift: defaultLift,
-                    onLiftSelected: (String lift) {
-                      defaultLift = lift;
-                    },
-                  );
-                }),
-              ),
-            ),
-          ),
+          _selectLiftPage(modalSheetContext),
 
           // Select students page
           WoltModalSheetPage(
@@ -101,7 +58,7 @@ class AddPointsModal {
                 ),
                 onPressed: selectedStudents.isNotEmpty
                     ? () {
-                        return onAddPoints(modalSheetContext, selectedStudents, defaultLift!);
+                        return onAddPoints(modalSheetContext, selectedStudents, _defaultLift!);
                       }
                     : null,
                 child: const Text('Add Points'),
@@ -140,6 +97,54 @@ class AddPointsModal {
       onModalDismissedWithBarrierTap: () {
         Navigator.of(context).pop();
       },
+    );
+  }
+
+  static WoltModalSheetPage _selectLiftPage(BuildContext modalSheetContext) {
+    return WoltModalSheetPage(
+      topBarTitle: Text(
+        'Select Lift',
+        style: Theme.of(modalSheetContext).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+      ),
+      isTopBarLayerAlwaysVisible: true,
+      trailingNavBarWidget: IconButton(
+        padding: const EdgeInsets.all(16),
+        icon: const Icon(Icons.close),
+        onPressed: () {
+          Navigator.of(modalSheetContext).pop();
+        },
+      ),
+      hasSabGradient: true,
+      stickyActionBar: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ElevatedButton(
+          onPressed: WoltModalSheet.of(modalSheetContext).showNext,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kAppSeedColor,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(double.maxFinite, 56),
+          ),
+          child: const Text("Next"),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0).add(const EdgeInsets.only(bottom: 56 + 16)),
+        child: Container(
+          decoration: BoxDecoration(
+            color: kAppSeedColor.withOpacity(0.05),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          height: MediaQuery.sizeOf(modalSheetContext).height * 0.5,
+          child: Builder(builder: (context) {
+            return LiftsSelectorWidget(
+              defaultLift: _defaultLift,
+              onLiftSelected: (String lift) {
+                _defaultLift = lift;
+              },
+            );
+          }),
+        ),
+      ),
     );
   }
 }
