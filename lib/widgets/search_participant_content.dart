@@ -148,13 +148,12 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
                   (BuildContext context, int index) {
                     if (index == _showParticipants.length) {
                       return widget.addParticipantIfNotFound
-                          ? OutlinedButton(
-                              onPressed: _openAddParticipantModal,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Theme.of(context).colorScheme.primary,
-                                side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: ElevatedButton(
+                                onPressed: _openAddParticipantModal,
+                                child: const Text('Add new participant'),
                               ),
-                              child: const Text('Add new participant'),
                             )
                           : const SizedBox.shrink();
                     }

@@ -6,6 +6,7 @@ import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/update_participant.dart';
+import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_points_fab.dart';
 import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';
@@ -41,7 +42,11 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     safeSetState(() {
       _isLoading = false;
       // _skiGroup = null;
-      _skiGroup = SkiGroup(name: "Abi", instructor: widget.instructor);
+      _skiGroup = SkiGroup(
+        name: "Abi",
+        instructor: widget.instructor,
+        participants: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
+      );
     });
   }
 
@@ -149,7 +154,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
       return;
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     // the participant is in another group => ask to remove from that group and add to my group
     await showDialog(
