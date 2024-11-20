@@ -29,13 +29,10 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
   }
 
   void setDefaultLift(String? defaultLift) {
-    if (defaultLift == null)  {
+    if (defaultLift == null) {
       _selectedLiftIndex = 0;
       _tabIndex = 0;
-      return;
-    }
-
-    if (kCableCars.contains(defaultLift)) {
+    } else if (kCableCars.contains(defaultLift)) {
       _tabIndex = 0;
       _selectedLiftIndex = kCableCars.indexOf(defaultLift);
     } else if (kGondolas.contains(defaultLift)) {
@@ -51,6 +48,8 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
       _selectedLiftIndex = 0;
       _tabIndex = 0;
     }
+
+    _onLiftSelected();
   }
 
   Widget _buildList(List<String> lifts) {
@@ -103,6 +102,8 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
     safeSetState(() {
       _selectedLiftIndex = index;
     });
+
+    _onLiftSelected();
   }
 
   void _onLiftSelected() {
@@ -126,13 +127,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: kAppSeedColor.withOpacity(0.05),
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          height: MediaQuery.sizeOf(context).height * 0.5,
-          width: double.infinity,
+        Expanded(
           child: ContainedTabBarView(
             initialIndex: _tabIndex,
             tabs: [
@@ -177,26 +172,28 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
               safeSetState(() {
                 _selectedLiftIndex = 0;
                 _tabIndex = index;
+
+                _onLiftSelected();
               });
             },
           ),
         ),
 
-        const SizedBox(height: 12),
-
-        // Next button
-        Align(
-          alignment: Alignment.bottomRight,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kAppSeedColor,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(128, 56),
-            ),
-            onPressed: _onLiftSelected,
-            child: const Text('Next'),
-          ),
-        ),
+        // const SizedBox(height: 12),
+        //
+        // // Next button
+        // Align(
+        //   alignment: Alignment.bottomRight,
+        //   child: ElevatedButton(
+        //     style: ElevatedButton.styleFrom(
+        //       backgroundColor: kAppSeedColor,
+        //       foregroundColor: Colors.white,
+        //       minimumSize: const Size(128, 56),
+        //     ),
+        //     onPressed: _onLiftSelected,
+        //     child: const Text('Next'),
+        //   ),
+        // ),
       ],
     );
   }
