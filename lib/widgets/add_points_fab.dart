@@ -34,6 +34,21 @@ class _AddPointsFabState extends State<AddPointsFab> {
                 Navigator.of(modalSheetContext).pop();
               },
             ),
+            // hasSabGradient: false,
+            // stickyActionBar: Padding(
+            //   padding: const EdgeInsets.all(16),
+            //   child: Align(
+            //     alignment: Alignment.bottomRight,
+            //     child: ElevatedButton(
+            //       onPressed: WoltModalSheet.of(modalSheetContext).showNext,
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: kAppSeedColor,
+            //         foregroundColor: Colors.white,
+            //       ),
+            //       child: const Text("Next"),
+            //     ),
+            //   ),
+            // ),
             child: Builder(
               builder: (context) {
                 return Padding(

@@ -54,39 +54,36 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
   }
 
   Widget _buildList(List<String> lifts) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Divider(
-            height: 2,
-            thickness: 2,
-            color: kAppSeedColor,
-          ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: lifts.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(
-                  lifts[index],
-                  style: _selectedLiftIndex == index //
-                      ? const TextStyle(fontWeight: FontWeight.bold)
-                      : null,
-                ),
-                selectedTileColor: kAppSeedColor.withOpacity(0.2),
-                selected: _selectedLiftIndex == index,
-                leading: Radio<int>(
-                  value: index,
-                  groupValue: _selectedLiftIndex,
-                  onChanged: _onSelectedLiftIndexChanged,
-                ),
-                onTap: () => _onSelectedLiftIndexChanged(index),
-              );
-            },
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Divider(
+          height: 2,
+          thickness: 2,
+          color: kAppSeedColor,
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          itemCount: lifts.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(
+                lifts[index],
+                style: _selectedLiftIndex == index //
+                    ? const TextStyle(fontWeight: FontWeight.bold)
+                    : null,
+              ),
+              selectedTileColor: kAppSeedColor.withOpacity(0.2),
+              selected: _selectedLiftIndex == index,
+              leading: Radio<int>(
+                value: index,
+                groupValue: _selectedLiftIndex,
+                onChanged: _onSelectedLiftIndexChanged,
+              ),
+              onTap: () => _onSelectedLiftIndexChanged(index),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -121,7 +118,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: kAppSeedColor.withOpacity(0.1),
+            color: kAppSeedColor.withOpacity(0.05),
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           height: MediaQuery.sizeOf(context).height * 0.5,
@@ -156,6 +153,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
                 color: kAppSeedColor.withOpacity(0.7),
+                // border: Border.all(color: kAppSeedColor, width: 1),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
               ),
             ),
