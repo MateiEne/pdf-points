@@ -42,6 +42,31 @@ class Participant {
   }
 
   @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    if (other.runtimeType != runtimeType) return false;
+
+    return other is Participant &&
+        other.id == id &&
+        other.firstName == firstName &&
+        other.lastName == lastName &&
+        other.phone == phone &&
+        other.groupId == groupId &&
+        other.isInstructor == isInstructor;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        firstName.hashCode ^
+        lastName.hashCode ^
+        phone.hashCode ^
+        groupId.hashCode ^
+        isInstructor.hashCode;
+  }
+
+  @override
   String toString() {
     return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId, isInstructor: $isInstructor)';
   }
