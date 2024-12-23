@@ -7,6 +7,7 @@ import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/add_camp.dart';
 import 'package:pdf_points/modals/open_pictures.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
@@ -71,6 +72,7 @@ class _AddCampFabState extends State<AddCampFab> {
 
     try {
       var campInfo = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
+      print("campInfo: $campInfo");
 
       if (!mounted) return;
 
@@ -94,7 +96,7 @@ class _AddCampFabState extends State<AddCampFab> {
   }
 
   void _openModal({ExcelCampInfo? campInfo}) {
-    AddCampModal.show(context: context, onAddCamp: _onAddCamp, onAddPicture: _openPicturesModal);
+    AddCampModal.show(context: context, onAddCamp: _onAddCamp, onAddPicture: _openPicturesModal, campInfo: campInfo);
   }
 
   Future<void> _onAddCamp(
@@ -107,17 +109,16 @@ class _AddCampFabState extends State<AddCampFab> {
     List<Participant> participants,
   ) async {
     // TODO: save the camp to firebase:
-    // FirebaseManager.instance.addCamp(
-    //   name: _name,
-    //   password: _password,
-    //   startDate: _startDate,
-    //   endDate: _endDate,
-    //   participants: widget.campInfo?.participants ?? [],
-    //   instructors: [],
-    //   image: _image,
-    // );
+    FirebaseManager.instance.addCamp(
+      name: name,
+      password: password,
+      startDate: startDate,
+      endDate: endDate,
+      participants: participants,
+      instructors: [],
+      image: image,
+    );
     print(name);
-    await Future.delayed(const Duration(seconds: 1));
 
     if (!modalSheetContext.mounted) {
       return;

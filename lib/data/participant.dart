@@ -66,6 +66,36 @@ class Participant {
         isInstructor.hashCode;
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'phone': phone,
+      'groupId': groupId,
+      'isInstructor': isInstructor,
+    };
+  }
+
+  factory Participant.fromJson(Map<String, dynamic> json) {
+    return Participant(
+      id: json['id'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      phone: json['phone'],
+      groupId: json['groupId'],
+      isInstructor: json['isInstructor'],
+    );
+  }
+
+  static List<Participant> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((json) => Participant.fromJson(json)).toList();
+  }
+
+  factory Participant.fromSnapshot(Map<String, dynamic> snapshot) {
+    return Participant.fromJson(snapshot);
+  }
+
   @override
   String toString() {
     return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId, isInstructor: $isInstructor)';
