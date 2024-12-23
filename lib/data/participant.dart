@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Participant {
   final String id;
   final String? firstName;
@@ -92,8 +94,8 @@ class Participant {
     return jsonList.map((json) => Participant.fromJson(json)).toList();
   }
 
-  factory Participant.fromSnapshot(Map<String, dynamic> snapshot) {
-    return Participant.fromJson(snapshot);
+  factory Participant.fromSnapshot(DocumentSnapshot snapshot) {
+    return Participant.fromJson(snapshot.data() as Map<String, dynamic>);
   }
 
   @override

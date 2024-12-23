@@ -1,112 +1,45 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/participant.dart';
-import 'package:pdf_points/screens/camp_screen.dart';
 import 'package:pdf_points/screens/instructor_home_screen.dart';
-import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_camp_fab.dart';
+import 'package:pdf_points/screens/superuser_home.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  bool _isSuperUser = false;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkSuperUser();
-  }
-
-  void _checkSuperUser() async {
-    safeSetState(() {
-      _isLoading = true;
-    });
-
-    final user = FirebaseAuth.instance.currentUser!;
-    // TODO: add user model class
-    final userData = await FirebaseFirestore.instance //
-        .collection('users')
-        .doc(user.uid)
-        .get();
-
-    // TODO: check user.isSuperuser once the user model is added
-    if (userData.data()!['is_super'] != null) {
-      safeSetState(() {
-        _isSuperUser = true;
-        _isLoading = false;
-      });
-
-      return;
-    }
-
-    safeSetState(() {
-      _isSuperUser = false;
-      _isLoading = false;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-            },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      drawer: const Drawer(),
-      body: Center(
-        child: _isLoading
-            ? const CircularProgressIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Coming soon ... ${_isSuperUser ? 'super user' : 'normal user'}'),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CampScreen()),
-                      );
-                    },
-                    child: const Text("Go to camp"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => InstructorHomeScreen(
-                            instructor: Participant(
-                              isInstructor: true,
-                              id: "129",
-                              firstName: "Abi",
-                              phone: "+40751561142",
-                              groupId: 1,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text("Go instructor home"),
-                  ),
-                ],
+    return Material(
+      child: FutureBuilder<bool>(
+        future: FirebaseManager.instance.isSuperUser(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(
+              child: Text("Error loading data. Please try again later."),
+            );
+          }
+
+          if (snapshot.data!) {
+            // navigate to super user screen
+            return const SuperUserHomeScreen();
+          } else {
+            // navigate to instructor screen
+            return InstructorHomeScreen(
+              instructor: Participant(
+                isInstructor: true,
+                id: "129",
+                firstName: "Abi",
+                phone: "+40751561142",
+                groupId: 1,
               ),
+            );
+          }
+        },
       ),
-      floatingActionButtonLocation: AddCampFab.location,
-      floatingActionButton: const AddCampFab(),
     );
   }
 }

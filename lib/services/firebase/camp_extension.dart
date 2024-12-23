@@ -1,17 +1,21 @@
 part of 'firebase_manager.dart';
 
 extension CampExtension on FirebaseManager {
-  /*
-  // FirebaseManager.instance.addCamp(
-    //   name: _name,
-    //   password: _password,
-    //   startDate: _startDate,
-    //   endDate: _endDate,
-    //   participants: widget.campInfo?.participants ?? [],
-    //   instructors: [],
-    //   image: _image,
-    // );
-   */
+  void listenToCampChanges(StreamController<ChangeListener<Camp>> campChangedStreamController) {
+    FirebaseFirestore.instance.collection('camp').snapshots().listen(
+      (snapshot) {
+        for (var change in snapshot.docChanges) {
+          campChangedStreamController.add(ChangeListener<Camp>(change.type, Camp.fromSnapshot(change.doc)));
+        }
+      },
+    );
+  }
+
+  Future<List<Camp>> fetchCamps() async {
+    var snapshot = await FirebaseFirestore.instance.collection('camps').get();
+
+    return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
+  }
 
   Future<Camp> addCamp({
     required String name,
