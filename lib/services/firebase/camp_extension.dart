@@ -1,16 +1,10 @@
 part of 'firebase_manager.dart';
 
+const kCampCollection = 'camps';
+
 extension CampExtension on FirebaseManager {
-  void startListeningToCampChanges() {
-    _listenToCampChanges(_campChangedStreamController);
-  }
-
-  void stopListeningToCampChanges() {
-    _campChangedStreamController.close();
-  }
-
   void _listenToCampChanges(StreamController<ChangeListener<Camp>> campChangedStreamController) {
-    FirebaseFirestore.instance.collection('camp').snapshots().listen(
+    FirebaseFirestore.instance.collection(kCampCollection).snapshots().listen(
       (snapshot) {
         for (var change in snapshot.docChanges) {
           campChangedStreamController.add(ChangeListener<Camp>(change.type, Camp.fromSnapshot(change.doc)));
@@ -19,8 +13,13 @@ extension CampExtension on FirebaseManager {
     );
   }
 
+  void _stopListeningToCampChanges() {
+    _campChangedStreamController?.close();
+    _campChangedStreamController = null;
+  }
+
   Future<List<Camp>> fetchCamps() async {
-    var snapshot = await FirebaseFirestore.instance.collection('camps').get();
+    var snapshot = await FirebaseFirestore.instance.collection(kCampCollection).get();
 
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
   }
@@ -35,7 +34,7 @@ extension CampExtension on FirebaseManager {
     Uint8List? image,
     String? campId,
   }) async {
-    var campRef = FirebaseFirestore.instance.collection('camps').doc(campId);
+    var campRef = FirebaseFirestore.instance.collection(kCampCollection).doc(campId);
 
     Camp camp = Camp(
       id: campRef.id,

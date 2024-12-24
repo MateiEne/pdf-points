@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
-import 'package:pdf_points/screens/instructor_home_screen.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_camp_fab.dart';
+import 'package:pdf_points/widgets/camp_card.dart';
 
 class SuperUserHomeScreen extends StatefulWidget {
   const SuperUserHomeScreen({super.key});
@@ -14,12 +18,72 @@ class SuperUserHomeScreen extends StatefulWidget {
 
 class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
   bool _isLoading = true;
+  List<Camp> _camps = [];
+
+  StreamSubscription? _campChangedSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    _isLoading = false;
+    _startFirebaseEvents();
+  }
+
+  Future<void> _startFirebaseEvents() async {
+    _fetchCamps();
+    _listenToCampChanges();
+  }
+
+  Future<void> _fetchCamps() async {
+    safeSetState(() {
+      _isLoading = true;
+    });
+
+    try {
+      List<Camp> camps = await FirebaseManager.instance.fetchCamps();
+      camps = _sortCamps(camps);
+
+      safeSetState(() {
+        _isLoading = false;
+
+        _camps = camps;
+      });
+    } catch (e) {
+      safeSetState(() {
+        _isLoading = false;
+        // TODO: better error handling
+        debugPrint(e.toString());
+      });
+    }
+  }
+
+  Future<void> _listenToCampChanges() async {
+    _campChangedSubscription = FirebaseManager.instance.campChangedStream.listen(
+      (change) {
+        switch (change.type) {
+          case DocumentChangeType.added:
+          case DocumentChangeType.modified:
+            _camps.removeWhere((w) => w.id == change.object.id);
+            _camps.add(change.object);
+
+            safeSetState(() {
+              _camps = _sortCamps(_camps);
+            });
+            break;
+          case DocumentChangeType.removed:
+            safeSetState(() {
+              _camps.removeWhere((w) => w.id == change.object.id);
+            });
+            break;
+        }
+      },
+    );
+  }
+
+  List<Camp> _sortCamps(List<Camp> camps) {
+    camps.sort((a, b) => a.startDate.compareTo(b.startDate));
+
+    return camps.toList();
   }
 
   @override
@@ -40,42 +104,33 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
       body: Center(
         child: _isLoading
             ? const CircularProgressIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CampScreen()),
-                      );
-                    },
-                    child: const Text("Go to camp"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                itemCount: _camps.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => InstructorHomeScreen(
-                            instructor: Participant(
-                              isInstructor: true,
-                              id: "129",
-                              firstName: "Abi",
-                              phone: "+40751561142",
-                              groupId: 1,
-                            ),
-                          ),
+                          builder: (context) => CampScreen(camp: _camps[index]),
                         ),
                       );
                     },
-                    child: const Text("Go instructor home"),
-                  ),
-                ],
+                    child: CampCard(camp: _camps[index]),
+                  );
+                },
               ),
       ),
       floatingActionButtonLocation: AddCampFab.location,
       floatingActionButton: const AddCampFab(),
     );
+  }
+
+  @override
+  void dispose() {
+    _campChangedSubscription?.cancel();
+
+    super.dispose();
   }
 }

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/utils/context_utils.dart';
@@ -12,14 +13,16 @@ import 'package:pdf_points/utils/platform_file_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class CampScreen extends StatefulWidget {
-  const CampScreen({super.key});
+  final Camp camp;
+
+  const CampScreen({super.key, required this.camp});
 
   @override
   State<CampScreen> createState() => _CampScreenState();
 }
 
 class _CampScreenState extends State<CampScreen> {
-  List<Participant> _participants = [];
+  late List<Participant> _participants = widget.camp.participants;
 
   Future<void> _selectFile() async {
     FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
@@ -59,7 +62,7 @@ class _CampScreenState extends State<CampScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Camp Name'),
+        title: Text(widget.camp.name),
         actions: const [],
       ),
       body: Padding(
