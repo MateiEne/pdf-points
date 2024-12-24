@@ -10,6 +10,7 @@ import 'package:pdf_points/services/firebase/change_listener.dart';
 
 part 'camp_extension.dart';
 part 'user_extension.dart';
+part 'auth_extension.dart';
 
 class FirebaseManager {
   static final FirebaseManager _instance = FirebaseManager._();
@@ -20,11 +21,9 @@ class FirebaseManager {
   final StreamController<ChangeListener<Camp>> _campChangedStreamController =
       StreamController<ChangeListener<Camp>>.broadcast();
 
-  FirebaseManager._() {
-    listenToCampChanges(_campChangedStreamController);
-  }
+  FirebaseManager._();
 
   void close() {
-    _campChangedStreamController.close();
+    stopListeningToCampChanges();
   }
 }

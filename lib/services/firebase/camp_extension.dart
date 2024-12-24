@@ -1,7 +1,15 @@
 part of 'firebase_manager.dart';
 
 extension CampExtension on FirebaseManager {
-  void listenToCampChanges(StreamController<ChangeListener<Camp>> campChangedStreamController) {
+  void startListeningToCampChanges() {
+    _listenToCampChanges(_campChangedStreamController);
+  }
+
+  void stopListeningToCampChanges() {
+    _campChangedStreamController.close();
+  }
+
+  void _listenToCampChanges(StreamController<ChangeListener<Camp>> campChangedStreamController) {
     FirebaseFirestore.instance.collection('camp').snapshots().listen(
       (snapshot) {
         for (var change in snapshot.docChanges) {
