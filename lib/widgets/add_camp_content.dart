@@ -1,11 +1,11 @@
 import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
-import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/modals/open_pictures.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/date_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/date_time_picker_widget.dart';
@@ -14,20 +14,9 @@ class AddCampContentWidget extends StatefulWidget {
   const AddCampContentWidget({
     super.key,
     this.campInfo,
-    this.onAddImage,
-    required this.onAddCamp,
   });
 
   final ExcelCampInfo? campInfo;
-  final Future<Uint8List?> Function()? onAddImage;
-  final Future<void> Function(
-    String name,
-    String password,
-    DateTime startDate,
-    DateTime endDate,
-    Uint8List? image,
-    List<Participant> participants,
-  ) onAddCamp;
 
   @override
   State<AddCampContentWidget> createState() => _AddCampContentWidgetState();
@@ -36,6 +25,8 @@ class AddCampContentWidget extends StatefulWidget {
 class _AddCampContentWidgetState extends State<AddCampContentWidget> {
   final _formKey = GlobalKey<FormState>();
   final _confirmPasswordFieldKey = GlobalKey<FormFieldState<String>>();
+  final _confirmPasswordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   late DateTime _startDate;
   late DateTime _endDate;
   late String _name;
@@ -44,6 +35,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  String? _passwordAlreadyUsedErrorMessage;
 
   Uint8List? _image;
 
@@ -79,35 +71,16 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
   }
 
   Future<void> _onAddImage() async {
-    if (widget.onAddImage == null) {
-      await _openGallery();
-      return;
-    }
-
-    var image = await widget.onAddImage!();
+    var image = await OpenPicturesModal.show<Uint8List?>(
+      context: context,
+      title: "Add Picture",
+    );
     if (image == null) {
       return;
     }
 
     safeSetState(() {
       _image = image;
-    });
-
-    return;
-  }
-
-  Future<void> _openGallery() async {
-    final ImagePicker imagePicker = ImagePicker();
-    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile == null) {
-      return;
-    }
-
-    var data = await pickedFile.readAsBytes();
-
-    safeSetState(() {
-      _image = data;
     });
   }
 
@@ -117,14 +90,31 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
       return;
     }
 
-    await widget.onAddCamp(
-      _name,
-      _password,
-      _startDate,
-      _endDate,
-      _image,
-      widget.campInfo?.participants ?? [],
+    // check if a camp with the same password already exists
+    if (await FirebaseManager.instance.checkIfCampExistWithPassword(_password)) {
+      _confirmPasswordController.clear();
+      _passwordFocusNode.requestFocus();
+      safeSetState(() {
+        _passwordAlreadyUsedErrorMessage = "Password already used. Please choose another one.";
+      });
+      return;
+    }
+
+    await FirebaseManager.instance.addCamp(
+      name: _name,
+      password: _password,
+      startDate: _startDate,
+      endDate: _endDate,
+      participants: widget.campInfo?.participants ?? [],
+      instructors: [],
+      image: _image,
     );
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pop();
   }
 
   bool _validName(String? value) {
@@ -235,8 +225,10 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
 
           // Camp password
           TextFormField(
+            focusNode: _passwordFocusNode,
             decoration: InputDecoration(
               labelText: 'Password',
+              errorText: _passwordAlreadyUsedErrorMessage,
               suffixIcon: IconButton(
                 icon: Icon(
                   _isPasswordVisible //
@@ -262,6 +254,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
             onChanged: (value) {
               safeSetState(() {
                 _password = value;
+                _passwordAlreadyUsedErrorMessage = null;
               });
 
               if (_confirmPassword.isNotEmpty) {
@@ -275,6 +268,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
           // Camp password again
           TextFormField(
             key: _confirmPasswordFieldKey,
+            controller: _confirmPasswordController,
             decoration: InputDecoration(
               labelText: 'Confirm password',
               suffixIcon: IconButton(

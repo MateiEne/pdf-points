@@ -50,4 +50,13 @@ extension CampExtension on FirebaseManager {
 
     return camp;
   }
+
+  Future<bool> checkIfCampExistWithPassword(String password) async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection(kCampCollection)
+        .where('password', isEqualTo: password)
+        .get();
+
+    return snapshot.size >= 1;
+  }
 }
