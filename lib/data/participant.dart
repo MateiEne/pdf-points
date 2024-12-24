@@ -6,7 +6,6 @@ class Participant {
   final String? lastName;
   final String? phone;
   final int? groupId;
-  final bool isInstructor;
 
   String get fullName => [firstName, lastName].where((name) => name != null).join(' ');
 
@@ -28,7 +27,6 @@ class Participant {
     this.lastName,
     this.phone,
     this.groupId,
-    this.isInstructor = false,
   }) : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
 
   Participant copyWith(
@@ -39,7 +37,6 @@ class Participant {
       lastName: lastName ?? this.lastName,
       phone: phone ?? this.phone,
       groupId: groupId ?? this.groupId,
-      isInstructor: isInstructor ?? this.isInstructor,
     );
   }
 
@@ -54,8 +51,7 @@ class Participant {
         other.firstName == firstName &&
         other.lastName == lastName &&
         other.phone == phone &&
-        other.groupId == groupId &&
-        other.isInstructor == isInstructor;
+        other.groupId == groupId;
   }
 
   @override
@@ -64,8 +60,7 @@ class Participant {
         firstName.hashCode ^
         lastName.hashCode ^
         phone.hashCode ^
-        groupId.hashCode ^
-        isInstructor.hashCode;
+        groupId.hashCode;
   }
 
   Map<String, dynamic> toJson() {
@@ -75,7 +70,6 @@ class Participant {
       'lastName': lastName,
       'phone': phone,
       'groupId': groupId,
-      'isInstructor': isInstructor,
     };
   }
 
@@ -86,7 +80,6 @@ class Participant {
       lastName: json['lastName'],
       phone: json['phone'],
       groupId: json['groupId'],
-      isInstructor: json['isInstructor'],
     );
   }
 
@@ -100,6 +93,6 @@ class Participant {
 
   @override
   String toString() {
-    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId, isInstructor: $isInstructor)';
+    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId)';
   }
 }

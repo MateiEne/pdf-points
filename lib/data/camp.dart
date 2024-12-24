@@ -10,6 +10,7 @@ class Camp {
   final DateTime endDate;
   final String password;
   final List<Participant> instructors;
+  final List<String> instructorsIds;
   final List<Participant> participants;
 
   const Camp({
@@ -20,6 +21,7 @@ class Camp {
     required this.endDate,
     required this.password,
     this.instructors = const [],
+    this.instructorsIds = const [],
     this.participants = const [],
   });
 
@@ -33,6 +35,7 @@ class Camp {
       'password': password,
       'instructors': instructors.map((e) => e.toJson()).toList(),
       'participants': participants.map((e) => e.toJson()).toList(),
+      'instructorsIds': instructorsIds,
     };
   }
 
@@ -46,6 +49,7 @@ class Camp {
       password: json['password'],
       instructors: (json['instructors'] as List).map((e) => Participant.fromJson(e)).toList(),
       participants: (json['participants'] as List).map((e) => Participant.fromJson(e)).toList(),
+      instructorsIds: (json['instructorsIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 

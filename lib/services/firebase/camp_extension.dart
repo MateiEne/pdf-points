@@ -24,13 +24,21 @@ extension CampExtension on FirebaseManager {
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
   }
 
+  Future<List<Camp>> fetchCampsForInstructor(Instructor instructor) async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection(kCampCollection)
+        .where('instructorsIds', arrayContains: instructor.id)
+        .get();
+
+    return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
+  }
+
   Future<Camp> addCamp({
     required String name,
     required String password,
     required DateTime startDate,
     required DateTime endDate,
     required List<Participant> participants,
-    required List<Participant> instructors,
     Uint8List? image,
     String? campId,
   }) async {
@@ -42,7 +50,6 @@ extension CampExtension on FirebaseManager {
       password: password,
       startDate: startDate,
       endDate: endDate,
-      instructors: instructors,
       participants: participants,
     );
 
@@ -52,10 +59,8 @@ extension CampExtension on FirebaseManager {
   }
 
   Future<bool> checkIfCampExistWithPassword(String password) async {
-    var snapshot = await FirebaseFirestore.instance
-        .collection(kCampCollection)
-        .where('password', isEqualTo: password)
-        .get();
+    var snapshot =
+        await FirebaseFirestore.instance.collection(kCampCollection).where('password', isEqualTo: password).get();
 
     return snapshot.size >= 1;
   }

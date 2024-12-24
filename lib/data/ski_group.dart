@@ -1,9 +1,10 @@
+import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 
 class SkiGroup {
   final String name;
   final String? image;
-  final Participant instructor;
+  final Instructor instructor;
   final List<Participant> _students = [];
 
   SkiGroup({

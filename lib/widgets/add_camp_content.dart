@@ -106,7 +106,6 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
       startDate: _startDate,
       endDate: _endDate,
       participants: widget.campInfo?.participants ?? [],
-      instructors: [],
       image: _image,
     );
 

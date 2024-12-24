@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/add_ski_group.dart';
@@ -11,7 +12,7 @@ class NoSkiGroup extends StatelessWidget {
     required this.onAddSkiGroup,
   });
 
-  final Participant instructor;
+  final Instructor instructor;
   final void Function(SkiGroup skiGroup) onAddSkiGroup;
 
   void _addSkiGroup(BuildContext context) {

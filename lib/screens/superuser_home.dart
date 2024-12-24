@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
+import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
@@ -10,7 +11,9 @@ import 'package:pdf_points/widgets/add_camp_fab.dart';
 import 'package:pdf_points/widgets/camp_card.dart';
 
 class SuperUserHomeScreen extends StatefulWidget {
-  const SuperUserHomeScreen({super.key});
+  final SuperUser superUser;
+
+  const SuperUserHomeScreen({super.key, required this.superUser});
 
   @override
   State<SuperUserHomeScreen> createState() => _SuperUserHomeScreenState();

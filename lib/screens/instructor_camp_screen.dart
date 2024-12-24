@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/camp.dart';
+import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
@@ -11,16 +13,17 @@ import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_points_fab.dart';
 import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';
 
-class InstructorHomeScreen extends StatefulWidget {
-  const InstructorHomeScreen({super.key, required this.instructor});
+class InstructorCampScreen extends StatefulWidget {
+  const InstructorCampScreen({super.key, required this.instructor, required this.camp});
 
-  final Participant instructor;
+  final Instructor instructor;
+  final Camp camp;
 
   @override
-  State<InstructorHomeScreen> createState() => _InstructorHomeScreenState();
+  State<InstructorCampScreen> createState() => _InstructorCampScreenState();
 }
 
-class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
+class _InstructorCampScreenState extends State<InstructorCampScreen> {
   bool _isLoading = true;
   SkiGroup? _skiGroup;
 
@@ -48,6 +51,16 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         students: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
       );
     });
+  }
+
+  int? _getInstructorGroupId() {
+    for (int i = 0; i < widget.camp.instructors.length; i++) {
+      if (widget.camp.instructors[i].id == widget.instructor.id) {
+        return i;
+      }
+    }
+
+    return null;
   }
 
   void _onAddSkiGroup(SkiGroup skiGroup) {
@@ -150,7 +163,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     }
 
     // if the participant is already in my group => do nothing
-    if (participant.groupId == widget.instructor.groupId) {
+    if (participant.groupId == _getInstructorGroupId()) {
       return;
     }
 
@@ -203,7 +216,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
       context: context,
       onSelected: _onSelectedParticipantToSkiGroup,
       showNavBar: false,
-      excludeGroupId: widget.instructor.groupId,
+      excludeGroupId: _getInstructorGroupId(),
     );
   }
 
@@ -214,7 +227,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         centerTitle: true,
         title: AutoSizeText(
           _skiGroup == null //
-              ? widget.instructor.shortName
+              ? widget.instructor.firstName
               : _skiGroup!.name,
           maxLines: 1,
         ),
