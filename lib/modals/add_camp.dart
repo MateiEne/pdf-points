@@ -28,6 +28,9 @@ class AddCampModal {
             padding: const EdgeInsets.all(16.0),
             child: AddCampContentWidget(
               campInfo: campInfo,
+              onCampAdded: (campInfo) {
+                Navigator.of(modalSheetContext).pop(campInfo);
+              },
             ),
           ),
         ),

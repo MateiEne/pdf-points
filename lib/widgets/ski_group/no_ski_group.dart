@@ -29,7 +29,7 @@ class NoSkiGroup extends StatelessWidget {
 
     if (!modalSheetContext.mounted) return;
 
-    onAddSkiGroup(SkiGroup(name: name, instructor: instructor));
+    onAddSkiGroup(SkiGroup(id: "test", name: name, instructor: instructor));
 
     Navigator.of(modalSheetContext).pop();
   }

@@ -53,12 +53,13 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     });
   }
 
+  /// TODO: Update this method to return the index of the instructor group
   int? _getInstructorGroupId() {
-    for (int i = 0; i < widget.camp.instructors.length; i++) {
-      if (widget.camp.instructors[i].id == widget.instructor.id) {
-        return i;
-      }
-    }
+    // for (int i = 0; i < widget.camp.instructors.length; i++) {
+    //   if (widget.camp.instructors[i].id == widget.instructor.id) {
+    //     return i;
+    //   }
+    // }
 
     return null;
   }
@@ -163,7 +164,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     }
 
     // if the participant is already in my group => do nothing
-    if (participant.groupId == _getInstructorGroupId()) {
+    if (participant.groupId == _skiGroup!.id) {
       return;
     }
 

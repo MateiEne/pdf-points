@@ -13,6 +13,7 @@ import 'package:pdf_points/services/firebase/change_listener.dart';
 part 'auth_extension.dart';
 part 'camp_extension.dart';
 part 'user_extension.dart';
+part 'participants_extension.dart';
 
 class FirebaseManager {
   static final FirebaseManager _instance = FirebaseManager._();

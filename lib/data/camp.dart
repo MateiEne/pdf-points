@@ -1,17 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pdf_points/data/participant.dart';
-import 'package:pdf_points/utils/date_utils.dart';
 
 class Camp {
   final String id;
   final String name;
+
   // final String coverImage;
   final DateTime startDate;
   final DateTime endDate;
   final String password;
-  final List<Participant> instructors;
   final List<String> instructorsIds;
-  final List<Participant> participants;
+  final int numOfParticipants;
 
   const Camp({
     required this.id,
@@ -20,22 +18,40 @@ class Camp {
     required this.startDate,
     required this.endDate,
     required this.password,
-    this.instructors = const [],
     this.instructorsIds = const [],
-    this.participants = const [],
+    this.numOfParticipants = 0,
   });
+
+  Camp copyWith({
+    String? id,
+    String? name,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? password,
+    List<String>? instructorsIds,
+    int? numOfParticipants,
+  }) {
+    return Camp(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      password: password ?? this.password,
+      instructorsIds: instructorsIds ?? this.instructorsIds,
+      numOfParticipants: numOfParticipants ?? this.numOfParticipants,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       // 'coverImage': coverImage,
-      'startDate': startDate.toTimestamp(),
-      'endDate': endDate.toTimestamp(),
+      'startDate': Timestamp.fromDate(startDate),
+      'endDate': Timestamp.fromDate(endDate),
       'password': password,
-      'instructors': instructors.map((e) => e.toJson()).toList(),
-      'participants': participants.map((e) => e.toJson()).toList(),
       'instructorsIds': instructorsIds,
+      'numOfParticipants': numOfParticipants,
     };
   }
 
@@ -47,9 +63,8 @@ class Camp {
       startDate: (json['startDate'] as Timestamp).toDate(),
       endDate: (json['endDate'] as Timestamp).toDate(),
       password: json['password'],
-      instructors: (json['instructors'] as List).map((e) => Participant.fromJson(e)).toList(),
-      participants: (json['participants'] as List).map((e) => Participant.fromJson(e)).toList(),
-      instructorsIds: (json['instructorsIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      instructorsIds: List<String>.from(json['instructorsIds']),
+      numOfParticipants: json['numOfParticipants'] ?? 0,
     );
   }
 

@@ -2,12 +2,14 @@ import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 
 class SkiGroup {
+  final String id;
   final String name;
   final String? image;
   final Instructor instructor;
   final List<Participant> _students = [];
 
   SkiGroup({
+    required this.id,
     required this.name,
     required this.instructor,
     this.image,

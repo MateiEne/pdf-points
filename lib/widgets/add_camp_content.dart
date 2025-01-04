@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/modals/open_pictures.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
@@ -14,9 +15,11 @@ class AddCampContentWidget extends StatefulWidget {
   const AddCampContentWidget({
     super.key,
     this.campInfo,
+    this.onCampAdded,
   });
 
   final ExcelCampInfo? campInfo;
+  final void Function(Camp camp)? onCampAdded;
 
   @override
   State<AddCampContentWidget> createState() => _AddCampContentWidgetState();
@@ -100,7 +103,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
       return;
     }
 
-    await FirebaseManager.instance.addCamp(
+    var camp = await FirebaseManager.instance.addCamp(
       name: _name,
       password: _password,
       startDate: _startDate,
@@ -109,11 +112,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
       image: _image,
     );
 
-    if (!mounted) {
-      return;
-    }
-
-    Navigator.of(context).pop();
+    widget.onCampAdded?.call(camp);
   }
 
   bool _validName(String? value) {

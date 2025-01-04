@@ -104,26 +104,29 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
         ],
       ),
       drawer: const Drawer(),
-      body: Center(
-        child: _isLoading
-            ? const CircularProgressIndicator()
-            : ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                itemCount: _camps.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CampScreen(camp: _camps[index]),
-                        ),
-                      );
-                    },
-                    child: CampCard(camp: _camps[index]),
-                  );
-                },
-              ),
+      body: RefreshIndicator(
+        onRefresh: _fetchCamps,
+        child: Center(
+          child: _isLoading
+              ? const CircularProgressIndicator()
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  itemCount: _camps.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CampScreen(camp: _camps[index]),
+                          ),
+                        );
+                      },
+                      child: CampCard(camp: _camps[index]),
+                    );
+                  },
+                ),
+        ),
       ),
       floatingActionButtonLocation: AddCampFab.location,
       floatingActionButton: const AddCampFab(),

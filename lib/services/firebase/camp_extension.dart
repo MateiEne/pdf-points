@@ -19,6 +19,7 @@ extension CampExtension on FirebaseManager {
   }
 
   Future<List<Camp>> fetchCamps() async {
+    // Fetch all Camp documents
     var snapshot = await FirebaseFirestore.instance.collection(kCampCollection).get();
 
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
@@ -44,17 +45,23 @@ extension CampExtension on FirebaseManager {
   }) async {
     var campRef = FirebaseFirestore.instance.collection(kCampCollection).doc(campId);
 
+    // Create the Camp object without embedding participants
     Camp camp = Camp(
       id: campRef.id,
       name: name,
       password: password,
       startDate: startDate,
       endDate: endDate,
-      participants: participants,
+      numOfParticipants: participants.length,
     );
 
+    // Save the main Camp document
     await campRef.set(camp.toJson());
 
+    // Save participants as a sub-collection
+    await addParticipantsToCamp(campId: campRef.id, participants: participants);
+
+    // Return the Camp object
     return camp;
   }
 
@@ -66,10 +73,8 @@ extension CampExtension on FirebaseManager {
   }
 
   Future<Camp?> enrollInstructorToCamp({required String password, required Instructor instructor}) async {
-    var snapshot = await FirebaseFirestore.instance
-        .collection(kCampCollection)
-        .where('password', isEqualTo: password)
-        .get();
+    var snapshot =
+        await FirebaseFirestore.instance.collection(kCampCollection).where('password', isEqualTo: password).get();
 
     if (snapshot.size == 0) {
       return null;

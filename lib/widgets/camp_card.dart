@@ -53,11 +53,11 @@ class CampCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8.0),
                   Text(
-                    "Instructors: ${camp.instructors.length}",
+                    "Instructors: ${camp.instructorsIds.length}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    "Participants: ${camp.participants.length}",
+                    "Participants: ${camp.numOfParticipants}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
