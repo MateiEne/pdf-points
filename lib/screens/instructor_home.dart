@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/instructor.dart';
-import 'package:pdf_points/screens/camp_screen.dart';
+import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
+import 'package:pdf_points/screens/instructor_camp_screen.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_camp_fab.dart';
 import 'package:pdf_points/widgets/camp_card.dart';
 
 class InstructorHomeScreen extends StatefulWidget {
@@ -62,6 +62,52 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     return camps.toList();
   }
 
+  Widget _buildNoCampsView(BuildContext context) {
+    return Column(
+      children: [
+        // top padding
+        SizedBox(height: MediaQuery.sizeOf(context).height * 0.2),
+
+        // Title
+        Text(
+          "You're not assigned to any camp.",
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+
+        const SizedBox(height: 48),
+
+        // Subtitle
+        Text(
+          "Use the action button below to enroll yourself to a camp.",
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  void _openEnrollInstructorToCampDialog() {
+    EnrollInstructorToCampModal.show(
+        context: context, instructor: widget.instructor, onEnrolled: _onEnrolledInstructorToCamp);
+  }
+
+  void _onEnrolledInstructorToCamp(Camp camp) {
+    // add this camp only if it's not already in the list
+    if (_camps.any((c) => c.id == camp.id)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You are already enrolled in this camp.'),
+        ),
+      );
+      return;
+    }
+
+    safeSetState(() {
+      _camps.add(camp);
+      _camps = _sortCamps(_camps);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,14 +124,12 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
       ),
       drawer: const Drawer(),
       body: RefreshIndicator(
-        onRefresh: () {
-          return _fetchCamps();
-        },
+        onRefresh: _fetchCamps,
         child: Center(
           child: _isLoading
               ? const CircularProgressIndicator()
               : _camps.isEmpty
-                  ? const Text('No camps found.')
+                  ? _buildNoCampsView(context)
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       itemCount: _camps.length,
@@ -95,7 +139,10 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => CampScreen(camp: _camps[index]),
+                                builder: (context) => InstructorCampScreen(
+                                  instructor: widget.instructor,
+                                  camp: _camps[index],
+                                ),
                               ),
                             );
                           },
@@ -105,8 +152,11 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
                     ),
         ),
       ),
-      floatingActionButtonLocation: AddCampFab.location,
-      floatingActionButton: const AddCampFab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openEnrollInstructorToCampDialog,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 

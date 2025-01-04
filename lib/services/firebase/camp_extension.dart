@@ -64,4 +64,27 @@ extension CampExtension on FirebaseManager {
 
     return snapshot.size >= 1;
   }
+
+  Future<Camp?> enrollInstructorToCamp({required String password, required Instructor instructor}) async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection(kCampCollection)
+        .where('password', isEqualTo: password)
+        .get();
+
+    if (snapshot.size == 0) {
+      return null;
+    }
+
+    var camp = Camp.fromSnapshot(snapshot.docs.first);
+
+    if (camp.instructorsIds.contains(instructor.id)) {
+      return camp;
+    }
+
+    camp.instructorsIds.add(instructor.id);
+
+    await snapshot.docs.first.reference.update({'instructorsIds': camp.instructorsIds});
+
+    return camp;
+  }
 }

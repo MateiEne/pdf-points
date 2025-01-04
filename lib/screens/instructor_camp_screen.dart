@@ -44,12 +44,12 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
     safeSetState(() {
       _isLoading = false;
-      // _skiGroup = null;
-      _skiGroup = SkiGroup(
-        name: "Abi",
-        instructor: widget.instructor,
-        students: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
-      );
+      _skiGroup = null;
+      // _skiGroup = SkiGroup(
+      //   name: "Abi",
+      //   instructor: widget.instructor,
+      //   students: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
+      // );
     });
   }
 

@@ -76,6 +76,5 @@ class NoSkiGroup extends StatelessWidget {
         ),
       ],
     );
-    ;
   }
 }
