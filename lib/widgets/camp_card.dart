@@ -1,11 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/date_utils.dart';
 
-class CampCard extends StatelessWidget {
+class CampCard extends StatefulWidget {
   final Camp camp;
 
-  const CampCard({super.key, required this.camp});
+  const CampCard({
+    super.key,
+    required this.camp,
+  });
+
+  @override
+  State<CampCard> createState() => _CampCardState();
+}
+
+class _CampCardState extends State<CampCard> {
+  bool _loadingParticipantsCount = false;
+  int _participantsCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchParticipantsCount();
+  }
+
+  Future<void> _fetchParticipantsCount() async {
+    setState(() {
+      _loadingParticipantsCount = true;
+    });
+
+    var count = await FirebaseManager.instance.fetchParticipantsCountForCamp(campId: widget.camp.id);
+
+    setState(() {
+      _participantsCount = count;
+      _loadingParticipantsCount = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,26 +70,44 @@ class CampCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    camp.name,
+                    widget.camp.name,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8.0),
                   Text(
-                    "Start: ${camp.startDate.toLocal().toDateString()}",
+                    "Start: ${widget.camp.startDate.toLocal().toDateString()}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    "End: ${camp.endDate.toLocal().toDateString()}",
+                    "End: ${widget.camp.endDate.toLocal().toDateString()}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 8.0),
                   Text(
-                    "Instructors: ${camp.instructorsIds.length}",
+                    "Instructors: ${widget.camp.instructorsIds.length}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  Text(
-                    "Participants: ${camp.numOfParticipants}",
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  Row(
+                    children: [
+                      Text(
+                        "Participants: ",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      if (_loadingParticipantsCount)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: SizedBox(
+                            width: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 10,
+                            height: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 10,
+                            child: const CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      else
+                        Text(
+                          "$_participantsCount",
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                    ],
                   ),
                 ],
               ),

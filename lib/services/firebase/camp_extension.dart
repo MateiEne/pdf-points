@@ -34,6 +34,13 @@ extension CampExtension on FirebaseManager {
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
   }
 
+  Future<int> fetchParticipantsCountForCamp({required String campId}) async {
+    var snapshot =
+        await FirebaseFirestore.instance.collection(kCampsCollection).doc(campId).collection('participants').get();
+
+    return snapshot.size;
+  }
+
   Future<Camp> addCamp({
     required String name,
     required String password,
@@ -52,7 +59,6 @@ extension CampExtension on FirebaseManager {
       password: password,
       startDate: startDate,
       endDate: endDate,
-      numOfParticipants: participants.length,
     );
 
     // Save the main Camp document

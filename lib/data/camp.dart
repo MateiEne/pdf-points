@@ -9,7 +9,6 @@ class Camp {
   final DateTime endDate;
   final String password;
   final List<String> instructorsIds;
-  final int numOfParticipants;
 
   const Camp({
     required this.id,
@@ -19,7 +18,6 @@ class Camp {
     required this.endDate,
     required this.password,
     this.instructorsIds = const [],
-    this.numOfParticipants = 0,
   });
 
   Camp copyWith({
@@ -38,7 +36,6 @@ class Camp {
       endDate: endDate ?? this.endDate,
       password: password ?? this.password,
       instructorsIds: instructorsIds ?? this.instructorsIds,
-      numOfParticipants: numOfParticipants ?? this.numOfParticipants,
     );
   }
 
@@ -51,7 +48,6 @@ class Camp {
       'endDate': Timestamp.fromDate(endDate),
       'password': password,
       'instructorsIds': instructorsIds,
-      'numOfParticipants': numOfParticipants,
     };
   }
 
@@ -64,7 +60,6 @@ class Camp {
       endDate: (json['endDate'] as Timestamp).toDate(),
       password: json['password'],
       instructorsIds: List<String>.from(json['instructorsIds']),
-      numOfParticipants: json['numOfParticipants'] ?? 0,
     );
   }
 
