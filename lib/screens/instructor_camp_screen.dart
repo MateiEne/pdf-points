@@ -5,12 +5,12 @@ import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
+import 'package:pdf_points/modals/add_lifts.dart';
 import 'package:pdf_points/modals/add_ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_points_fab.dart';
 
 class InstructorCampScreen extends StatefulWidget {
   const InstructorCampScreen({super.key, required this.instructor, required this.camp});
@@ -194,6 +194,15 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
+  void _openAddLiftsDialog() {
+    AddLiftsModal.show(
+      context: context,
+      campId: widget.camp.id,
+      instructor: widget.instructor,
+      students: _students,
+    );
+  }
+
   Widget _showNoSkiGroupScreen() {
     return Column(
       children: [
@@ -342,9 +351,13 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           ],
         ),
       ),
-      floatingActionButtonLocation: AddPointsFab.location,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: _students.isNotEmpty //
-          ? AddPointsFab(students: _students)
+          ? FloatingActionButton.extended(
+              onPressed: _openAddLiftsDialog,
+              label: const Text("Add Lifts"),
+              icon: const Icon(Icons.add),
+            )
           : null,
     );
   }

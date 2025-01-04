@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pdf_points/data/lift_user.dart';
 
-class Participant {
+class Participant implements LiftUser {
+  @override
   final String id;
   final String? firstName;
   final String? lastName;
   final String? phone;
   final String? groupId;
 
+  @override
   String get fullName => [firstName, lastName].where((name) => name != null).join(' ');
 
   String get shortName {

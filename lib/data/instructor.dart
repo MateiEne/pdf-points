@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 
-class Instructor implements PdFUser {
+class Instructor implements PdFUser, LiftUser {
+  @override
   final String id;
   final String firstName;
   final String lastName;
   final String phone;
 
+  @override
   String get fullName => "$firstName $lastName";
 
   Instructor({

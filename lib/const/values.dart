@@ -14,6 +14,11 @@ const List<String> kDefaultCampImages = [
   "assets/images/defaultCampImages/snowboardCamp.jpg",
 ];
 
+const String kGondola = "Gondola";
+const String kChairlift = "Chairlift";
+const String kSkilift = "Skilift";
+const String kCableCar = "Cable Car";
+
 const List<String> kCableCars = [
   // order by exit elevation.
   "Capra Neagra (A)",

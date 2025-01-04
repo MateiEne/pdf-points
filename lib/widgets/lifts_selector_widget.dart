@@ -10,7 +10,7 @@ class LiftsSelectorWidget extends StatefulWidget {
     this.defaultLift,
   });
 
-  final void Function(String lift) onLiftSelected;
+  final void Function(String lift, String liftType) onLiftSelected;
   final String? defaultLift;
 
   @override
@@ -109,16 +109,16 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
   void _onLiftSelected() {
     switch (_tabIndex) {
       case 0:
-        widget.onLiftSelected(kCableCars[_selectedLiftIndex]);
+        widget.onLiftSelected(kCableCars[_selectedLiftIndex], kCableCar);
         break;
       case 1:
-        widget.onLiftSelected(kGondolas[_selectedLiftIndex]);
+        widget.onLiftSelected(kGondolas[_selectedLiftIndex], kGondola);
         break;
       case 2:
-        widget.onLiftSelected(kChairlifts[_selectedLiftIndex]);
+        widget.onLiftSelected(kChairlifts[_selectedLiftIndex], kChairlift);
         break;
       case 3:
-        widget.onLiftSelected(kSkilifts[_selectedLiftIndex]);
+        widget.onLiftSelected(kSkilifts[_selectedLiftIndex], kSkilift);
         break;
     }
   }

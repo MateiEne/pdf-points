@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/instructor.dart';
+import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/ski_group.dart';
@@ -16,6 +17,7 @@ part 'camp_extension.dart';
 part 'user_extension.dart';
 part 'participants_extension.dart';
 part 'ski_group_extension.dart';
+part 'lifts_extension.dart';
 
 class FirebaseManager {
   static final FirebaseManager _instance = FirebaseManager._();
