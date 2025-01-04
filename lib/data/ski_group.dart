@@ -7,7 +7,7 @@ class SkiGroup {
   final String name;
   final String? image;
   final String instructorId;
-  final List<String> studentsIds;
+  final List<String> studentsIds = [];
   final DateTime createdAt;
 
   SkiGroup({
@@ -15,9 +15,11 @@ class SkiGroup {
     required this.name,
     required this.instructorId,
     this.image,
-    this.studentsIds = const [],
+    List<String> studentsIds = const [],
     required this.createdAt,
-  });
+  }) {
+    this.studentsIds.addAll(studentsIds);
+  }
 
   void addStudent(Participant participant) {
     studentsIds.add(participant.id);

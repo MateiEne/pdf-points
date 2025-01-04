@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
-import 'package:pdf_points/widgets/add_participant_content.dart';
+import 'package:pdf_points/widgets/add_or_update_participant_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddParticipantModal {
   static Future<Participant?> show({
     required BuildContext context,
+    required String campId,
     String? defaultFirstName,
     String? defaultLastName,
     String? defaultPhone,
@@ -28,19 +29,12 @@ class AddParticipantModal {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: AddParticipantContentWidget(
+            child: AddOrUpdateParticipantContentWidget(
+              campId: campId,
               defaultFirstName: defaultFirstName,
               defaultLastName: defaultLastName,
               defaultPhone: defaultPhone,
-              onAddParticipant: (firstName, lastName, phone) async {
-                var newParticipant = await _onAddParticipant(
-                  firstName,
-                  lastName,
-                  phone,
-                );
-
-                if (!modalSheetContext.mounted) return;
-
+              onAddParticipantAdded: (newParticipant) {
                 Navigator.of(modalSheetContext).pop(newParticipant);
               },
             ),
@@ -58,19 +52,5 @@ class AddParticipantModal {
         Navigator.of(context).pop();
       },
     );
-  }
-
-  static Future<Participant?> _onAddParticipant(
-    String firstName,
-    String lastName,
-    String phone,
-  ) async {
-    // TODO: add participant to firebase:
-    // FirebaseManager.instance.addParticipantToCamp(
-    //   ...
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-
-    return Participant(id: '1', firstName: firstName, lastName: lastName, phone: phone);
   }
 }

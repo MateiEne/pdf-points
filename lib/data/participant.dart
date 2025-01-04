@@ -5,7 +5,7 @@ class Participant {
   final String? firstName;
   final String? lastName;
   final String? phone;
-  final int? groupId;
+  final String? groupId;
 
   String get fullName => [firstName, lastName].where((name) => name != null).join(' ');
 
@@ -29,8 +29,14 @@ class Participant {
     this.groupId,
   }) : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
 
-  Participant copyWith(
-      {String? id, String? firstName, String? lastName, String? phone, int? groupId, bool? isInstructor}) {
+  Participant copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? groupId,
+    bool? isInstructor,
+  }) {
     return Participant(
       id: id ?? this.id,
       firstName: firstName ?? this.firstName,
@@ -56,11 +62,7 @@ class Participant {
 
   @override
   int get hashCode {
-    return id.hashCode ^
-        firstName.hashCode ^
-        lastName.hashCode ^
-        phone.hashCode ^
-        groupId.hashCode;
+    return id.hashCode ^ firstName.hashCode ^ lastName.hashCode ^ phone.hashCode ^ groupId.hashCode;
   }
 
   Map<String, dynamic> toJson() {

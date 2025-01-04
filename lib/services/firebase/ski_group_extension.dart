@@ -44,6 +44,10 @@ extension SkiGroupExtension on FirebaseManager {
 
     List<String> studentsIds = List<String>.from(skiGroupData['studentsIds']);
 
+    if (studentsIds.isEmpty) {
+      return [];
+    }
+
     // get only the students that are in the ski group
     var participantsSnapshot = await FirebaseFirestore.instance
         .collection(kCampsCollection)
@@ -51,6 +55,10 @@ extension SkiGroupExtension on FirebaseManager {
         .collection(kCampParticipantsCollection)
         .where(FieldPath.documentId, whereIn: studentsIds)
         .get();
+
+    if (participantsSnapshot.size == 0) {
+      return [];
+    }
 
     return participantsSnapshot.docs.map((doc) => Participant.fromSnapshot(doc)).toList();
   }

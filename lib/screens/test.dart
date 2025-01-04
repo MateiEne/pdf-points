@@ -10,7 +10,7 @@ class TestScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Test'),
       ),
-      body: SearchParticipantContent(onSelected: (_){}),
+      body: Text("Test"),
     );
   }
 }

@@ -199,7 +199,7 @@ class PdfPointsExelParser {
           id: row.toString(),
           firstName: firstName,
           lastName: lastName,
-          groupId: group == null ? null : int.tryParse(group),
+          // groupId: group == null ? null : int.tryParse(group),
         ),
       );
     }

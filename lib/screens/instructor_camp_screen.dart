@@ -104,7 +104,94 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
     safeSetState(() {
       _skiGroup = skiGroup;
+      _students = [];
     });
+  }
+
+  Future<void> _addParticipantToMySkiGroup(Participant participant) async {
+    if (_skiGroup == null) {
+      return;
+    }
+
+    safeSetState(() {
+      _isLoading = true;
+    });
+
+    FirebaseManager.instance.addParticipantToSkiGroup(
+      campId: widget.camp.id,
+      skiGroupId: _skiGroup!.id,
+      participant: participant,
+    );
+
+    safeSetState(() {
+      _skiGroup!.addStudent(participant);
+      _students = _sortStudents([..._students, participant]);
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _openParticipantsSearchModal() async {
+    if (_skiGroup == null) {
+      return;
+    }
+
+    Participant? participant = await SearchParticipantModal.show(
+      context: context,
+      campId: widget.camp.id,
+      showNavBar: false,
+      excludeGroupId: _skiGroup?.id,
+    );
+
+    if (!mounted || participant == null) return;
+
+    // if the participant has no phone number => update phone number
+    if (participant.phone == null) {
+      Participant? updatedParticipant = await UpdateParticipantModal.show(
+        context: context,
+        campId: widget.camp.id,
+        participant: participant,
+      );
+
+      if (!mounted || updatedParticipant == null) return;
+
+      participant = updatedParticipant;
+    }
+
+    // if the participant is not in any group => add to my group
+    if (participant.groupId == null) {
+      await _addParticipantToMySkiGroup(participant);
+      return;
+    }
+
+    // if the participant is already in my group => do nothing
+    if (participant.groupId == _skiGroup!.id) {
+      return;
+    }
+
+    // the participant is in another group => ask to remove from that group and add to my group
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Participant already in a group',
+          style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to remove ${participant!.fullName} from the current group and add them to your group?',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'), // cancel button  -> close the dialog
+          ),
+          ElevatedButton(
+            onPressed: () => _addParticipantToMySkiGroup(participant!),
+            child: const Text('Add'), // add button  -> add the participant to ski group
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _showNoSkiGroupScreen() {
@@ -216,88 +303,6 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
         const SizedBox(height: 32),
       ],
-    );
-  }
-
-  Future<void> _onSelectedParticipantToSkiGroup(BuildContext modalSheetContext, Participant participant) async {
-    // close the search participants modal
-    if (!modalSheetContext.mounted) return;
-
-    Navigator.of(modalSheetContext).pop();
-
-    // if the participant has no phone number => update phone number
-    if (participant.phone == null) {
-      Participant? updatedParticipant = await UpdateParticipantModal.show(
-        context: context,
-        participant: participant,
-      );
-
-      if (updatedParticipant == null) return;
-
-      participant = updatedParticipant;
-    }
-
-    // if the participant is not in any group => add to my group
-    if (participant.groupId == null) {
-      await _onAddParticipantToSkiGroup(participant);
-      return;
-    }
-
-    // if the participant is already in my group => do nothing
-    if (participant.groupId == _skiGroup!.id) {
-      return;
-    }
-
-    if (!mounted) return;
-
-    // the participant is in another group => ask to remove from that group and add to my group
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          'Participant already in a group',
-          style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Are you sure you want to remove ${participant.fullName} from the current group and add them to your group?',
-          style: const TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'), // cancel button  -> close the dialog
-          ),
-          ElevatedButton(
-            onPressed: () => _onAddParticipantToSkiGroup(participant),
-            child: const Text('Add'), // add button  -> add the participant to ski group
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _onAddParticipantToSkiGroup(Participant participant) async {
-    safeSetState(() {
-      _isLoading = true;
-    });
-    // TODO: add participant to my group in firebase:
-    // FirebaseManager.instance.addParticipantToSkiGroup(
-    //   ...
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-
-    safeSetState(() {
-      _skiGroup!.addStudent(participant);
-      _isLoading = false;
-    });
-  }
-
-  void _openParticipantsSearchModal() {
-    SearchParticipantModal.show(
-      context: context,
-      onSelected: _onSelectedParticipantToSkiGroup,
-      showNavBar: false,
-      excludeGroupId: _getInstructorGroupId(),
     );
   }
 

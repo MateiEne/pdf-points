@@ -14,14 +14,14 @@ class AddSkiGroupContentWidget extends StatefulWidget {
     this.onAddImage,
     required this.campId,
     required this.instructorId,
-    required this.onSkiCampCreated,
+    this.onSkiCampCreated,
   });
 
   final String campId;
   final String instructorId;
   final String? defaultName;
   final Future<Uint8List?> Function()? onAddImage;
-  final void Function(SkiGroup skiGroup) onSkiCampCreated;
+  final void Function(SkiGroup skiGroup)? onSkiCampCreated;
 
   @override
   State<AddSkiGroupContentWidget> createState() => _AddSkiGroupContentWidgetState();
@@ -111,7 +111,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
 
     if (!mounted) return;
 
-    widget.onSkiCampCreated(skiGroup);
+    widget.onSkiCampCreated?.call(skiGroup);
   }
 
   bool _validName(String? value) {
