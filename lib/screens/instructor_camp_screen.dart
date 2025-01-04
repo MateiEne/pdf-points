@@ -8,7 +8,6 @@ import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
-import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_points_fab.dart';
 import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';

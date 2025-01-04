@@ -86,12 +86,14 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     );
   }
 
-  void _openEnrollInstructorToCampDialog() {
-    EnrollInstructorToCampModal.show(
-        context: context, instructor: widget.instructor, onEnrolled: _onEnrolledInstructorToCamp);
-  }
+  Future<void> _openEnrollInstructorToCampDialog() async {
+    var camp = await EnrollInstructorToCampModal.show(
+      context: context,
+      instructor: widget.instructor,
+    );
 
-  void _onEnrolledInstructorToCamp(Camp camp) {
+    if (camp == null || !mounted) return;
+
     // add this camp only if it's not already in the list
     if (_camps.any((c) => c.id == camp.id)) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/widgets/enroll_instructor_to_camp_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
@@ -9,7 +8,6 @@ class EnrollInstructorToCampModal {
   static Future show({
     required BuildContext context,
     required Instructor instructor,
-    required void Function(Camp camp) onEnrolled,
   }) {
     return WoltModalSheet.show(
       context: context,
@@ -31,9 +29,7 @@ class EnrollInstructorToCampModal {
             child: EnrollInstructorToCampContentWidget(
               instructor: instructor,
               onEnrolled: (camp) {
-                onEnrolled(camp);
-
-                Navigator.of(modalSheetContext).pop();
+                Navigator.of(modalSheetContext).pop(camp);
               },
             ),
           ),
