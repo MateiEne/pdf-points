@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'participant.dart';
 
 class SkiGroup {
@@ -17,8 +18,6 @@ class SkiGroup {
     this.studentsIds = const [],
     required this.createdAt,
   });
-
-  get hasStudents => studentsIds.isNotEmpty;
 
   void addStudent(Participant participant) {
     studentsIds.add(participant.id);

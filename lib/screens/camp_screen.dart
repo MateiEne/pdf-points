@@ -45,7 +45,7 @@ class _CampScreenState extends State<CampScreen> {
     });
 
     try {
-      List<Participant> participants = await FirebaseManager.instance.fetchParticipantsForCamp(widget.camp.id);
+      List<Participant> participants = await FirebaseManager.instance.fetchParticipantsForCamp(campId: widget.camp.id);
       participants = _sortParticipants(participants);
 
       safeSetState(() {

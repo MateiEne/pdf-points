@@ -25,31 +25,60 @@ class InstructorCampScreen extends StatefulWidget {
 class _InstructorCampScreenState extends State<InstructorCampScreen> {
   bool _isLoading = true;
   SkiGroup? _skiGroup;
+  List<Participant> _students = [];
 
   @override
   void initState() {
     super.initState();
 
-    _fetchGroup(widget.instructor.id);
+    _startFirebaseEvents();
   }
 
-  Future<void> _fetchGroup(String uid) async {
+  Future<void> _startFirebaseEvents() async {
+    _fetchGroupAndStudents();
+  }
+
+  Future<void> _fetchGroupAndStudents() async {
     safeSetState(() {
       _isLoading = true;
     });
 
-    // TODO: Check if this instructor has a group
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      SkiGroup? skiGroup = await FirebaseManager.instance.fetchSkiGroupForInstructor(
+        campId: widget.camp.id,
+        instructorId: widget.instructor.id,
+      );
 
-    safeSetState(() {
-      _isLoading = false;
-      _skiGroup = null;
-      // _skiGroup = SkiGroup(
-      //   name: "Abi",
-      //   instructor: widget.instructor,
-      //   students: PdfPointsExelParser.dummyListParticipants().sublist(0, 5).toList(),
-      // );
-    });
+      List<Participant> students = [];
+
+      if (skiGroup != null) {
+        students = await FirebaseManager.instance.fetchStudentsFromSkiGroup(
+          campId: widget.camp.id,
+          skiGroupId: skiGroup.id,
+        );
+
+        students = _sortStudents(students);
+      }
+
+      safeSetState(() {
+        _isLoading = false;
+
+        _skiGroup = skiGroup;
+        _students = students;
+      });
+    } catch (e) {
+      safeSetState(() {
+        _isLoading = false;
+        // TODO: better error handling
+        debugPrint(e.toString());
+      });
+    }
+  }
+
+  List<Participant> _sortStudents(List<Participant> participants) {
+    participants.sort((a, b) => a.fullName.compareTo(b.fullName));
+
+    return participants.toList();
   }
 
   /// TODO: Update this method to return the index of the instructor group
@@ -130,7 +159,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
     return Column(
       children: [
-        if (skiGroup.studentsIds.isEmpty) ...[
+        if (_students.isEmpty) ...[
           // top padding
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
 
@@ -153,29 +182,29 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           ),
         ],
 
-        // Participants list
-        // ListView.builder(
-        //   shrinkWrap: true,
-        //   physics: const NeverScrollableScrollPhysics(),
-        //   itemCount: skiGroup.studentsIds.length,
-        //   itemBuilder: (context, index) {
-        //     final participant = skiGroup.students[index];
-        //
-        //     return ListTile(
-        //       title: Text(participant.fullName),
-        //       subtitle: Text(participant.phone ?? "No phone number"),
-        //       leading: Text("${index + 1}"),
-        //     );
-        //   },
-        // ),
+        // Students list
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _students.length,
+          itemBuilder: (context, index) {
+            final participant = _students[index];
+
+            return ListTile(
+              title: Text(participant.fullName),
+              subtitle: Text(participant.phone ?? "No phone number"),
+              leading: Text("${index + 1}"),
+            );
+          },
+        ),
 
         const SizedBox(height: 32),
 
         // Add ski group button
         OutlinedButton(
           style: OutlinedButton.styleFrom(
-            backgroundColor: skiGroup.hasStudents ? null : kAppSeedColor,
-            foregroundColor: skiGroup.hasStudents ? Theme.of(context).colorScheme.primary : Colors.white,
+            backgroundColor: _students.isEmpty ? kAppSeedColor : null,
+            foregroundColor: _students.isEmpty ? Colors.white : Theme.of(context).colorScheme.primary,
             maximumSize: const Size(double.infinity, 56),
             side: BorderSide(color: Theme.of(context).colorScheme.primary),
           ),
@@ -309,8 +338,8 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         ),
       ),
       floatingActionButtonLocation: AddPointsFab.location,
-      floatingActionButton: _skiGroup != null && _skiGroup!.hasStudents //
-          ? null // AddPointsFab(students: _skiGroup!.students)
+      floatingActionButton: _students.isNotEmpty //
+          ? AddPointsFab(students: _students)
           : null,
     );
   }

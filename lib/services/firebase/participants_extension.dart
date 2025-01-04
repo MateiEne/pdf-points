@@ -4,7 +4,7 @@ const kCampParticipantsCollection = 'participants';
 
 extension ParticipantsExtension on FirebaseManager {
 
-  Future<List<Participant>> fetchParticipantsForCamp(String campId) async {
+  Future<List<Participant>> fetchParticipantsForCamp({required String campId}) async {
     var snapshot = await FirebaseFirestore.instance
         .collection(kCampsCollection)
         .doc(campId)

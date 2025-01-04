@@ -39,7 +39,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     });
 
     try {
-      List<Camp> camps = await FirebaseManager.instance.fetchCampsForInstructor(widget.instructor);
+      List<Camp> camps = await FirebaseManager.instance.fetchCampsForInstructor(instructorId: widget.instructor.id);
       camps = _sortCamps(camps);
 
       safeSetState(() {

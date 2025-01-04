@@ -25,10 +25,10 @@ extension CampExtension on FirebaseManager {
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
   }
 
-  Future<List<Camp>> fetchCampsForInstructor(Instructor instructor) async {
+  Future<List<Camp>> fetchCampsForInstructor({required String instructorId}) async {
     var snapshot = await FirebaseFirestore.instance
         .collection(kCampsCollection)
-        .where('instructorsIds', arrayContains: instructor.id)
+        .where('instructorsIds', arrayContains: instructorId)
         .get();
 
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
