@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/widgets/enroll_instructor_to_camp_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class EnrollInstructorToCampModal {
-  static Future show({
+  static Future<Camp?> show({
     required BuildContext context,
     required Instructor instructor,
   }) {
-    return WoltModalSheet.show(
+    return WoltModalSheet.show<Camp?>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(

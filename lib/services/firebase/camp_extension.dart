@@ -1,10 +1,10 @@
 part of 'firebase_manager.dart';
 
-const kCampCollection = 'camps';
+const kCampsCollection = 'camps';
 
 extension CampExtension on FirebaseManager {
   void _listenToCampChanges(StreamController<ChangeListener<Camp>> campChangedStreamController) {
-    FirebaseFirestore.instance.collection(kCampCollection).snapshots().listen(
+    FirebaseFirestore.instance.collection(kCampsCollection).snapshots().listen(
       (snapshot) {
         for (var change in snapshot.docChanges) {
           campChangedStreamController.add(ChangeListener<Camp>(change.type, Camp.fromSnapshot(change.doc)));
@@ -20,14 +20,14 @@ extension CampExtension on FirebaseManager {
 
   Future<List<Camp>> fetchCamps() async {
     // Fetch all Camp documents
-    var snapshot = await FirebaseFirestore.instance.collection(kCampCollection).get();
+    var snapshot = await FirebaseFirestore.instance.collection(kCampsCollection).get();
 
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
   }
 
   Future<List<Camp>> fetchCampsForInstructor(Instructor instructor) async {
     var snapshot = await FirebaseFirestore.instance
-        .collection(kCampCollection)
+        .collection(kCampsCollection)
         .where('instructorsIds', arrayContains: instructor.id)
         .get();
 
@@ -43,9 +43,9 @@ extension CampExtension on FirebaseManager {
     Uint8List? image,
     String? campId,
   }) async {
-    var campRef = FirebaseFirestore.instance.collection(kCampCollection).doc(campId);
+    var campRef = FirebaseFirestore.instance.collection(kCampsCollection).doc(campId);
 
-    // Create the Camp object without embedding participants
+    // Create the Camp object
     Camp camp = Camp(
       id: campRef.id,
       name: name,
@@ -65,16 +65,16 @@ extension CampExtension on FirebaseManager {
     return camp;
   }
 
-  Future<bool> checkIfCampExistWithPassword(String password) async {
+  Future<bool> checkIfCampExistWithPassword({required String password}) async {
     var snapshot =
-        await FirebaseFirestore.instance.collection(kCampCollection).where('password', isEqualTo: password).get();
+        await FirebaseFirestore.instance.collection(kCampsCollection).where('password', isEqualTo: password).get();
 
-    return snapshot.size >= 1;
+    return snapshot.size > 0;
   }
 
   Future<Camp?> enrollInstructorToCamp({required String password, required Instructor instructor}) async {
     var snapshot =
-        await FirebaseFirestore.instance.collection(kCampCollection).where('password', isEqualTo: password).get();
+        await FirebaseFirestore.instance.collection(kCampsCollection).where('password', isEqualTo: password).get();
 
     if (snapshot.size == 0) {
       return null;

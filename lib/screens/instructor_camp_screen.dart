@@ -5,12 +5,12 @@ import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
+import 'package:pdf_points/modals/add_ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_points_fab.dart';
-import 'package:pdf_points/widgets/ski_group/no_ski_group.dart';
 
 class InstructorCampScreen extends StatefulWidget {
   const InstructorCampScreen({super.key, required this.instructor, required this.camp});
@@ -63,10 +63,62 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     return null;
   }
 
-  void _onAddSkiGroup(SkiGroup skiGroup) {
+  Future<void> _addSkiGroup(BuildContext context) async {
+    var skiGroup = await AddSkiGroupModal.show(
+      context: context,
+      instructorId: widget.instructor.id,
+      campId: widget.camp.id,
+      defaultName: "${widget.instructor.firstName}'s Group",
+    );
+
+    if (skiGroup == null) return;
+
     safeSetState(() {
       _skiGroup = skiGroup;
     });
+  }
+
+  Widget _showNoSkiGroupScreen() {
+    return Column(
+      children: [
+        // top padding
+        SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
+
+        // Title
+        Text(
+          "You don't have a group yet.",
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+
+        const SizedBox(height: 48),
+
+        // Instructions to add ski group
+        Text(
+          '1. First create your group',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '2. Then add your participants',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+
+        const SizedBox(height: 32),
+
+        // Add ski group button
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kAppSeedColor,
+            foregroundColor: Colors.white,
+            maximumSize: const Size(double.infinity, 56),
+          ),
+          onPressed: () => _addSkiGroup(context),
+          child: const Center(
+            child: Text('Create Your Group'),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _showGroupScreen() {
@@ -78,7 +130,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
     return Column(
       children: [
-        if (skiGroup.students.isEmpty) ...[
+        if (skiGroup.studentsIds.isEmpty) ...[
           // top padding
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
 
@@ -102,20 +154,20 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         ],
 
         // Participants list
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: skiGroup.students.length,
-          itemBuilder: (context, index) {
-            final participant = skiGroup.students[index];
-
-            return ListTile(
-              title: Text(participant.fullName),
-              subtitle: Text(participant.phone ?? "No phone number"),
-              leading: Text("${index + 1}"),
-            );
-          },
-        ),
+        // ListView.builder(
+        //   shrinkWrap: true,
+        //   physics: const NeverScrollableScrollPhysics(),
+        //   itemCount: skiGroup.studentsIds.length,
+        //   itemBuilder: (context, index) {
+        //     final participant = skiGroup.students[index];
+        //
+        //     return ListTile(
+        //       title: Text(participant.fullName),
+        //       subtitle: Text(participant.phone ?? "No phone number"),
+        //       leading: Text("${index + 1}"),
+        //     );
+        //   },
+        // ),
 
         const SizedBox(height: 32),
 
@@ -247,7 +299,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
             // page content
             SingleChildScrollView(
               child: _skiGroup == null //
-                  ? NoSkiGroup(instructor: widget.instructor, onAddSkiGroup: _onAddSkiGroup)
+                  ? _showNoSkiGroupScreen()
                   : _showGroupScreen(),
             ),
 
@@ -258,7 +310,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       ),
       floatingActionButtonLocation: AddPointsFab.location,
       floatingActionButton: _skiGroup != null && _skiGroup!.hasStudents //
-          ? AddPointsFab(students: _skiGroup!.students)
+          ? null // AddPointsFab(students: _skiGroup!.students)
           : null,
     );
   }

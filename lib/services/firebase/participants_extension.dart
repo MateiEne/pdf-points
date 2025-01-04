@@ -6,7 +6,7 @@ extension ParticipantsExtension on FirebaseManager {
 
   Future<List<Participant>> fetchParticipantsForCamp(String campId) async {
     var snapshot = await FirebaseFirestore.instance
-        .collection(kCampCollection)
+        .collection(kCampsCollection)
         .doc(campId)
         .collection(kCampParticipantsCollection)
         .get();
@@ -19,7 +19,7 @@ extension ParticipantsExtension on FirebaseManager {
     required List<Participant> participants,
   }) async {
     var participantsCollection =
-        FirebaseFirestore.instance.collection(kCampCollection).doc(campId).collection(kCampParticipantsCollection);
+        FirebaseFirestore.instance.collection(kCampsCollection).doc(campId).collection(kCampParticipantsCollection);
 
     var batch = FirebaseFirestore.instance.batch();
 

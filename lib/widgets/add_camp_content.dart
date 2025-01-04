@@ -94,7 +94,7 @@ class _AddCampContentWidgetState extends State<AddCampContentWidget> {
     }
 
     // check if a camp with the same password already exists
-    if (await FirebaseManager.instance.checkIfCampExistWithPassword(_password)) {
+    if (await FirebaseManager.instance.checkIfCampExistWithPassword(password: _password)) {
       _confirmPasswordController.clear();
       _passwordFocusNode.requestFocus();
       safeSetState(() {

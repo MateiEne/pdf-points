@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/ski_group.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class AddSkiGroupContentWidget extends StatefulWidget {
@@ -10,12 +12,16 @@ class AddSkiGroupContentWidget extends StatefulWidget {
     super.key,
     this.defaultName,
     this.onAddImage,
-    required this.onAddSkiCamp,
+    required this.campId,
+    required this.instructorId,
+    required this.onSkiCampCreated,
   });
 
+  final String campId;
+  final String instructorId;
   final String? defaultName;
   final Future<Uint8List?> Function()? onAddImage;
-  final Future<void> Function(String name) onAddSkiCamp;
+  final void Function(SkiGroup skiGroup) onSkiCampCreated;
 
   @override
   State<AddSkiGroupContentWidget> createState() => _AddSkiGroupContentWidgetState();
@@ -28,6 +34,8 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
 
   String _name = "";
   Uint8List? _image;
+
+  String? _namedAlreadyUsedErrorMessage;
 
   @override
   void initState() {
@@ -42,6 +50,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
   void _onNameChanged() {
     safeSetState(() {
       _name = _nameController.text.trim();
+      _namedAlreadyUsedErrorMessage = null;
     });
   }
 
@@ -84,9 +93,25 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
       return;
     }
 
-    FocusManager.instance.primaryFocus?.unfocus();
+    // check if a ski group with the same name already exists in this camp
+    if (await FirebaseManager.instance.checkIfSkiGroupExistWithName(campId: widget.campId, name: _name)) {
+      safeSetState(() {
+        _namedAlreadyUsedErrorMessage = "Name already used by another group. Please choose another one.";
+      });
+      return;
+    }
 
-    await widget.onAddSkiCamp(_name);
+    // FocusManager.instance.primaryFocus?.unfocus();
+
+    var skiGroup = await FirebaseManager.instance.addSkiGroupToCamp(
+      campId: widget.campId,
+      instructorId: widget.instructorId,
+      name: _name,
+    );
+
+    if (!mounted) return;
+
+    widget.onSkiCampCreated(skiGroup);
   }
 
   bool _validName(String? value) {
@@ -156,6 +181,7 @@ class _AddSkiGroupContentWidgetState extends State<AddSkiGroupContentWidget> {
             autofocus: true,
             decoration: InputDecoration(
               labelText: "Name",
+              errorText: _namedAlreadyUsedErrorMessage,
               suffixIcon: _nameController.text.isNotEmpty
                   ? IconButton(
                       onPressed: _nameController.clear,

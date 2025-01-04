@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/widgets/add_camp_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddCampModal {
-  static Future<T?> show<T>({
+  static Future<Camp?> show<T>({
     required BuildContext context,
     ExcelCampInfo? campInfo,
   }) {
-    return WoltModalSheet.show<T>(
+    return WoltModalSheet.show<Camp?>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(
@@ -28,8 +29,8 @@ class AddCampModal {
             padding: const EdgeInsets.all(16.0),
             child: AddCampContentWidget(
               campInfo: campInfo,
-              onCampAdded: (campInfo) {
-                Navigator.of(modalSheetContext).pop(campInfo);
+              onCampAdded: (camp) {
+                Navigator.of(modalSheetContext).pop(camp);
               },
             ),
           ),
