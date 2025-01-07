@@ -32,9 +32,9 @@ extension ParticipantsExtension on FirebaseManager {
 
   Future<Participant> addParticipantToCamp({
     required String campId,
-    required String firstName,
-    required String lastName,
-    required String phone,
+    String? firstName,
+    String? lastName,
+    String? phone,
     String? id,
   }) async {
     var participantRef = FirebaseFirestore.instance

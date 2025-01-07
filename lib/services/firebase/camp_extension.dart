@@ -72,15 +72,19 @@ extension CampExtension on FirebaseManager {
   }
 
   Future<bool> checkIfCampExistWithPassword({required String password}) async {
-    var snapshot =
-        await FirebaseFirestore.instance.collection(kCampsCollection).where('password', isEqualTo: password).get();
+    var snapshot = await FirebaseFirestore.instance //
+        .collection(kCampsCollection)
+        .where('password', isEqualTo: password)
+        .get();
 
     return snapshot.size > 0;
   }
 
   Future<Camp?> enrollInstructorToCamp({required String password, required Instructor instructor}) async {
-    var snapshot =
-        await FirebaseFirestore.instance.collection(kCampsCollection).where('password', isEqualTo: password).get();
+    var snapshot = await FirebaseFirestore.instance //
+        .collection(kCampsCollection)
+        .where('password', isEqualTo: password)
+        .get();
 
     if (snapshot.size == 0) {
       return null;
@@ -92,9 +96,18 @@ extension CampExtension on FirebaseManager {
       return camp;
     }
 
+    // add the instructor to the camp instructors list
     camp.instructorsIds.add(instructor.id);
-
     await snapshot.docs.first.reference.update({'instructorsIds': camp.instructorsIds});
+
+    // add the instructor to the camp participants list
+    await FirebaseManager.instance.addParticipantToCamp(
+      campId: camp.id,
+      firstName: instructor.firstName,
+      lastName: instructor.lastName,
+      phone: instructor.phone,
+      id: instructor.id,
+    );
 
     return camp;
   }
