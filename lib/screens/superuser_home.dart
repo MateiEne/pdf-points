@@ -20,7 +20,7 @@ class SuperUserHomeScreen extends StatefulWidget {
 }
 
 class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
-  bool _isLoading = true;
+  bool _isLoading = false;
   List<Camp> _camps = [];
 
   StreamSubscription? _campChangedSubscription;
@@ -66,10 +66,10 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
         switch (change.type) {
           case DocumentChangeType.added:
           case DocumentChangeType.modified:
-            _camps.removeWhere((w) => w.id == change.object.id);
-            _camps.add(change.object);
 
             safeSetState(() {
+              _camps.removeWhere((w) => w.id == change.object.id);
+              _camps.add(change.object);
               _camps = _sortCamps(_camps);
             });
             break;

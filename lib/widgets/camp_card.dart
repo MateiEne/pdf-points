@@ -22,7 +22,13 @@ class _CampCardState extends State<CampCard> {
   @override
   void initState() {
     super.initState();
+
+    _startFirebaseEvents();
+  }
+
+  Future<void> _startFirebaseEvents() async {
     _fetchParticipantsCount();
+    _listenToParticipantsCountChanges();
   }
 
   Future<void> _fetchParticipantsCount() async {
@@ -36,6 +42,17 @@ class _CampCardState extends State<CampCard> {
       _participantsCount = count;
       _loadingParticipantsCount = false;
     });
+  }
+
+  void _listenToParticipantsCountChanges() {
+    FirebaseManager.instance.listenToParticipantsCountChanges(
+      campId: widget.camp.id,
+      onParticipantsCountChanged: (count) {
+        setState(() {
+          _participantsCount = count;
+        });
+      },
+    );
   }
 
   @override

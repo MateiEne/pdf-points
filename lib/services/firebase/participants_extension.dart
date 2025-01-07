@@ -3,6 +3,39 @@ part of 'firebase_manager.dart';
 const kCampParticipantsCollection = 'participants';
 
 extension ParticipantsExtension on FirebaseManager {
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> listenToParticipantsChanges({
+    required String campId,
+    required Function(List<Participant>) onParticipantsChanged,
+  }) {
+    return FirebaseFirestore.instance //
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampParticipantsCollection)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        var participants = snapshot.docs.map((doc) => Participant.fromJson(doc.data())).toList();
+        onParticipantsChanged(participants);
+      },
+    );
+  }
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> listenToParticipantsCountChanges({
+    required String campId,
+    required Function(int) onParticipantsCountChanged,
+  }) {
+    return FirebaseFirestore.instance //
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampParticipantsCollection)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        onParticipantsCountChanged(snapshot.size);
+      },
+    );
+  }
+
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>> listenToParticipantChanges({
     required String campId,
     required String participantId,

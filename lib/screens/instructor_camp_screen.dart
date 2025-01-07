@@ -24,7 +24,7 @@ class InstructorCampScreen extends StatefulWidget {
 }
 
 class _InstructorCampScreenState extends State<InstructorCampScreen> {
-  bool _isLoading = true;
+  bool _isLoading = false;
   late Instructor _instructor = widget.instructor;
   SkiGroup? _skiGroup;
   List<Participant> _students = [];
@@ -44,14 +44,20 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   }
 
   Future<void> _fetchGroupAndStudents() async {
+    var groupId = _instructor.groupId;
+    if (groupId == null) {
+      // the instructor has no group yet
+      return;
+    }
+
     safeSetState(() {
       _isLoading = true;
     });
 
     try {
-      SkiGroup? skiGroup = await FirebaseManager.instance.fetchSkiGroupForInstructor(
+      SkiGroup? skiGroup = await FirebaseManager.instance.fetchSkiGroup(
         campId: widget.camp.id,
-        instructorId: _instructor.id,
+        skiGroupId: groupId,
       );
 
       List<Participant> students = [];
@@ -59,7 +65,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       if (skiGroup != null) {
         students = await FirebaseManager.instance.fetchStudentsFromSkiGroup(
           campId: widget.camp.id,
-          skiGroupId: skiGroup.id,
+          skiGroupId: groupId,
         );
 
         students = _sortStudents(students);
