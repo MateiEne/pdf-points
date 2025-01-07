@@ -2,7 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/camp.dart';
-import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/add_lifts.dart';
@@ -322,7 +321,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         centerTitle: true,
         title: AutoSizeText(
           _skiGroup == null //
-              ? widget.instructor.firstName
+              ? widget.instructor.shortName
               : _skiGroup!.name,
           maxLines: 1,
         ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/camp.dart';
-import 'package:pdf_points/data/instructor.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 

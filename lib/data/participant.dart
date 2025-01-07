@@ -1,13 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pdf_points/data/lift_user.dart';
+import 'package:pdf_points/data/pdf_user.dart';
 
-class Participant implements LiftUser {
+typedef Instructor = Participant;
+
+class Participant implements PdFUser, LiftUser {
   @override
   final String id;
   final String? firstName;
   final String? lastName;
   final String? phone;
   final String? groupId;
+  final bool isInstructor;
 
   @override
   String get fullName => [firstName, lastName].where((name) => name != null).join(' ');
@@ -30,6 +34,7 @@ class Participant implements LiftUser {
     this.lastName,
     this.phone,
     this.groupId,
+    this.isInstructor = false,
   }) : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
 
   Participant copyWith({
@@ -46,6 +51,7 @@ class Participant implements LiftUser {
       lastName: lastName ?? this.lastName,
       phone: phone ?? this.phone,
       groupId: groupId ?? this.groupId,
+      isInstructor: isInstructor ?? this.isInstructor,
     );
   }
 
@@ -60,12 +66,18 @@ class Participant implements LiftUser {
         other.firstName == firstName &&
         other.lastName == lastName &&
         other.phone == phone &&
-        other.groupId == groupId;
+        other.groupId == groupId &&
+        other.isInstructor == isInstructor;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ firstName.hashCode ^ lastName.hashCode ^ phone.hashCode ^ groupId.hashCode;
+    return id.hashCode ^
+        firstName.hashCode ^
+        lastName.hashCode ^
+        phone.hashCode ^
+        groupId.hashCode ^
+        isInstructor.hashCode;
   }
 
   Map<String, dynamic> toJson() {
@@ -75,6 +87,7 @@ class Participant implements LiftUser {
       'lastName': lastName,
       'phone': phone,
       'groupId': groupId,
+      'isInstructor': isInstructor,
     };
   }
 
@@ -85,6 +98,7 @@ class Participant implements LiftUser {
       lastName: json['lastName'],
       phone: json['phone'],
       groupId: json['groupId'],
+      isInstructor: json['isInstructor'] ?? false,
     );
   }
 
@@ -98,6 +112,10 @@ class Participant implements LiftUser {
 
   @override
   String toString() {
+    if (isInstructor) {
+      return 'Instructor(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId)';
+    }
+
     return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId)';
   }
 }

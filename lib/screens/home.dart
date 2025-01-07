@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pdf_points/data/instructor.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
-import 'package:pdf_points/screens/instructor_camp_screen.dart';
 import 'package:pdf_points/screens/instructor_home.dart';
 import 'package:pdf_points/screens/superuser_home.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';

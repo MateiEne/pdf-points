@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
-import 'package:pdf_points/data/instructor.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
 import 'package:pdf_points/screens/instructor_camp_screen.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/data/instructor.dart';
 import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/lift_user.dart';
+import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/widgets/lift_users_selector_widget.dart';
 import 'package:pdf_points/widgets/lifts_selector_widget.dart';
