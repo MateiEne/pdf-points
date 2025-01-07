@@ -3,6 +3,24 @@ part of 'firebase_manager.dart';
 const kCampParticipantsCollection = 'participants';
 
 extension ParticipantsExtension on FirebaseManager {
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>> listenToParticipantChanges({
+    required String campId,
+    required String participantId,
+    required Function(Participant) onParticipantChanged,
+  }) {
+    return FirebaseFirestore.instance
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampParticipantsCollection)
+        .doc(participantId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        onParticipantChanged(Participant.fromJson(snapshot.data()!));
+      }
+    });
+  }
+
   Future<List<Participant>> fetchParticipantsForCamp({required String campId}) async {
     var snapshot = await FirebaseFirestore.instance
         .collection(kCampsCollection)
@@ -93,5 +111,27 @@ extension ParticipantsExtension on FirebaseManager {
     });
 
     return participant.copyWith(groupId: skiGroupId);
+  }
+
+  Future<Participant> updateParticipantSkiGroup({
+    required String campId,
+    required String participantId,
+    required String skiGroupId,
+  }) async {
+    var participantRef = FirebaseFirestore.instance
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampParticipantsCollection)
+        .doc(participantId);
+
+    // Update the groupId in the participant document
+    await participantRef.update({
+      'groupId': skiGroupId,
+    });
+
+    // Get the participant document
+    var participantSnapshot = await participantRef.get();
+
+    return Participant.fromJson(participantSnapshot.data()!);
   }
 }

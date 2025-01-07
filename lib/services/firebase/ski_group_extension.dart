@@ -3,6 +3,24 @@ part of 'firebase_manager.dart';
 const kCampSkiGroupsCollection = 'skiGroups';
 
 extension SkiGroupExtension on FirebaseManager {
+  Future<SkiGroup?> fetchSkiGroup({
+    required String campId,
+    required String skiGroupId,
+  }) async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampSkiGroupsCollection)
+        .doc(skiGroupId)
+        .get();
+
+    if (!snapshot.exists) {
+      return null;
+    }
+
+    return SkiGroup.fromSnapshot(snapshot);
+  }
+
   Future<SkiGroup?> fetchSkiGroupForInstructor({
     required String campId,
     required String instructorId,
@@ -89,6 +107,13 @@ extension SkiGroupExtension on FirebaseManager {
 
     // Save the SkiGroup object
     await skiGroupRef.set(skiGroup.toJson());
+
+    // update the instructor ski group
+    await FirebaseManager.instance.updateParticipantSkiGroup(
+      campId: campId,
+      participantId: instructorId,
+      skiGroupId: skiGroup.id,
+    );
 
     // Return the SkiGroup object
     return skiGroup;

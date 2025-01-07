@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
@@ -23,8 +25,11 @@ class InstructorCampScreen extends StatefulWidget {
 
 class _InstructorCampScreenState extends State<InstructorCampScreen> {
   bool _isLoading = true;
+  late Instructor _instructor = widget.instructor;
   SkiGroup? _skiGroup;
   List<Participant> _students = [];
+
+  StreamSubscription? _instructorChangedSubscription;
 
   @override
   void initState() {
@@ -35,6 +40,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
   Future<void> _startFirebaseEvents() async {
     _fetchGroupAndStudents();
+    _listenToInstructorChanges();
   }
 
   Future<void> _fetchGroupAndStudents() async {
@@ -45,7 +51,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     try {
       SkiGroup? skiGroup = await FirebaseManager.instance.fetchSkiGroupForInstructor(
         campId: widget.camp.id,
-        instructorId: widget.instructor.id,
+        instructorId: _instructor.id,
       );
 
       List<Participant> students = [];
@@ -74,6 +80,20 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     }
   }
 
+  void _listenToInstructorChanges() {
+    _instructorChangedSubscription = FirebaseManager.instance.listenToParticipantChanges(
+      campId: widget.camp.id,
+      participantId: _instructor.id,
+      onParticipantChanged: (participant) {
+        if (!mounted) return;
+
+        safeSetState(() {
+          _instructor = participant;
+        });
+      },
+    );
+  }
+
   List<Participant> _sortStudents(List<Participant> participants) {
     participants.sort((a, b) => a.fullName.compareTo(b.fullName));
 
@@ -94,9 +114,9 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   Future<void> _addSkiGroup(BuildContext context) async {
     var skiGroup = await AddSkiGroupModal.show(
       context: context,
-      instructorId: widget.instructor.id,
+      instructorId: _instructor.id,
       campId: widget.camp.id,
-      defaultName: "${widget.instructor.firstName}'s Group",
+      defaultName: "${_instructor.shortName}'s Group",
     );
 
     if (skiGroup == null) return;
@@ -197,7 +217,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     AddLiftsModal.show(
       context: context,
       campId: widget.camp.id,
-      instructor: widget.instructor,
+      instructor: _instructor,
       students: _students,
     );
   }
@@ -246,12 +266,6 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   }
 
   Widget _showGroupScreen() {
-    SkiGroup? skiGroup = _skiGroup;
-
-    if (skiGroup == null) {
-      return const SizedBox.shrink();
-    }
-
     return Column(
       children: [
         if (_students.isEmpty) ...[
@@ -321,7 +335,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         centerTitle: true,
         title: AutoSizeText(
           _skiGroup == null //
-              ? widget.instructor.shortName
+              ? "${_instructor.shortName}'s Group"
               : _skiGroup!.name,
           maxLines: 1,
         ),
@@ -340,7 +354,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           children: [
             // page content
             SingleChildScrollView(
-              child: _skiGroup == null //
+              child: _instructor.groupId == null //
                   ? _showNoSkiGroupScreen()
                   : _showGroupScreen(),
             ),
@@ -359,5 +373,11 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
             )
           : null,
     );
+  }
+
+  @override
+  void dispose() {
+    _instructorChangedSubscription?.cancel();
+    super.dispose();
   }
 }
