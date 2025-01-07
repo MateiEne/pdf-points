@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
@@ -19,6 +21,8 @@ class _CampCardState extends State<CampCard> {
   bool _loadingParticipantsCount = false;
   int _participantsCount = 0;
 
+  StreamSubscription? _participantsCountSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +40,7 @@ class _CampCardState extends State<CampCard> {
       _loadingParticipantsCount = true;
     });
 
-    var count = await FirebaseManager.instance.fetchParticipantsCountForCamp(campId: widget.camp.id);
+    var count = await FirebaseManager.instance.fetchAllParticipantsCountForCamp(campId: widget.camp.id);
 
     setState(() {
       _participantsCount = count;
@@ -45,7 +49,7 @@ class _CampCardState extends State<CampCard> {
   }
 
   void _listenToParticipantsCountChanges() {
-    FirebaseManager.instance.listenToParticipantsCountChanges(
+    _participantsCountSubscription = FirebaseManager.instance.listenToParticipantsCountChanges(
       campId: widget.camp.id,
       onParticipantsCountChanged: (count) {
         setState(() {
@@ -121,7 +125,7 @@ class _CampCardState extends State<CampCard> {
                         )
                       else
                         Text(
-                          "$_participantsCount",
+                          "${_participantsCount - widget.camp.instructorsIds.length}",  // just the students
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                     ],
@@ -133,5 +137,11 @@ class _CampCardState extends State<CampCard> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _participantsCountSubscription?.cancel();
+    super.dispose();
   }
 }
