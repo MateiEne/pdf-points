@@ -5,6 +5,7 @@ import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
 import 'package:pdf_points/screens/instructor_camp_screen.dart';
+import 'package:pdf_points/screens/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/camp_card.dart';
@@ -110,6 +111,15 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     });
   }
 
+  Future<void> _onLogout() async {
+    await FirebaseManager.instance.signOut();
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,9 +127,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
         title: const Text('Home'),
         actions: [
           IconButton(
-            onPressed: () {
-              FirebaseManager.instance.signOut();
-            },
+            onPressed: _onLogout,
             icon: const Icon(Icons.logout),
           ),
         ],

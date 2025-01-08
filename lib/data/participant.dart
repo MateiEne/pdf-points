@@ -10,6 +10,7 @@ class Participant implements PdFUser, LiftUser {
   final String? firstName;
   final String? lastName;
   final String? phone;
+  final String? email;
   final String? groupId;
   final bool isInstructor;
 
@@ -33,6 +34,7 @@ class Participant implements PdFUser, LiftUser {
     this.firstName,
     this.lastName,
     this.phone,
+    this.email,
     this.groupId,
     this.isInstructor = false,
   }) : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
@@ -42,6 +44,7 @@ class Participant implements PdFUser, LiftUser {
     String? firstName,
     String? lastName,
     String? phone,
+    String? email,
     String? groupId,
     bool? isInstructor,
   }) {
@@ -50,6 +53,7 @@ class Participant implements PdFUser, LiftUser {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       phone: phone ?? this.phone,
+      email: email ?? this.email,
       groupId: groupId ?? this.groupId,
       isInstructor: isInstructor ?? this.isInstructor,
     );
@@ -66,6 +70,7 @@ class Participant implements PdFUser, LiftUser {
         other.firstName == firstName &&
         other.lastName == lastName &&
         other.phone == phone &&
+        other.email == email &&
         other.groupId == groupId &&
         other.isInstructor == isInstructor;
   }
@@ -76,6 +81,7 @@ class Participant implements PdFUser, LiftUser {
         firstName.hashCode ^
         lastName.hashCode ^
         phone.hashCode ^
+        email.hashCode ^
         groupId.hashCode ^
         isInstructor.hashCode;
   }
@@ -86,6 +92,7 @@ class Participant implements PdFUser, LiftUser {
       'firstName': firstName,
       'lastName': lastName,
       'phone': phone,
+      'email': email,
       'groupId': groupId,
       'isInstructor': isInstructor,
     };
@@ -97,6 +104,7 @@ class Participant implements PdFUser, LiftUser {
       firstName: json['firstName'],
       lastName: json['lastName'],
       phone: json['phone'],
+      email: json['email'],
       groupId: json['groupId'],
       isInstructor: json['isInstructor'] ?? false,
     );
@@ -113,9 +121,9 @@ class Participant implements PdFUser, LiftUser {
   @override
   String toString() {
     if (isInstructor) {
-      return 'Instructor(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId)';
+      return 'Instructor(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, email: $email groupId: $groupId)';
     }
 
-    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, groupId: $groupId)';
+    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, email: $email groupId: $groupId)';
   }
 }

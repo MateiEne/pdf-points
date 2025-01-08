@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/screens/camp_screen.dart';
+import 'package:pdf_points/screens/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/widgets/add_camp_fab.dart';
@@ -66,7 +67,6 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
         switch (change.type) {
           case DocumentChangeType.added:
           case DocumentChangeType.modified:
-
             safeSetState(() {
               _camps.removeWhere((w) => w.id == change.object.id);
               _camps.add(change.object);
@@ -89,6 +89,17 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
     return camps.toList();
   }
 
+  Future<void> _onLogout() async {
+    _campChangedSubscription?.cancel();
+
+    await FirebaseManager.instance.signOut();
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,9 +107,7 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
         title: const Text('Home'),
         actions: [
           IconButton(
-            onPressed: () {
-              FirebaseManager.instance.signOut();
-            },
+            onPressed: _onLogout,
             icon: const Icon(Icons.logout),
           ),
         ],

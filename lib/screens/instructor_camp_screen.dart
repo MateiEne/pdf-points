@@ -345,14 +345,6 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
               : _skiGroup!.name,
           maxLines: 1,
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              FirebaseManager.instance.signOut();
-            },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
