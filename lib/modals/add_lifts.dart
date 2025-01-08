@@ -1,36 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/lift_info.dart';
+import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/widgets/lift_users_selector_widget.dart';
 import 'package:pdf_points/widgets/lifts_selector_widget.dart';
-import 'package:pdf_points/widgets/students_selector_widget.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
-class AddPointsModal {
+class AddLiftsModal {
   static String _defaultLift = kGondolas.first;
-  static final List<Participant> _selectedStudents = [];
+  static String _defaultLiftType = kGondola;
+  static final List<LiftUser> _selectedLiftUsers = [];
   static final ValueNotifier<bool> _isButtonEnabledNotifier = ValueNotifier(false);
 
   static Future<void> show({
     required BuildContext context,
-    required List<Participant> students,
-    required Future<void> Function(
-      BuildContext context,
-      List<Participant> selectedStudents,
-      String lift,
-    ) onAddPoints,
+    required String campId,
+    required Instructor instructor,
+    required List<LiftUser> students,
   }) {
     return WoltModalSheet.show(
       context: context,
       pageListBuilder: (modalSheetContext) {
-        _checkSelectedStudents(students);
+        _checkSelectedStudents(instructor, students);
 
         return [
           // Select lift page
           _selectLiftPage(modalSheetContext),
 
           // Select students page
-          _selectStudentsPage(modalSheetContext, students, onAddPoints),
+          _selectStudentsPage(modalSheetContext, campId, instructor, students),
         ];
       },
       modalTypeBuilder: (context) {
@@ -48,15 +49,20 @@ class AddPointsModal {
     );
   }
 
-  static void _checkSelectedStudents(List<Participant> students) {
+  static void _checkSelectedStudents(Instructor instructor, List<LiftUser> students) {
     // remove selected students that are not in the list of students
-    _selectedStudents.removeWhere((student) => !students.contains(student));
+    _selectedLiftUsers.removeWhere((student) => !students.contains(student));
 
-    if (_selectedStudents.isEmpty) {
-      _selectedStudents.addAll(students);
+    if (_selectedLiftUsers.isEmpty) {
+      _selectedLiftUsers.addAll(students);
     }
 
-    _isButtonEnabledNotifier.value = _selectedStudents.isNotEmpty;
+    // add the instructor
+    if (!_selectedLiftUsers.contains(instructor)) {
+      _selectedLiftUsers.add(instructor);
+    }
+
+    _isButtonEnabledNotifier.value = _selectedLiftUsers.isNotEmpty;
   }
 
   static WoltModalSheetPage _selectLiftPage(BuildContext modalSheetContext) {
@@ -97,8 +103,9 @@ class AddPointsModal {
           child: Builder(builder: (context) {
             return LiftsSelectorWidget(
               defaultLift: _defaultLift,
-              onLiftSelected: (String lift) {
+              onLiftSelected: (String lift, String liftType) {
                 _defaultLift = lift;
+                _defaultLiftType = liftType;
               },
             );
           }),
@@ -109,12 +116,9 @@ class AddPointsModal {
 
   static WoltModalSheetPage _selectStudentsPage(
     BuildContext modalSheetContext,
-    List<Participant> students,
-    Future<void> Function(
-      BuildContext context,
-      List<Participant> selectedStudents,
-      String lift,
-    ) onAddPoints,
+    String campId,
+    Instructor instructor,
+    List<LiftUser> students,
   ) {
     return WoltModalSheetPage(
       topBarTitle: Text(
@@ -147,8 +151,16 @@ class AddPointsModal {
                 minimumSize: const Size(double.maxFinite, 56),
                 maximumSize: const Size(double.maxFinite, 56),
               ),
-              onPressed: enable ? () => onAddPoints(modalSheetContext, _selectedStudents, _defaultLift) : null,
-              child: const Text('Add Points'),
+              onPressed: enable
+                  ? () async {
+                      await _addLifts(campId, instructor, _selectedLiftUsers, _defaultLift, _defaultLiftType);
+
+                      if (!modalSheetContext.mounted) return;
+
+                      Navigator.of(modalSheetContext).pop();
+                    }
+                  : null,
+              child: const Text('Add Lifts'),
             ),
           );
         },
@@ -161,19 +173,40 @@ class AddPointsModal {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           child: Builder(builder: (context) {
-            return StudentsSelectorWidget(
-              students: students,
-              selectedStudents: _selectedStudents,
-              onSelectedStudentsChanged: (List<Participant> students) {
-                _selectedStudents.clear();
-                _selectedStudents.addAll(students);
+            return LiftUsersSelectorWidget(
+              liftUsers: [instructor, ...students],
+              selectedLiftUsers: _selectedLiftUsers,
+              onSelectedLiftUsersChanged: (List<LiftUser> liftUsers) {
+                _selectedLiftUsers.clear();
+                _selectedLiftUsers.addAll(liftUsers);
 
-                _isButtonEnabledNotifier.value = _selectedStudents.isNotEmpty;
+                _isButtonEnabledNotifier.value = _selectedLiftUsers.isNotEmpty;
               },
             );
           }),
         ),
       ),
     );
+  }
+
+  static Future<void> _addLifts(
+    String campId,
+    Instructor instructor,
+    List<LiftUser> selectedLiftUsers,
+    String lift,
+    String liftType,
+  ) async {
+    for (final liftUser in selectedLiftUsers) {
+      await FirebaseManager.instance.addLift(
+        campId: campId,
+        lift: LiftInfo(
+          name: lift,
+          type: liftType,
+          personId: liftUser.id,
+          createdAt: DateTime.now(),
+          createdBy: instructor.id,
+        ),
+      );
+    }
   }
 }

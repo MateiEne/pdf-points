@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/add_participant.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class SearchParticipantContent extends StatefulWidget {
   const SearchParticipantContent({
     super.key,
+    required this.campId,
     required this.onSelected,
     this.excludeGroupId,
     this.addParticipantIfNotFound = true,
   });
 
+  final String campId;
   final void Function(Participant participant) onSelected;
-  final int? excludeGroupId;
+  final String? excludeGroupId;
   final bool addParticipantIfNotFound;
 
   @override
@@ -43,9 +46,7 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
     });
 
     try {
-      // TODO: fetch participants from firebase
-      // List<Participant> participants = await FirebaseService.getInstance().then((instance) => instance.fetchRegistrations());
-      List<Participant> participants = PdfPointsExelParser.dummyListParticipants();
+      List<Participant> participants = await FirebaseManager.instance.fetchParticipantsForCamp(campId: widget.campId);
       if (widget.excludeGroupId != null) {
         participants = participants.where((p) => p.groupId != widget.excludeGroupId).toList();
       }
@@ -97,11 +98,12 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
 
     Participant? participant = await AddParticipantModal.show(
       context: context,
+      campId: widget.campId,
       defaultFirstName: firstName,
       defaultLastName: lastName,
     );
 
-    if (participant == null) return;
+    if (!mounted || participant == null) return;
 
     safeSetState(() {
       _allParticipants.add(participant);

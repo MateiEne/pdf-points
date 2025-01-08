@@ -1,12 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
-import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/add_camp.dart';
-import 'package:pdf_points/modals/open_pictures.dart';
 import 'package:pdf_points/utils/context_utils.dart';
 import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/platform_file_utils.dart';
@@ -71,6 +67,7 @@ class _AddCampFabState extends State<AddCampFab> {
 
     try {
       var campInfo = await PdfPointsExelParser.getCampInfoFromExcel(fileBytes);
+      print("campInfo: $campInfo");
 
       if (!mounted) return;
 
@@ -94,43 +91,7 @@ class _AddCampFabState extends State<AddCampFab> {
   }
 
   void _openModal({ExcelCampInfo? campInfo}) {
-    AddCampModal.show(context: context, onAddCamp: _onAddCamp, onAddPicture: _openPicturesModal);
-  }
-
-  Future<void> _onAddCamp(
-    BuildContext modalSheetContext,
-    String name,
-    String password,
-    DateTime startDate,
-    DateTime endDate,
-    Uint8List? image,
-    List<Participant> participants,
-  ) async {
-    // TODO: save the camp to firebase:
-    // FirebaseManager.instance.addCamp(
-    //   name: _name,
-    //   password: _password,
-    //   startDate: _startDate,
-    //   endDate: _endDate,
-    //   participants: widget.campInfo?.participants ?? [],
-    //   instructors: [],
-    //   image: _image,
-    // );
-    print(name);
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!modalSheetContext.mounted) {
-      return;
-    }
-
-    Navigator.of(modalSheetContext).pop();
-  }
-
-  Future<Uint8List?> _openPicturesModal() async {
-    return OpenPicturesModal.show<Uint8List?>(
-      context: context,
-      title: "Add Picture",
-    );
+    AddCampModal.show(context: context, campInfo: campInfo);
   }
 
   @override

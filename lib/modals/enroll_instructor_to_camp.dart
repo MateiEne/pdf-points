@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/camp.dart';
-import 'package:pdf_points/data/excel_camp_info.dart';
-import 'package:pdf_points/widgets/add_camp_content.dart';
+import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/widgets/enroll_instructor_to_camp_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
-class AddCampModal {
-  static Future<Camp?> show<T>({
+class EnrollInstructorToCampModal {
+  static Future<Camp?> show({
     required BuildContext context,
-    ExcelCampInfo? campInfo,
+    required Instructor instructor,
   }) {
     return WoltModalSheet.show<Camp?>(
       context: context,
@@ -16,7 +16,7 @@ class AddCampModal {
         WoltModalSheetPage(
           hasSabGradient: false,
           topBarTitle: Text(
-            'Add Camp',
+            'Enroll to Camp',
             style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
           ),
           isTopBarLayerAlwaysVisible: true,
@@ -27,9 +27,9 @@ class AddCampModal {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: AddCampContentWidget(
-              campInfo: campInfo,
-              onCampAdded: (camp) {
+            child: EnrollInstructorToCampContentWidget(
+              instructor: instructor,
+              onEnrolled: (camp) {
                 Navigator.of(modalSheetContext).pop(camp);
               },
             ),

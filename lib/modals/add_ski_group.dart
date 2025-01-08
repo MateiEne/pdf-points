@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/widgets/ski_group/add_ski_group_content.dart';
+import 'package:pdf_points/data/ski_group.dart';
+import 'package:pdf_points/widgets/add_ski_group_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddSkiGroupModal {
-  static Future<T?> show<T>({
+  static Future<SkiGroup?> show({
     required BuildContext context,
-    required Future<T> Function(BuildContext context, String name) onAddSkiCamp,
+    required String campId,
+    required String instructorId,
     String? defaultName,
   }) {
-    return WoltModalSheet.show<T>(
+    return WoltModalSheet.show<SkiGroup?>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(
@@ -27,8 +29,12 @@ class AddSkiGroupModal {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: AddSkiGroupContentWidget(
+              campId: campId,
+              instructorId: instructorId,
               defaultName: defaultName,
-              onAddSkiCamp: (name) => onAddSkiCamp(modalSheetContext, name),
+              onSkiCampCreated: (skiGroup) {
+                Navigator.of(modalSheetContext).pop(skiGroup);
+              },
             ),
           ),
         ),

@@ -5,11 +5,11 @@ import 'package:pdf_points/widgets/search_participant_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SearchParticipantModal {
-  static Future<T?> show<T>({
+  static Future<Participant?> show({
     required BuildContext context,
-    required Future<T> Function(BuildContext context, Participant participant) onSelected,
+    required String campId,
     bool showNavBar = true,
-    int? excludeGroupId,
+    String? excludeGroupId,
   }) {
     // showModalBottomSheet(
     //   context: context,
@@ -28,7 +28,7 @@ class SearchParticipantModal {
     //   },
     // );
 
-    return WoltModalSheet.show<T>(
+    return WoltModalSheet.show<Participant?>(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(
@@ -56,9 +56,12 @@ class SearchParticipantModal {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: SearchParticipantContent(
+                  campId: campId,
                   excludeGroupId: excludeGroupId,
                   addParticipantIfNotFound: true,
-                  onSelected: (participant) => onSelected(modalSheetContext, participant),
+                  onSelected: (participant) {
+                    Navigator.of(modalSheetContext).pop(participant);
+                  },
                 ),
               ),
             ),

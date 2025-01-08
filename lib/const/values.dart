@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 Color kAppSeedColor = const Color.fromARGB(255, 60, 100, 100);
 
+const int kPasswordLength = 6;
+
 const int kCampDaysLength = 5;
 
 const double kPageWidthBreakpoint = 768.0;
@@ -13,6 +15,11 @@ const List<String> kDefaultCampImages = [
   "assets/images/defaultCampImages/skiTourCamp.jpg",
   "assets/images/defaultCampImages/snowboardCamp.jpg",
 ];
+
+const String kGondola = "Gondola";
+const String kChairlift = "Chairlift";
+const String kSkilift = "Skilift";
+const String kCableCar = "Cable Car";
 
 const List<String> kCableCars = [
   // order by exit elevation.

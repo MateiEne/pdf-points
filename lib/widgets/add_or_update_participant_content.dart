@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/utils/string_utils.dart';
 
-class AddParticipantContentWidget extends StatefulWidget {
-  const AddParticipantContentWidget({
+class AddOrUpdateParticipantContentWidget extends StatefulWidget {
+  const AddOrUpdateParticipantContentWidget({
     super.key,
-    required this.onAddParticipant,
+    required this.campId,
+    this.onAddParticipantAdded,
     this.defaultFirstName,
     this.defaultLastName,
     this.defaultPhone,
+    this.participantId,
   });
 
-  final Future<void> Function(
-    String firstName,
-    String lastName,
-    String phone,
-  ) onAddParticipant;
+  final String campId;
+  final void Function(Participant participant)? onAddParticipantAdded;
   final String? defaultFirstName;
   final String? defaultLastName;
   final String? defaultPhone;
+  final String? participantId;
 
   @override
-  State<AddParticipantContentWidget> createState() => _AddParticipantContentWidgetState();
+  State<AddOrUpdateParticipantContentWidget> createState() => _AddOrUpdateParticipantContentWidgetState();
 }
 
-class _AddParticipantContentWidgetState extends State<AddParticipantContentWidget> {
+class _AddOrUpdateParticipantContentWidgetState extends State<AddOrUpdateParticipantContentWidget> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _firstNameController = TextEditingController();
@@ -79,9 +81,18 @@ class _AddParticipantContentWidgetState extends State<AddParticipantContentWidge
       return;
     }
 
-    FocusManager.instance.primaryFocus?.unfocus();
+    // FocusManager.instance.primaryFocus?.unfocus();
+    var participant = await FirebaseManager.instance.addParticipantToCamp(
+      campId: widget.campId,
+      id: widget.participantId,
+      firstName: _firstName,
+      lastName: _lastName,
+      phone: _phone,
+    );
 
-    await widget.onAddParticipant(_firstName, _lastName, _phone);
+    if (!mounted) return;
+
+    widget.onAddParticipantAdded?.call(participant);
   }
 
   bool _validName(String? value) {
