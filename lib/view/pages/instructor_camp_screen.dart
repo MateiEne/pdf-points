@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/camp.dart';
+import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/add_lifts.dart';
@@ -11,6 +12,7 @@ import 'package:pdf_points/modals/add_ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/number_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class InstructorCampScreen extends StatefulWidget {
@@ -311,10 +313,125 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
             itemBuilder: (context, index) {
               final participant = _students[index];
 
-              return ListTile(
-                title: Text(participant.fullName),
-                subtitle: Text(participant.phone ?? "No phone number"),
-                leading: Text("${index + 1}"),
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                // shape: RoundedRectangleBorder(
+                //   borderRadius: BorderRadius.circular(0),
+                // ),
+                child: ExpansionTile(
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  collapsedShape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  leading: Text(
+                    "${index + 1}",
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  title: Text(
+                    participant.fullName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(participant.phone ?? "No phone number"),
+                  children: [
+                    StreamBuilder<List<LiftInfo>>(
+                      stream: FirebaseManager.instance.listenToLiftsForPerson(
+                        campId: widget.camp.id,
+                        personId: participant.id,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          debugPrint(snapshot.error.toString());
+                          return Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'Error loading lifts',
+                              style: TextStyle(color: Theme.of(context).colorScheme.error),
+                            ),
+                          );
+                        }
+
+                        final lifts = snapshot.data ?? [];
+
+                        if (lifts.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'No lifts recorded yet',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Lifts (${lifts.length})',
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: lifts.length,
+                              itemBuilder: (context, liftIndex) {
+                                final lift = lifts[liftIndex];
+                                return ListTile(
+                                  dense: true,
+                                  leading: lift.icon != null
+                                      ? Image.asset(lift.icon!, width: 24, height: 24)
+                                      : const Icon(Icons.cable_rounded, size: 20),
+                                  title: Text(
+                                    lift.name,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  subtitle: Text(
+                                    lift.type,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  trailing: Text(
+                                    '${lift.createdAt.hour}:${lift.createdAt.minute.toPaddedString(2)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               );
             },
           ),

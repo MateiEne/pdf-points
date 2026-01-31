@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pdf_points/data/lift_info.dart';
 
 Color kAppSeedColor = const Color.fromARGB(255, 60, 100, 100);
 
@@ -20,6 +21,11 @@ const String kGondola = "Gondola";
 const String kChairlift = "Chairlift";
 const String kSkilift = "Skilift";
 const String kCableCar = "Cable Car";
+
+const String kCableCarIcon = "assets/images/skilifts/cable-car-2.png";
+const String kGondolaIcon = "assets/images/skilifts/gondola-1.png";
+const String kChairliftIcon = "assets/images/skilifts/chairlift-1.png";
+const String kSkiliftIcon = "assets/images/skilifts/skilift-2.png";
 
 const List<String> kCableCars = [
   // order by exit elevation.
@@ -47,3 +53,13 @@ const List<String> kSkilifts= [
   "Bradul (D)",
   "Stadion (H)"
 ];
+
+extension LiftInfoExtension on LiftInfo {
+  String? get icon => switch (type) {
+        kCableCar => kCableCarIcon, 
+        kGondola => kGondolaIcon,
+        kChairlift => kChairliftIcon,
+        kSkilift => kSkiliftIcon,
+        _ => null
+      };
+}

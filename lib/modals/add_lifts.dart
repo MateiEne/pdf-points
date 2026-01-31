@@ -96,7 +96,7 @@ class AddLiftsModal {
         padding: const EdgeInsets.all(16.0).add(const EdgeInsets.only(bottom: 56 + 16)),
         child: Container(
           decoration: BoxDecoration(
-            color: kAppSeedColor.withOpacity(0.05),
+            color: kAppSeedColor.withValues(alpha: 0.05),
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           height: MediaQuery.sizeOf(modalSheetContext).height * 0.5,
@@ -169,7 +169,7 @@ class AddLiftsModal {
         padding: const EdgeInsets.all(16.0).add(const EdgeInsets.only(bottom: 56 + 16)),
         child: Container(
           decoration: BoxDecoration(
-            color: kAppSeedColor.withOpacity(0.05),
+            color: kAppSeedColor.withValues(alpha: 0.05),
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           child: Builder(builder: (context) {

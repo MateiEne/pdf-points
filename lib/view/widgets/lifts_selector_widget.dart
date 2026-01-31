@@ -79,7 +79,7 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
                         ? const TextStyle(fontWeight: FontWeight.bold)
                         : null,
                   ),
-                  selectedTileColor: kAppSeedColor.withOpacity(0.2),
+                  selectedTileColor: kAppSeedColor.withValues(alpha: 0.2),
                   selected: _selectedLiftIndex == index,
                   leading: Radio<int>(
                     value: index,
@@ -132,19 +132,19 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
             initialIndex: _tabIndex,
             tabs: [
               Image.asset(
-                "assets/images/skilifts/cable-car-2.png",
+                kCableCarIcon,
                 height: 48,
               ),
               Image.asset(
-                "assets/images/skilifts/gondola-1.png",
+                kGondolaIcon,
                 height: 48,
               ),
               Image.asset(
-                "assets/images/skilifts/chairlift-1.png",
+                kChairliftIcon,
                 height: 48,
               ),
               Image.asset(
-                "assets/images/skilifts/ski-lift-2.png",
+                kSkiliftIcon,
                 height: 48,
               ),
             ],
@@ -152,12 +152,12 @@ class _LiftsSelectorWidgetState extends State<LiftsSelectorWidget> {
               background: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                  color: kAppSeedColor.withOpacity(0.3),
+                  color: kAppSeedColor.withValues(alpha: 0.3),
                 ),
               ),
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
-                color: kAppSeedColor.withOpacity(0.7),
+                color: kAppSeedColor.withValues(alpha: 0.7),
                 // border: Border.all(color: kAppSeedColor, width: 1),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
               ),
