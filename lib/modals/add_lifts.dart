@@ -13,6 +13,7 @@ class AddLiftsModal {
   static String _defaultLift = kGondolas.first;
   static String _defaultLiftType = kGondola;
   static final List<LiftUser> _selectedLiftUsers = [];
+  static final List<LiftUser> _unselectedLiftUsers = [];
   static final ValueNotifier<bool> _isButtonEnabledNotifier = ValueNotifier(false);
 
   static Future<void> show({
@@ -53,6 +54,9 @@ class AddLiftsModal {
     // remove selected students that are not in the list of students
     _selectedLiftUsers.removeWhere((student) => !students.contains(student));
 
+    // remove unselected students that are not in the list of students
+    _unselectedLiftUsers.removeWhere((student) => !students.contains(student));
+
     if (_selectedLiftUsers.isEmpty) {
       _selectedLiftUsers.addAll(students);
     }
@@ -60,6 +64,13 @@ class AddLiftsModal {
     // add the instructor
     if (!_selectedLiftUsers.contains(instructor)) {
       _selectedLiftUsers.add(instructor);
+    }
+
+    // if a student in not selected and is not in the unselected list, add it (must be a new student)
+    for (final student in students) {
+      if (!_selectedLiftUsers.contains(student) && !_unselectedLiftUsers.contains(student)) {
+        _selectedLiftUsers.add(student);
+      }
     }
 
     _isButtonEnabledNotifier.value = _selectedLiftUsers.isNotEmpty;
@@ -177,8 +188,15 @@ class AddLiftsModal {
               liftUsers: [instructor, ...students],
               selectedLiftUsers: _selectedLiftUsers,
               onSelectedLiftUsersChanged: (List<LiftUser> liftUsers) {
+                final allUsers = [instructor, ...students];
+                
                 _selectedLiftUsers.clear();
                 _selectedLiftUsers.addAll(liftUsers);
+
+                _unselectedLiftUsers.clear();
+                _unselectedLiftUsers.addAll(
+                  allUsers.where((user) => !liftUsers.contains(user)),
+                );
 
                 _isButtonEnabledNotifier.value = _selectedLiftUsers.isNotEmpty;
               },
