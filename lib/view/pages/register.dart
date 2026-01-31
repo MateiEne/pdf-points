@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
-import 'package:pdf_points/screens/instructor_home.dart';
+import 'package:pdf_points/view/pages/instructor_home.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/user_image_picker.dart';
+import 'package:pdf_points/view/widgets/user_image_picker.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

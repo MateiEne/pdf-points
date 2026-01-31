@@ -9,7 +9,7 @@ import 'package:pdf_points/modals/open_pictures.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/date_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/date_time_picker_widget.dart';
+import 'package:pdf_points/view/widgets/date_time_picker_widget.dart';
 
 class AddCampContentWidget extends StatefulWidget {
   const AddCampContentWidget({

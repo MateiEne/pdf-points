@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/excel_camp_info.dart';
-import 'package:pdf_points/widgets/add_camp_content.dart';
+import 'package:pdf_points/view/widgets/add_camp_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddCampModal {

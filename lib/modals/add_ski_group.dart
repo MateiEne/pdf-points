@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/ski_group.dart';
-import 'package:pdf_points/widgets/add_ski_group_content.dart';
+import 'package:pdf_points/view/widgets/add_ski_group_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddSkiGroupModal {

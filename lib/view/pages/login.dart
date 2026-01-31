@@ -6,9 +6,10 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
-import 'package:pdf_points/screens/instructor_home.dart';
-import 'package:pdf_points/screens/register.dart';
-import 'package:pdf_points/screens/superuser_home.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:pdf_points/view/pages/instructor_home.dart';
+import 'package:pdf_points/view/pages/register.dart';
+import 'package:pdf_points/view/pages/superuser_home.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
@@ -55,10 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message ?? 'Authentication failed. Please try again.'),
-        ),
+      ScaffoldMessenger.of(context).showSnackBarError(
+        error.message ?? 'Authentication failed. Please try again.'
       );
     }
   }
@@ -96,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
           constraints: const BoxConstraints(maxWidth: 800),
           child: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   margin: const EdgeInsets.only(
@@ -172,6 +171,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 safeSetState(() {
                                   _password = value;
                                 });
+                              },
+                              onFieldSubmitted: (_) {
+                                if (_validData()) {
+                                  _onLogin();
+                                }
                               },
                             ),
 

@@ -4,12 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/super_user.dart';
-import 'package:pdf_points/screens/camp_screen.dart';
-import 'package:pdf_points/screens/login.dart';
+import 'package:pdf_points/view/pages/camp_screen.dart';
+import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/add_camp_fab.dart';
-import 'package:pdf_points/widgets/camp_card.dart';
+import 'package:pdf_points/view/widgets/add_camp_fab.dart';
+import 'package:pdf_points/view/widgets/camp_card.dart';
 
 class SuperUserHomeScreen extends StatefulWidget {
   final SuperUser superUser;
@@ -100,6 +100,38 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
     );
   }
 
+  Widget _buildNoCampsContent(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cabin_outlined,
+              size: 92,
+              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No camps available',
+              style: Theme.of(context).textTheme.headlineLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Get started by adding your first camp using the button below',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,27 +147,27 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
       drawer: const Drawer(),
       body: RefreshIndicator(
         onRefresh: _fetchCamps,
-        child: Center(
-          child: _isLoading
-              ? const CircularProgressIndicator()
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  itemCount: _camps.length,
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CampScreen(camp: _camps[index]),
-                          ),
-                        );
-                      },
-                      child: CampCard(camp: _camps[index]),
-                    );
-                  },
-                ),
-        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _camps.isEmpty
+                ? _buildNoCampsContent(context)
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    itemCount: _camps.length,
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CampScreen(camp: _camps[index]),
+                            ),
+                          );
+                        },
+                        child: CampCard(camp: _camps[index]),
+                      );
+                    },
+                  ),
       ),
       floatingActionButtonLocation: AddCampFab.location,
       floatingActionButton: const AddCampFab(),

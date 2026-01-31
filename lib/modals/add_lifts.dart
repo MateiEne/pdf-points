@@ -5,8 +5,8 @@ import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
-import 'package:pdf_points/widgets/lift_users_selector_widget.dart';
-import 'package:pdf_points/widgets/lifts_selector_widget.dart';
+import 'package:pdf_points/view/widgets/lift_users_selector_widget.dart';
+import 'package:pdf_points/view/widgets/lifts_selector_widget.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddLiftsModal {

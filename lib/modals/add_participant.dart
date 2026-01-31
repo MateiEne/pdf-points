@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
-import 'package:pdf_points/widgets/add_or_update_participant_content.dart';
+import 'package:pdf_points/view/widgets/add_or_update_participant_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class AddParticipantModal {

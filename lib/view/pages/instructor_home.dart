@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
-import 'package:pdf_points/screens/instructor_camp_screen.dart';
-import 'package:pdf_points/screens/login.dart';
+import 'package:pdf_points/view/pages/instructor_camp_screen.dart';
+import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/widgets/camp_card.dart';
+import 'package:pdf_points/view/widgets/camp_card.dart';
 
 class InstructorHomeScreen extends StatefulWidget {
   final Instructor instructor;

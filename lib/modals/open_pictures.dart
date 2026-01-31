@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/widgets/image_picker_with_defaults.dart';
+import 'package:pdf_points/view/widgets/image_picker_with_defaults.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class OpenPicturesModal {
