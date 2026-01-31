@@ -14,6 +14,8 @@ import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/number_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class InstructorCampScreen extends StatefulWidget {
   const InstructorCampScreen({super.key, required this.instructor, required this.camp});
@@ -215,6 +217,31 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
+  Future<void> _callStudent(Participant participant) async {
+    if (participant.phone == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('This student has no phone number');
+      }
+      return;
+    }
+
+    final Uri phoneUri = Uri(scheme: 'tel', path: participant.phone);
+
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBarError('Cannot make phone call');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('Error: ${e.toString()}');
+      }
+    }
+  }
+
   Widget _showNoSkiGroupContent() {
     return Column(
       children: [
@@ -303,13 +330,14 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   Widget _showGroupContent() {
     return Column(
       children: [
-        if (_students.isEmpty)
-          _showNoStudentsContent()
-        else
+        if (_students.isEmpty) 
+          _showNoStudentsContent() 
+        else 
           _buildStudentsList(),
 
         const SizedBox(height: 32),
 
+        // Add student button
         _buildAddStudentButton(),
 
         const SizedBox(height: 32),
@@ -360,6 +388,23 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             title: _buildParticipantTitleRow(participant, lifts),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (participant.phone != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.phone,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () => _callStudent(participant),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                const SizedBox(width: 8),
+                const Icon(Icons.expand_more),
+              ],
+            ),
             children: [_buildLiftDetails(lifts)],
           );
         },
