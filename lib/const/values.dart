@@ -25,7 +25,7 @@ const String kCableCar = "Cable Car";
 const String kCableCarIcon = "assets/images/skilifts/cable-car-2.png";
 const String kGondolaIcon = "assets/images/skilifts/gondola-1.png";
 const String kChairliftIcon = "assets/images/skilifts/chairlift-1.png";
-const String kSkiliftIcon = "assets/images/skilifts/skilift-2.png";
+const String kSkiliftIcon = "assets/images/skilifts/ski-lift-2.png";
 
 const List<String> kCableCars = [
   // order by exit elevation.
