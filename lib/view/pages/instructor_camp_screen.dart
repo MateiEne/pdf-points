@@ -27,6 +27,7 @@ class InstructorCampScreen extends StatefulWidget {
 
 class _InstructorCampScreenState extends State<InstructorCampScreen> {
   bool _isLoading = false;
+  bool _isInitialLoading = false;
   late Instructor _instructor = widget.instructor;
   SkiGroup? _skiGroup;
   List<Participant> _students = [];
@@ -47,7 +48,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
   Future<void> _fetchGroupAndStudents() async {
     safeSetState(() {
-      _isLoading = true;
+      _isInitialLoading = true;
     });
 
     try {
@@ -69,14 +70,14 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       }
 
       safeSetState(() {
-        _isLoading = false;
+        _isInitialLoading = false;
 
         _skiGroup = skiGroup;
         _students = students;
       });
     } catch (e) {
       safeSetState(() {
-        _isLoading = false;
+        _isInitialLoading = false;
         // TODO: better error handling
         debugPrint(e.toString());
       });
@@ -305,174 +306,187 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         if (_students.isEmpty)
           _showNoStudentsContent()
         else
-          // Students list
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _students.length,
-            itemBuilder: (context, index) {
-              final participant = _students[index];
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                // shape: RoundedRectangleBorder(
-                //   borderRadius: BorderRadius.circular(0),
-                // ),
-                child: StreamBuilder<List<LiftInfo>>(
-                  stream: FirebaseManager.instance.listenToLiftsForPerson(
-                    campId: widget.camp.id,
-                    personId: participant.id,
-                  ),
-                  builder: (context, liftSnapshot) {
-                    final lifts = liftSnapshot.data ?? [];
-                    lifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-
-                    return ExpansionTile(
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      collapsedShape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      leading: Text(
-                        "${index + 1}",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      title: Row(
-                        children: [
-                          Expanded(
-                            // flex: 3,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  participant.fullName,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  participant.phone ?? "No phone number",
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (lifts.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Expanded(
-                              // flex: 4,
-                              child: Wrap(
-                                spacing: 4,
-                                runSpacing: 4,
-                                children: lifts.map((lift) {
-                                  return lift.icon != null
-                                      ? Image.asset(
-                                          lift.icon!,
-                                          width: 20,
-                                          height: 20,
-                                        )
-                                      : const Icon(
-                                          Icons.cable_rounded,
-                                          size: 18,
-                                        );
-                                }).toList(),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      children: [
-                        if (lifts.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              'No lifts recorded yet',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                              ),
-                            ),
-                          )
-                        else
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Lifts (${lifts.length})',
-                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: lifts.length,
-                                itemBuilder: (context, liftIndex) {
-                                  final lift = lifts[liftIndex];
-                                  return ListTile(
-                                    dense: true,
-                                    leading: lift.icon != null
-                                        ? Image.asset(lift.icon!, width: 24, height: 24)
-                                        : const Icon(Icons.cable_rounded, size: 20),
-                                    title: Text(
-                                      lift.name,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                    subtitle: Text(
-                                      lift.type,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    trailing: Text(
-                                      '${lift.createdAt.hour}:${lift.createdAt.minute.toPaddedString(2)}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              );
-            },
-          ),
+          _buildStudentsList(),
 
         const SizedBox(height: 32),
 
-        // Add ski group button
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            backgroundColor: _students.isEmpty ? kAppSeedColor : null,
-            foregroundColor: _students.isEmpty ? Colors.white : Theme.of(context).colorScheme.primary,
-            maximumSize: const Size(double.infinity, 56),
-            side: BorderSide(color: Theme.of(context).colorScheme.primary),
-          ),
-          onPressed: _openParticipantsSearchModal,
-          child: const Center(
-            child: Text('Add Student'),
-          ),
-        ),
+        _buildAddStudentButton(),
 
         const SizedBox(height: 32),
       ],
+    );
+  }
+
+  Widget _buildStudentsList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _students.length,
+      itemBuilder: (context, index) {
+        return _buildParticipantCard(index, _students[index]);
+      },
+    );
+  }
+
+  Widget _buildParticipantCard(int index, Participant participant) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: StreamBuilder<List<LiftInfo>>(
+        stream: FirebaseManager.instance.listenToLiftsForPerson(
+          campId: widget.camp.id,
+          personId: participant.id,
+        ),
+        builder: (context, liftSnapshot) {
+          final lifts = liftSnapshot.data ?? [];
+          lifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+          return ExpansionTile(
+            shape: RoundedRectangleBorder(
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            collapsedShape: RoundedRectangleBorder(
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            leading: Text(
+              "${index + 1}",
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            title: _buildParticipantTitleRow(participant, lifts),
+            children: [_buildLiftDetails(lifts)],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildParticipantTitleRow(Participant participant, List<LiftInfo> lifts) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                participant.fullName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                participant.phone ?? "No phone number",
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        if (lifts.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: lifts.map((lift) {
+                return lift.icon != null
+                    ? Image.asset(
+                        lift.icon!,
+                        width: 20,
+                        height: 20,
+                      )
+                    : const Icon(
+                        Icons.cable_rounded,
+                        size: 18,
+                      );
+              }).toList(),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildLiftDetails(List<LiftInfo> lifts) {
+    if (lifts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          'No lifts recorded yet',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Lifts (${lifts.length})',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: lifts.length,
+          itemBuilder: (context, liftIndex) {
+            return _buildLiftListTile(lifts[liftIndex]);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLiftListTile(LiftInfo lift) {
+    return ListTile(
+      dense: true,
+      leading: lift.icon != null
+          ? Image.asset(lift.icon!, width: 24, height: 24)
+          : const Icon(Icons.cable_rounded, size: 20),
+      title: Text(
+        lift.name,
+        style: const TextStyle(fontSize: 14),
+      ),
+      subtitle: Text(
+        lift.type,
+        style: const TextStyle(fontSize: 12),
+      ),
+      trailing: Text(
+        '${lift.createdAt.hour}:${lift.createdAt.minute.toPaddedString(2)}',
+        style: TextStyle(
+          fontSize: 12,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddStudentButton() {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: _students.isEmpty ? kAppSeedColor : null,
+        foregroundColor: _students.isEmpty ? Colors.white : Theme.of(context).colorScheme.primary,
+        maximumSize: const Size(double.infinity, 56),
+        side: BorderSide(color: Theme.of(context).colorScheme.primary),
+      ),
+      onPressed: _openParticipantsSearchModal,
+      child: const Center(
+        child: Text('Add Student'),
+      ),
     );
   }
 
@@ -488,22 +502,24 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           maxLines: 1,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Stack(
-          children: [
-            // page content
-            SingleChildScrollView(
-              child: _instructor.groupId == null //
-                  ? _showNoSkiGroupContent()
-                  : _showGroupContent(),
-            ),
+      body: _isInitialLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Stack(
+                children: [
+                  // page content
+                  SingleChildScrollView(
+                    child: _instructor.groupId == null //
+                        ? _showNoSkiGroupContent()
+                        : _showGroupContent(),
+                  ),
 
-            // loading indicator
-            if (_isLoading) const Center(child: CircularProgressIndicator()),
-          ],
-        ),
-      ),
+                  // loading indicator
+                  if (_isLoading) const Center(child: CircularProgressIndicator()),
+                ],
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: _students.isNotEmpty //
           ? FloatingActionButton.extended(

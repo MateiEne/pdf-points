@@ -48,6 +48,23 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
 
         _camps = camps;
       });
+
+      // Auto-navigate if instructor has only one camp
+      if (camps.length == 1 && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InstructorCampScreen(
+                  instructor: widget.instructor,
+                  camp: camps.first,
+                ),
+              ),
+            );
+          }
+        });
+      }
     } catch (e) {
       safeSetState(() {
         _isLoading = false;
