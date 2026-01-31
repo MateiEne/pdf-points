@@ -54,6 +54,19 @@ const List<String> kSkilifts= [
   "Stadion (H)"
 ];
 
+const Map<String, int> kLiftDefaultPointsMap = {
+  "Capra Neagra (A)": 6,
+  "Kanzel (B)": 5,
+  "Postavaru Epress (C)": 6,
+  "Ruia (J)": 4,
+  "Lupul (I)": 3,
+  "Kanzel (E)": 2,
+  "Ruia (F)": 2,
+  "Subteleferic (G)": 2,
+  "Bradul (D)": 2,
+  "Stadion (H)": 1,
+};
+
 extension LiftInfoExtension on LiftInfo {
   String? get icon => switch (type) {
         kCableCar => kCableCarIcon, 

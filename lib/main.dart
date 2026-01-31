@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
+import 'package:pdf_points/view/pages/edit_lift_points.dart';
 import 'package:pdf_points/view/pages/instructor_home.dart';
 import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/view/pages/splash.dart';
@@ -63,7 +64,8 @@ class PdfPointsApp extends StatelessWidget {
                 return SuperUserHomeScreen(superUser: snapshot.data as SuperUser);
               } else {
                 // navigate to instructor screen
-                return InstructorHomeScreen(instructor: snapshot.data as Instructor);
+                // return InstructorHomeScreen(instructor: snapshot.data as Instructor);
+                return EditLiftPointsScreen();
               }
             },
           ),
