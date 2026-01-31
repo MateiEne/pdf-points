@@ -108,10 +108,17 @@ extension SkiGroupExtension on FirebaseManager {
     // Save the SkiGroup object
     await skiGroupRef.set(skiGroup.toJson());
 
-    // update the instructor ski group
+    // update the instructor ski group in the participant collection
     await FirebaseManager.instance.updateParticipantSkiGroup(
       campId: campId,
       participantId: instructorId,
+      skiGroupId: skiGroup.id,
+    );
+
+    // update the instructor ski group in the users collection
+    await FirebaseManager.instance.updateInstructorSkiGroup(
+      campId: campId,
+      instructorId: instructorId,
       skiGroupId: skiGroup.id,
     );
 

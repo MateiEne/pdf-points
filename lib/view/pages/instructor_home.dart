@@ -63,27 +63,35 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
     return camps.toList();
   }
 
-  Widget _buildNoCampsView(BuildContext context) {
-    return Column(
-      children: [
-        // top padding
-        SizedBox(height: MediaQuery.sizeOf(context).height * 0.2),
-
-        // Title
-        Text(
-          "You're not assigned to any camp.",
-          style: Theme.of(context).textTheme.titleLarge,
+  Widget _buildNoCampsContent(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cabin_outlined,
+              size: 92,
+              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "You're not assigned to any camp.",
+              style: Theme.of(context).textTheme.headlineLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Use the action button below to enroll yourself to a camp.",
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-
-        const SizedBox(height: 48),
-
-        // Subtitle
-        Text(
-          "Use the action button below to enroll yourself to a camp.",
-          style: Theme.of(context).textTheme.bodyLarge,
-          textAlign: TextAlign.center,
-        ),
-      ],
+      ),
     );
   }
 
@@ -139,7 +147,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
           child: _isLoading
               ? const CircularProgressIndicator()
               : _camps.isEmpty
-                  ? _buildNoCampsView(context)
+                  ? _buildNoCampsContent(context)
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       itemCount: _camps.length,

@@ -6,6 +6,7 @@ import 'package:pdf_points/data/excel_camp_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/errors/excel_parse_exception.dart';
 import 'package:pdf_points/utils/date_utils.dart';
+import 'package:pdf_points/utils/number_utils.dart';
 
 const kSkiInstructors = "Ski Instructors";
 const kSkiAndSnowboardInstructors = "Ski & SB Instructors";
@@ -194,7 +195,7 @@ class PdfPointsExelParser {
 
       participants.add(
         Participant(
-          id: row.toString(),
+          id: "${row.toPaddedString(2)} - $firstName $lastName",
           firstName: firstName,
           lastName: lastName,
           // groupId: group == null ? null : int.tryParse(group),

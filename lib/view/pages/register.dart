@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/pages/instructor_home.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
@@ -67,10 +68,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message ?? 'Authentication failed. Please try again.'),
-        ),
+      ScaffoldMessenger.of(context).showSnackBarSuccess(
+        error.message ?? 'Authentication failed. Please try again.',
       );
     }
   }

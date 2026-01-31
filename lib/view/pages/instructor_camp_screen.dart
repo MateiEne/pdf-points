@@ -44,20 +44,15 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   }
 
   Future<void> _fetchGroupAndStudents() async {
-    var groupId = _instructor.groupId;
-    if (groupId == null) {
-      // the instructor has no group yet
-      return;
-    }
-
     safeSetState(() {
       _isLoading = true;
     });
 
     try {
-      SkiGroup? skiGroup = await FirebaseManager.instance.fetchSkiGroup(
+      // fetch ski group for this instructor
+      SkiGroup? skiGroup = await FirebaseManager.instance.fetchSkiGroupForInstructor(
         campId: widget.camp.id,
-        skiGroupId: groupId,
+        instructorId: _instructor.id,
       );
 
       List<Participant> students = [];
@@ -65,7 +60,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       if (skiGroup != null) {
         students = await FirebaseManager.instance.fetchStudentsFromSkiGroup(
           campId: widget.camp.id,
-          skiGroupId: groupId,
+          skiGroupId: skiGroup.id,
         );
 
         students = _sortStudents(students);
@@ -104,17 +99,6 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     participants.sort((a, b) => a.fullName.compareTo(b.fullName));
 
     return participants.toList();
-  }
-
-  /// TODO: Update this method to return the index of the instructor group
-  int? _getInstructorGroupId() {
-    // for (int i = 0; i < widget.camp.instructors.length; i++) {
-    //   if (widget.camp.instructors[i].id == widget.instructor.id) {
-    //     return i;
-    //   }
-    // }
-
-    return null;
   }
 
   Future<void> _addSkiGroup(BuildContext context) async {
@@ -228,16 +212,22 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _showNoSkiGroupScreen() {
+  Widget _showNoSkiGroupContent() {
     return Column(
       children: [
-        // top padding
-        SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
+        // Icon
+        Icon(
+          Icons.groups,
+          size: 92,
+          color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
+        ),
+
+        const SizedBox(height: 16),
 
         // Title
         Text(
           "You don't have a group yet.",
-          style: Theme.of(context).textTheme.titleLarge,
+          style: Theme.of(context).textTheme.headlineLarge,
         ),
 
         const SizedBox(height: 48),
@@ -245,12 +235,12 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         // Instructions to add ski group
         Text(
           '1. First create your group',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
         Text(
           '2. Then add your participants',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
 
         const SizedBox(height: 32),
@@ -271,47 +261,63 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _showGroupScreen() {
+  Widget _showNoStudentsContent() {
     return Column(
       children: [
-        if (_students.isEmpty) ...[
-          // top padding
-          SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
-
-          // Title
-          Text(
-            "You don't have students yet.",
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-
-          const SizedBox(height: 48),
-
-          // Instructions to add ski group
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Add all your students to this group using the button below.',
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-
-        // Students list
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _students.length,
-          itemBuilder: (context, index) {
-            final participant = _students[index];
-
-            return ListTile(
-              title: Text(participant.fullName),
-              subtitle: Text(participant.phone ?? "No phone number"),
-              leading: Text("${index + 1}"),
-            );
-          },
+        // Icon
+        Icon(
+          Icons.person_add,
+          size: 92,
+          color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
         ),
+
+        const SizedBox(height: 16),
+
+        // Title
+        Text(
+          "No students in your group",
+          style: Theme.of(context).textTheme.headlineLarge,
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 16),
+
+        // Instructions to add students
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Start building your group by adding students using the button below.',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _showGroupContent() {
+    return Column(
+      children: [
+        if (_students.isEmpty)
+          _showNoStudentsContent()
+        else
+          // Students list
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _students.length,
+            itemBuilder: (context, index) {
+              final participant = _students[index];
+
+              return ListTile(
+                title: Text(participant.fullName),
+                subtitle: Text(participant.phone ?? "No phone number"),
+                leading: Text("${index + 1}"),
+              );
+            },
+          ),
 
         const SizedBox(height: 32),
 
@@ -353,8 +359,8 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
             // page content
             SingleChildScrollView(
               child: _instructor.groupId == null //
-                  ? _showNoSkiGroupScreen()
-                  : _showGroupScreen(),
+                  ? _showNoSkiGroupContent()
+                  : _showGroupContent(),
             ),
 
             // loading indicator
