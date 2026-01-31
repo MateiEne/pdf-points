@@ -139,4 +139,28 @@ extension SkiGroupExtension on FirebaseManager {
 
     return snapshot.size > 0;
   }
+
+  Future<void> removeParticipantFromSkiGroup({
+    required String campId,
+    required String skiGroupId,
+    required String participantId,
+  }) async {
+    // Remove participant from ski group's studentsIds array
+    await FirebaseFirestore.instance
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampSkiGroupsCollection)
+        .doc(skiGroupId)
+        .update({
+      'studentsIds': FieldValue.arrayRemove([participantId]),
+    });
+
+    // Update participant's groupId to null
+    await FirebaseFirestore.instance
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampParticipantsCollection)
+        .doc(participantId)
+        .update({'groupId': FieldValue.delete()});
+  }
 }

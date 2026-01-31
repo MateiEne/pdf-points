@@ -15,6 +15,7 @@ import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/number_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:styled_text/styled_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InstructorCampScreen extends StatefulWidget {
@@ -242,6 +243,67 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     }
   }
 
+  Future<void> _removeStudentFromGroup(Participant participant) async {
+    if (_skiGroup == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove Student'),
+        content: StyledText(
+          text: 'Are you sure you want to remove <bold>${participant.fullName}</bold> from your group?',
+          tags: {
+            "bold": StyledTextTag(style: const TextStyle(fontWeight: FontWeight.w600)),
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      safeSetState(() {
+        _isLoading = true;
+      });
+
+      await FirebaseManager.instance.removeParticipantFromSkiGroup(
+        campId: widget.camp.id,
+        skiGroupId: _skiGroup!.id,
+        participantId: participant.id,
+      );
+
+      safeSetState(() {
+        _students.removeWhere((s) => s.id == participant.id);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarSuccess('${participant.fullName} removed from group');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('Error removing student: ${e.toString()}');
+      }
+    } finally {
+      safeSetState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   Widget _showNoSkiGroupContent() {
     return Column(
       children: [
@@ -330,10 +392,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   Widget _showGroupContent() {
     return Column(
       children: [
-        if (_students.isEmpty) 
-          _showNoStudentsContent() 
-        else 
-          _buildStudentsList(),
+        if (_students.isEmpty) _showNoStudentsContent() else _buildStudentsList(),
 
         const SizedBox(height: 32),
 
@@ -358,6 +417,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
   Widget _buildParticipantCard(int index, Participant participant) {
     return Card(
+      key: ValueKey(participant.id),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: StreamBuilder<List<LiftInfo>>(
         stream: FirebaseManager.instance.listenToLiftsForPerson(
@@ -388,24 +448,10 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             title: _buildParticipantTitleRow(participant, lifts),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (participant.phone != null)
-                  IconButton(
-                    icon: Icon(
-                      Icons.phone,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    onPressed: () => _callStudent(participant),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                const SizedBox(width: 8),
-                const Icon(Icons.expand_more),
-              ],
-            ),
-            children: [_buildLiftDetails(lifts)],
+            children: [
+              _buildParticipantActions(participant),
+              _buildLiftDetails(lifts),
+            ],
           );
         },
       ),
@@ -452,6 +498,39 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildParticipantActions(Participant participant) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Remove button
+          OutlinedButton.icon(
+            onPressed: () => _removeStudentFromGroup(participant),
+            icon: const Icon(Icons.person_remove, size: 18),
+            label: const Text('Remove'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red),
+            ),
+          ),
+
+          // Call button
+          if (participant.phone != null)
+            ElevatedButton.icon(
+              onPressed: () => _callStudent(participant),
+              icon: const Icon(Icons.phone, size: 18),
+              label: const Text('Call'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
