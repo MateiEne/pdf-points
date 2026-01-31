@@ -425,7 +425,17 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           personId: participant.id,
         ),
         builder: (context, liftSnapshot) {
-          final lifts = liftSnapshot.data ?? [];
+          final allLifts = liftSnapshot.data ?? [];
+          
+          // Filter lifts for today only
+          final now = DateTime.now();
+          final lifts = allLifts.where((lift) {
+            final liftDate = lift.createdAt;
+            return liftDate.year == now.year &&
+                   liftDate.month == now.month &&
+                   liftDate.day == now.day;
+          }).toList();
+          
           lifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
           return ExpansionTile(
