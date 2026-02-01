@@ -119,6 +119,9 @@ class SkiGroupSummaryModal {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBarSuccess('Summary copied to clipboard!');
+      
+      // close the modal
+      Navigator.of(context).pop();
     }
   }
 
@@ -186,40 +189,48 @@ class SkiGroupSummaryContent extends StatefulWidget {
 }
 
 class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
-  final Map<String, List<LiftParticipantInfo>> _studentsLifts = {};
-  final List<LiftParticipantInfo> _instructorLifts = [];
+  final Map<String, int> _totalPoints = {};
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadLiftsForAll();
+    _loadPointsForAllStudents();
   }
 
-  Future<void> _loadLiftsForAll() async {
+  Future<void> _loadPointsForAllStudents() async {
     setState(() => _isLoading = true);
 
     try {
-      // Fetch lifts for all students
+      // Load instructor points
+      final instructorLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
+        campId: widget.campId,
+        personId: widget.instructor.id,
+      );
+      int instructorPoints = 0;
+      for (var lift in instructorLifts) {
+        final liftPoints = kLiftDefaultPointsMap[lift.name] ?? 0;
+        instructorPoints += liftPoints;
+      }
+      _totalPoints[widget.instructor.id] = instructorPoints;
+
+      // Load students points
       for (var student in widget.students) {
         final todayLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
           campId: widget.campId,
           personId: student.id,
         );
 
-        todayLifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        _studentsLifts[student.id] = todayLifts;
+        // Calculate total points
+        int totalPoints = 0;
+        for (var lift in todayLifts) {
+          final liftPoints = kLiftDefaultPointsMap[lift.name] ?? 0;
+          totalPoints += liftPoints;
+        }
+        _totalPoints[student.id] = totalPoints;
       }
-
-      // Fetch lifts for instructor
-      final instructorLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
-        campId: widget.campId,
-        personId: widget.instructor.id,
-      );
-      _instructorLifts.clear();
-      _instructorLifts.addAll(instructorLifts);
     } catch (e) {
-      debugPrint('Error loading lifts: $e');
+      debugPrint('Error loading points: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -227,37 +238,40 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     }
   }
 
-  Widget _buildParticipantLiftsRow(int index, Participant participant, List<LiftParticipantInfo> lifts) {
+  Widget _buildRow(Participant person, int index, int points) {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: Row(
             children: [
+              // Number
               Text('$index.'),
-              const SizedBox(width: 4),
+              const SizedBox(width: 12),
+
+              // Person name
               Expanded(
                 child: Text(
-                  participant.fullName,
+                  person.fullName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              if (lifts.isNotEmpty)
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: lifts.map((lift) {
-                    return lift.icon != null
-                        ? Image.asset(
-                            lift.icon!,
-                            width: 20,
-                            height: 20,
-                          )
-                        : const Icon(
-                            Icons.cable_rounded,
-                            size: 18,
-                          );
-                  }).toList(),
+
+              // Points
+              if (points > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: kAppSeedColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$points pts',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: kAppSeedColor,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -280,17 +294,19 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
 
     return ListView.builder(
       shrinkWrap: true,
-      itemCount: widget.students.length + 1,
+      itemCount: widget.students.length + 1, // +1 for instructor
       itemBuilder: (context, index) {
+        // First row: Instructor
         if (index == 0) {
-          // Instructor row
-          return _buildParticipantLiftsRow(index + 1, widget.instructor, _instructorLifts);
+          return _buildRow(widget.instructor, index + 1, _totalPoints[widget.instructor.id] ?? 0);
         }
 
-        final student = widget.students[index - 1];
-        final lifts = _studentsLifts[student.id] ?? [];
-
-        return _buildParticipantLiftsRow(index + 1, student, lifts);
+        // Subsequent rows: Students
+        return _buildRow(
+          widget.students[index - 1],
+          index + 1,
+          _totalPoints[widget.students[index - 1].id] ?? 0,
+        );
       },
     );
   }
