@@ -21,6 +21,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, int> _lastSavedPoints = {};
   final Map<String, int> _originalFirebasePoints = {}; // Track original values from Firebase
+  final Map<String, LiftInfo> _liftInfoMap = {}; // Store complete LiftInfo for metadata
 
   @override
   void initState() {
@@ -51,11 +52,12 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     try {
       List<LiftInfo> liftInfos = await FirebaseManager.instance.fetchAllLiftsInfo();
 
-      // Override controllers values with Firebase data and track original values
+      // Override controllers values with Firebase data and store complete info
       for (var liftInfo in liftInfos) {
         _controllers[liftInfo.name]?.text = liftInfo.points.toString();
         _lastSavedPoints[liftInfo.name] = liftInfo.points;
-        _originalFirebasePoints[liftInfo.name] = liftInfo.points; // Track original
+        _originalFirebasePoints[liftInfo.name] = liftInfo.points;
+        _liftInfoMap[liftInfo.name] = liftInfo; // Store complete LiftInfo
       }
     } catch (e) {
       debugPrint('Error loading lift points: $e');
@@ -168,6 +170,9 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     required String name,
     required TextEditingController controller,
   }) {
+    final liftInfo = _liftInfoMap[name];
+    final hasModificationInfo = liftInfo != null;
+    
     return Card(
       elevation: 2,
       child: Padding(
@@ -182,14 +187,27 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
             ),
             const SizedBox(width: 12),
 
-            // Lift Name
+            // Lift Name and Modification Info
             Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (hasModificationInfo) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      _formatModificationInfo(liftInfo),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             const SizedBox(width: 12),
@@ -261,6 +279,26 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         controller.text = (currentValue - 1).toString();
       }
     });
+  }
+
+  /// Format modification info to display when and by whom it was last modified
+  String _formatModificationInfo(LiftInfo liftInfo) {
+    final now = DateTime.now();
+    final modifiedAt = liftInfo.modifiedAt;
+    final difference = now.difference(modifiedAt);
+
+    String timeAgo;
+    if (difference.inDays > 0) {
+      timeAgo = '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      timeAgo = '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      timeAgo = '${difference.inMinutes}m ago';
+    } else {
+      timeAgo = 'Just now';
+    }
+
+    return 'Modified $timeAgo by ${liftInfo.modifiedBy}';
   }
 
   @override
