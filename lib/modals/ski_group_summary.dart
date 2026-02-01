@@ -295,11 +295,27 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
 
     return ListView.builder(
       shrinkWrap: true,
-      itemCount: widget.students.length + 1, // +1 for instructor
+      itemCount: widget.students.length + 2, // +1 for instructor +1 for total
       itemBuilder: (context, index) {
         // First row: Instructor
         if (index == 0) {
           return _buildRow(widget.instructor, index + 1, _totalPoints[widget.instructor.id] ?? 0);
+        }
+
+        // Last row: Total
+        if (index == widget.students.length + 1) {
+          final totalPoints = _totalPoints.values.fold<int>(0, (sum, pts) => sum + pts);
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Text(
+                'Total Points: $totalPoints pts',
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+          );
         }
 
         // Subsequent rows: Students
