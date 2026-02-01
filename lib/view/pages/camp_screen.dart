@@ -169,7 +169,7 @@ class _CampScreenState extends State<CampScreen> {
                             rows: _participants
                                 .mapIndexed((index, p) => DataRow(
                                       color: WidgetStateColor.resolveWith(
-                                          (states) => index.isEven ? kAppSeedColor.withOpacity(0.3) : Colors.white),
+                                          (states) => index.isEven ? kAppSeedColor.withValues(alpha: 0.3) : Colors.white),
                                       cells: [
                                         DataCell(
                                           Text(
@@ -178,7 +178,7 @@ class _CampScreenState extends State<CampScreen> {
                                           ),
                                         ),
                                         DataCell(
-                                          Center(child: Text("${p.groupId ?? 'N/A'}")),
+                                          Center(child: Text(p.groupId ?? 'N/A')),
                                         ),
                                         DataCell(
                                           Text(p.lastName ?? 'N/A'),

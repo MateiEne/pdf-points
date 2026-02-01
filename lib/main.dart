@@ -67,8 +67,8 @@ class PdfPointsApp extends StatelessWidget {
                 return SuperUserHomeScreen(superUser: snapshot.data as SuperUser);
               } else {
                 // navigate to instructor screen
-                // return InstructorHomeScreen(instructor: snapshot.data as Instructor);
-                return EditLiftPointsScreen(instructor: snapshot.data as Instructor);
+                return InstructorHomeScreen(instructor: snapshot.data as Instructor);
+                // return EditLiftPointsScreen(instructor: snapshot.data as Instructor);
               }
             },
           ),

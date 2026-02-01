@@ -110,7 +110,7 @@ class AddLiftsModal {
             color: kAppSeedColor.withValues(alpha: 0.05),
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
-          height: MediaQuery.sizeOf(modalSheetContext).height * 0.5,
+          height: MediaQuery.sizeOf(modalSheetContext).height * 0.4,
           child: Builder(builder: (context) {
             return LiftsSelectorWidget(
               defaultLift: _defaultLift,

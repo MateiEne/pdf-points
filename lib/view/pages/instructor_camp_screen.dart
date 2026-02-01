@@ -10,6 +10,7 @@ import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/add_lifts.dart';
 import 'package:pdf_points/modals/add_ski_group.dart';
 import 'package:pdf_points/modals/search_participant.dart';
+import 'package:pdf_points/modals/ski_group_summary.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/number_utils.dart';
@@ -287,6 +288,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       );
 
       safeSetState(() {
+        _skiGroup?.studentsIds.remove(participant.id);
         _students.removeWhere((s) => s.id == participant.id);
       });
 
@@ -622,6 +624,18 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
+  void _showGroupSummary() {
+    if (_skiGroup == null) return;
+
+    SkiGroupSummaryModal.show(
+      context: context,
+      campId: widget.camp.id,
+      skiGroup: _skiGroup!,
+      instructor: _instructor,
+      students: _students,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -633,6 +647,14 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
               : _skiGroup!.name,
           maxLines: 1,
         ),
+        actions: [
+          if (_students.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.summarize),
+              onPressed: _showGroupSummary,
+              tooltip: 'Group Summary',
+            ),
+        ],
       ),
       body: _isInitialLoading
           ? const Center(child: CircularProgressIndicator())
