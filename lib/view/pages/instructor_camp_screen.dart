@@ -394,7 +394,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
   Widget _showGroupContent() {
     return Column(
       children: [
-        if (_students.isEmpty) _showNoStudentsContent() else _buildStudentsList(),
+        if (_students.isEmpty) _showNoStudentsContent() else _buildSkiGroupParticipantsList(),
 
         const SizedBox(height: 32),
 
@@ -406,18 +406,24 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _buildStudentsList() {
+  Widget _buildSkiGroupParticipantsList() {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _students.length,
+      itemCount: _students.length + 1, // +1 for instructor
       itemBuilder: (context, index) {
-        return _buildParticipantCard(index, _students[index]);
+        // First row: Instructor
+        if (index == 0) {
+          return _buildParticipantCard(index, _instructor, isInstructor: true);
+        }
+
+        // Subsequent rows: Students
+        return _buildParticipantCard(index, _students[index - 1]);
       },
     );
   }
 
-  Widget _buildParticipantCard(int index, Participant participant) {
+  Widget _buildParticipantCard(int index, Participant participant, {bool isInstructor = false}) {
     return Card(
       key: ValueKey(participant.id),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -457,9 +463,9 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
               "${index + 1}",
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            title: _buildParticipantTitleRow(participant, lifts),
+            title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
             children: [
-              _buildParticipantActions(participant),
+              if (!isInstructor) _buildParticipantActions(participant),
               _buildLiftDetails(lifts),
             ],
           );
@@ -468,7 +474,8 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _buildParticipantTitleRow(Participant participant, List<LiftParticipantInfo> lifts) {
+  Widget _buildParticipantTitleRow(Participant participant, List<LiftParticipantInfo> lifts,
+      {bool isInstructor = false}) {
     return Row(
       children: [
         Expanded(
