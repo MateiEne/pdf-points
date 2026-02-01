@@ -26,6 +26,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, LiftInfo> _liftInfoMap = {}; // Store complete LiftInfo for metadata
   
   StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
+  Timer? _timeUpdateTimer;
 
   @override
   void initState() {
@@ -33,6 +34,18 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
     _initializeControllers();
     _listenToLiftPointsChanges();
+    _startTimeUpdateTimer();
+  }
+
+  /// Start a timer that updates the UI every minute to refresh relative time displays
+  void _startTimeUpdateTimer() {
+    _timeUpdateTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (mounted) {
+        safeSetState(() {
+          // Force rebuild to update "Xm ago" text
+        });
+      }
+    });
   }
 
   /// Initialize text controllers for all lift types
@@ -407,6 +420,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
   @override
   void dispose() {
+    _timeUpdateTimer?.cancel();
     _liftsStreamSubscription?.cancel();
     _controllers.forEach((key, controller) {
       controller.dispose();
