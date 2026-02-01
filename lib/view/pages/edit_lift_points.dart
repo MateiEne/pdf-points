@@ -216,10 +216,15 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
             // Checkbox
             Checkbox(
               value: isSelected,
+              fillColor: isModified 
+                ? WidgetStatePropertyAll(kAppSeedColor)
+                : null,
               onChanged: isModified ? null : (value) {
-                setState(() {
-                  _selectedLifts[name] = value ?? false;
-                });
+                if (!isModified) {
+                  setState(() {
+                    _selectedLifts[name] = value ?? false;
+                  });
+                }
               },
             ),
             const SizedBox(width: 8),
