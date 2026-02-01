@@ -7,7 +7,7 @@ import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
-import 'package:pdf_points/view/pages/instructor_home.dart';
+import 'package:pdf_points/view/pages/instructor_main_screen.dart';
 import 'package:pdf_points/view/pages/register.dart';
 import 'package:pdf_points/view/pages/superuser_home.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // navigate to the user screen
       final userHome = pdFUser is SuperUser
           ? SuperUserHomeScreen(superUser: pdFUser)
-          : InstructorHomeScreen(instructor: pdFUser as Instructor);
+          : InstructorMainScreen(instructor: pdFUser as Instructor);
 
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => userHome));
     } on FirebaseAuthException catch (error) {

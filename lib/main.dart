@@ -7,6 +7,7 @@ import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/utils/dummy_data_utils.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
 import 'package:pdf_points/view/pages/instructor_home.dart';
+import 'package:pdf_points/view/pages/instructor_main_screen.dart';
 import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/view/pages/splash.dart';
 import 'package:pdf_points/view/pages/superuser_home.dart';
@@ -67,8 +68,7 @@ class PdfPointsApp extends StatelessWidget {
                 return SuperUserHomeScreen(superUser: snapshot.data as SuperUser);
               } else {
                 // navigate to instructor screen
-                return InstructorHomeScreen(instructor: snapshot.data as Instructor);
-                // return EditLiftPointsScreen(instructor: snapshot.data as Instructor);
+                return InstructorMainScreen(instructor: snapshot.data as Instructor);
               }
             },
           ),
