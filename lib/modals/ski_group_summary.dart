@@ -86,7 +86,7 @@ class SkiGroupSummaryModal {
       stickyActionBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton.icon(
-          onPressed: () => _copySummaryToClipboard(modalSheetContext, campId, students, groupName),
+          onPressed: () => _copySummaryToClipboard(modalSheetContext, campId, instructor, students, groupName),
           icon: const Icon(Icons.copy),
           label: const Text('Copy Summary to Clipboard'),
           style: ElevatedButton.styleFrom(
@@ -111,10 +111,11 @@ class SkiGroupSummaryModal {
   static Future<void> _copySummaryToClipboard(
     BuildContext context,
     String campId,
+    Instructor instructor,
     List<Participant> students,
     String groupName,
   ) async {
-    final summaryText = await _generateSummaryText(campId, students, groupName);
+    final summaryText = await _generateSummaryText(campId, instructor, students, groupName);
     await Clipboard.setData(ClipboardData(text: summaryText));
 
     if (context.mounted) {
@@ -127,6 +128,7 @@ class SkiGroupSummaryModal {
 
   static Future<String> _generateSummaryText(
     String campId,
+    Instructor instructor,
     List<Participant> students,
     String groupName,
   ) async {
@@ -135,35 +137,42 @@ class SkiGroupSummaryModal {
     buffer.writeln('Date: ${DateTime.now().toString().split(' ')[0]}');
     buffer.writeln('');
 
-    final now = DateTime.now();
+    
+    // Fetch all lift info from Firebase to calculate points
+    final allLiftsInfo = await FirebaseManager.instance.fetchAllLiftsInfo();
+    final liftPointsMap = <String, int>{};
+    for (var liftInfo in allLiftsInfo) {
+      liftPointsMap[liftInfo.name] = liftInfo.points;
+    }
 
+    // Calculate instructor points
+    final instructorLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
+      campId: campId,
+      personId: instructor.id,
+    );
+    int instructorPoints = 0;
+    for (var lift in instructorLifts) {
+      instructorPoints += liftPointsMap[lift.name] ?? 0;
+    }
+
+    // Add instructor first
+    buffer.writeln('${instructor.fullName}:\t $instructorPoints pts');
+
+    // Add students
     for (var i = 0; i < students.length; i++) {
       final student = students[i];
-      final allLifts = await FirebaseManager.instance.fetchLiftsForPerson(
+      final todayLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
         campId: campId,
         personId: student.id,
       );
 
-      // Filter for today's lifts
-      final todayLifts = allLifts.where((lift) {
-        final liftDate = lift.createdAt;
-        return liftDate.year == now.year && liftDate.month == now.month && liftDate.day == now.day;
-      }).toList();
-
-      todayLifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-
-      buffer.writeln('${i + 1}. ${student.fullName}');
-
-      if (todayLifts.isEmpty) {
-        buffer.writeln('   No lifts recorded');
-      } else {
-        buffer.writeln('   Lifts (${todayLifts.length}):');
-        for (var lift in todayLifts) {
-          final time = '${lift.createdAt.hour}:${lift.createdAt.minute.toString().padLeft(2, '0')}';
-          buffer.writeln('   - $time: ${lift.name} (${lift.type})');
-        }
+      // Calculate total points
+      int totalPoints = 0;
+      for (var lift in todayLifts) {
+        totalPoints += liftPointsMap[lift.name] ?? 0;
       }
-      buffer.writeln('');
+
+      buffer.writeln('${student.fullName}:\t $totalPoints pts');
     }
 
     return buffer.toString();
