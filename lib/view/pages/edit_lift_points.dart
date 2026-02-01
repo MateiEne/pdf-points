@@ -25,7 +25,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, int> _originalFirebasePoints = {}; // Track original values from Firebase
   final Map<String, LiftInfo> _liftInfoMap = {}; // Store complete LiftInfo for metadata
   final Map<String, bool> _selectedLifts = {}; // Track which lifts are selected for saving
-  
+
   StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
 
   @override
@@ -63,12 +63,12 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
           // Only update if user hasn't manually edited this field
           final currentValue = int.tryParse(_controllers[liftInfo.name]?.text ?? '0') ?? 0;
           final originalValue = _originalFirebasePoints[liftInfo.name] ?? 0;
-          
+
           // If user hasn't modified this value locally, update with Firebase value
           if (currentValue == originalValue) {
             _controllers[liftInfo.name]?.text = liftInfo.points.toString();
           }
-          
+
           _lastSavedPoints[liftInfo.name] = liftInfo.points;
           _originalFirebasePoints[liftInfo.name] = liftInfo.points;
           _liftInfoMap[liftInfo.name] = liftInfo;
@@ -150,11 +150,11 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   void _resetToDefaults() {
     safeSetState(() {
       _selectedLifts.clear();
-      
+
       _controllers.forEach((liftName, controller) {
         final defaultPoints = kLiftDefaultPointsMap[liftName] ?? 0;
         controller.text = defaultPoints.toString();
-        
+
         // Auto-select if different from Firebase value
         final firebasePoints = _originalFirebasePoints[liftName] ?? _lastSavedPoints[liftName] ?? 0;
         if (defaultPoints != firebasePoints) {
@@ -170,7 +170,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   void _resetToLastSaved() {
     safeSetState(() {
       _selectedLifts.clear();
-      
+
       _controllers.forEach((liftName, controller) {
         final savedPoints = _lastSavedPoints[liftName] ?? 0;
         controller.text = savedPoints.toString();
@@ -206,7 +206,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     final firebasePoints = _originalFirebasePoints[name] ?? _lastSavedPoints[name] ?? 0;
     final isModified = currentPoints != firebasePoints;
     final isSelected = _selectedLifts[name] ?? false;
-    
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -216,22 +216,22 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
             // Checkbox
             Checkbox(
               value: isSelected,
-              fillColor: isModified 
-                ? WidgetStatePropertyAll(kAppSeedColor)
-                : null,
-              onChanged: isModified ? null : (value) {
-                if (!isModified) {
-                  setState(() {
-                    _selectedLifts[name] = value ?? false;
-                  });
-                }
-              },
+              fillColor: isModified ? WidgetStatePropertyAll(kAppSeedColor) : null,
+              onChanged: isModified
+                  ? null
+                  : (value) {
+                      if (!isModified) {
+                        setState(() {
+                          _selectedLifts[name] = value ?? false;
+                        });
+                      }
+                    },
             ),
             const SizedBox(width: 8),
             // Lift Icon
             Image.asset(
               icon,
-              width: 36,  
+              width: 36,
               height: 36,
             ),
             const SizedBox(width: 12),
@@ -244,16 +244,16 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                   Text(
                     name,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   if (hasModificationInfo) ...[
                     const SizedBox(height: 2),
                     Text(
                       _formatModificationInfo(liftInfo),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
+                            color: Colors.grey.shade600,
+                          ),
                     ),
                   ],
                 ],
@@ -321,11 +321,11 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       _controllers.forEach((name, ctrl) {
         if (ctrl == controller) liftName = name;
       });
-      
+
       int currentValue = int.tryParse(controller.text) ?? 0;
       final newValue = currentValue + 1;
       controller.text = newValue.toString();
-      
+
       // Auto-check/uncheck checkbox based on whether value matches Firebase
       if (liftName != null) {
         final firebasePoints = _originalFirebasePoints[liftName!] ?? _lastSavedPoints[liftName!] ?? 0;
@@ -347,12 +347,12 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       _controllers.forEach((name, ctrl) {
         if (ctrl == controller) liftName = name;
       });
-      
+
       int currentValue = int.tryParse(controller.text) ?? 0;
       if (currentValue > 0) {
         final newValue = currentValue - 1;
         controller.text = newValue.toString();
-        
+
         // Auto-check/uncheck checkbox based on whether value matches Firebase
         if (liftName != null) {
           final firebasePoints = _originalFirebasePoints[liftName!] ?? _lastSavedPoints[liftName!] ?? 0;
@@ -372,7 +372,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   String _formatModificationInfo(LiftInfo liftInfo) {
     final now = DateTime.now();
     final modifiedAt = liftInfo.modifiedAt;
-    
+
     // Normalize to compare calendar days, not 24-hour periods
     final today = DateTime(now.year, now.month, now.day);
     final modifiedDay = DateTime(modifiedAt.year, modifiedAt.month, modifiedAt.day);
@@ -381,13 +381,11 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     String timeAgo;
     if (daysDifference == 0) {
       timeAgo = 'today';
-    } else if (daysDifference == 1) {
-      timeAgo = '1 day ago';
     } else {
-      timeAgo = '$daysDifference days ago';
+      timeAgo = '${daysDifference}d ago';
     }
 
-    return 'Modified $timeAgo by ${liftInfo.modifiedBy}';
+    return '${liftInfo.points}p • Modified $timeAgo by ${liftInfo.modifiedBy}';
   }
 
   @override
