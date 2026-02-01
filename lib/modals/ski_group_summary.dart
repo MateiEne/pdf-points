@@ -190,6 +190,7 @@ class SkiGroupSummaryContent extends StatefulWidget {
 
 class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
   final Map<String, int> _totalPoints = {};
+  final Map<String, int> _liftPointsMap = {}; // Cache for lift points from Firebase
   bool _isLoading = true;
 
   @override
@@ -202,6 +203,14 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     setState(() => _isLoading = true);
 
     try {
+      // Fetch all lift info from Firebase
+      final allLiftsInfo = await FirebaseManager.instance.fetchAllLiftsInfo();
+      
+      // Build a map of lift name -> points
+      for (var liftInfo in allLiftsInfo) {
+        _liftPointsMap[liftInfo.name] = liftInfo.points;
+      }
+
       // Load instructor points
       final instructorLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
         campId: widget.campId,
@@ -209,7 +218,7 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
       );
       int instructorPoints = 0;
       for (var lift in instructorLifts) {
-        final liftPoints = kLiftDefaultPointsMap[lift.name] ?? 0;
+        final liftPoints = _liftPointsMap[lift.name] ?? 0;
         instructorPoints += liftPoints;
       }
       _totalPoints[widget.instructor.id] = instructorPoints;
@@ -224,7 +233,7 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
         // Calculate total points
         int totalPoints = 0;
         for (var lift in todayLifts) {
-          final liftPoints = kLiftDefaultPointsMap[lift.name] ?? 0;
+          final liftPoints = _liftPointsMap[lift.name] ?? 0;
           totalPoints += liftPoints;
         }
         _totalPoints[student.id] = totalPoints;
