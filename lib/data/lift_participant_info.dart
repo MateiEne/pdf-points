@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LiftParticipantInfo {
+  final String id; // Document ID from Firestore
   final String name;
   final String type;
   final String participantId;
@@ -8,6 +9,7 @@ class LiftParticipantInfo {
   final String createdBy;
 
   LiftParticipantInfo({
+    required this.id,
     required this.name,
     required this.type,
     required this.participantId,
@@ -17,6 +19,7 @@ class LiftParticipantInfo {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'type': type,
       'personId': participantId,
@@ -27,6 +30,7 @@ class LiftParticipantInfo {
 
   factory LiftParticipantInfo.fromJson(Map<String, dynamic> json) {
     return LiftParticipantInfo(
+      id: json['id'],
       name: json['name'],
       type: json['type'],
       participantId: json['personId'],
@@ -36,11 +40,12 @@ class LiftParticipantInfo {
   }
 
   factory LiftParticipantInfo.fromSnapshot(DocumentSnapshot snapshot) {
-    return LiftParticipantInfo.fromJson(snapshot.data() as Map<String, dynamic>);
+    final data = snapshot.data() as Map<String, dynamic>;
+    return LiftParticipantInfo.fromJson(data);
   }
 
   @override
   String toString() {
-    return 'LiftParticipantInfo{name: $name, type: $type, personId: $participantId, createdAt: $createdAt, createdBy: $createdBy}';
+    return 'LiftParticipantInfo{id: $id, name: $name, type: $type, personId: $participantId, createdAt: $createdAt, createdBy: $createdBy}';
   }
 }

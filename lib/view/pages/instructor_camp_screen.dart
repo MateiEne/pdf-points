@@ -466,7 +466,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
             title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
             children: [
               if (!isInstructor) _buildParticipantActions(participant),
-              _buildLiftDetails(lifts),
+              _buildLiftDetails(lifts, participant),
             ],
           );
         },
@@ -530,8 +530,8 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
             icon: const Icon(Icons.person_remove, size: 18),
             label: const Text('Remove'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
+              foregroundColor: Theme.of(context).colorScheme.error,
+              side: BorderSide(color: Theme.of(context).colorScheme.error),
             ),
           ),
 
@@ -551,7 +551,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _buildLiftDetails(List<LiftParticipantInfo> lifts) {
+  Widget _buildLiftDetails(List<LiftParticipantInfo> lifts, Participant participant) {
     if (lifts.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -585,14 +585,14 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: lifts.length,
           itemBuilder: (context, liftIndex) {
-            return _buildLiftListTile(lifts[liftIndex]);
+            return _buildLiftListTile(lifts[liftIndex], participant);
           },
         ),
       ],
     );
   }
 
-  Widget _buildLiftListTile(LiftParticipantInfo lift) {
+  Widget _buildLiftListTile(LiftParticipantInfo lift, Participant participant) {
     return ListTile(
       dense: true,
       leading: lift.icon != null
@@ -606,14 +606,73 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
         lift.type,
         style: const TextStyle(fontSize: 12),
       ),
-      trailing: Text(
-        '${lift.createdAt.hour}:${lift.createdAt.minute.toPaddedString(2)}',
-        style: TextStyle(
-          fontSize: 12,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${lift.createdAt.hour}:${lift.createdAt.minute.toPaddedString(2)}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 24),
+            color: Theme.of(context).colorScheme.error,
+            onPressed: () => _removeLift(lift, participant),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> _removeLift(LiftParticipantInfo lift, Participant participant) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove Lift'),
+        content: StyledText(
+          text: 'Are you sure you want to remove this <bold>${lift.name} ${lift.type}</bold> from <bold>${participant.fullName}</bold>?',
+          tags: {
+            "bold": StyledTextTag(style: const TextStyle(fontWeight: FontWeight.w600)),
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await FirebaseManager.instance.removeLift(
+        campId: widget.camp.id,
+        liftId: lift.id,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarSuccess('Lift removed successfully');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('Error removing lift: ${e.toString()}');
+      }
+    }
   }
 
   Widget _buildAddStudentButton() {
