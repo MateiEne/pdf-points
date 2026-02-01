@@ -35,4 +35,29 @@ extension LiftValuePointsExtension on FirebaseManager {
 
     return LiftInfo.fromSnapshot(snapshot);
   }
+
+  Future<void> updateAllLiftValuePoints({
+    required Map<String, int> liftsPoints,
+    required Map<String, String> liftsTypes,
+    required DateTime modifiedAt,
+    required String modifiedBy,
+  }) async {
+    // Use batch writes for efficiency - all updates in one transaction
+    final batch = FirebaseFirestore.instance.batch();
+    
+    liftsPoints.forEach((liftName, points) {
+      final docRef = FirebaseFirestore.instance.collection(kLiftValuePointsCollection).doc(liftName);
+      
+      batch.set(docRef, {
+        'name': liftName,
+        'points': points,
+        'type': liftsTypes[liftName] ?? 'Unknown',
+        'modifiedAt': Timestamp.fromDate(modifiedAt),
+        'modifiedBy': modifiedBy,
+      });
+    });
+    
+    // Commit all updates at once
+    await batch.commit();
+  }
 }

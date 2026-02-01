@@ -1,23 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/lift_info.dart';
+import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/safe_setState.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 
 class EditLiftPointsScreen extends StatefulWidget {
-  const EditLiftPointsScreen({super.key});
+  final Instructor instructor;
+
+  const EditLiftPointsScreen({super.key, required this.instructor});
 
   @override
   State<EditLiftPointsScreen> createState() => _EditLiftPointsScreenState();
 }
 
 class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
+  bool _isLoading = true;
+  List<LiftInfo> _liftInfos = [];
+
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, int> _lastSavedPoints = {};
 
   @override
   void initState() {
     super.initState();
+
     _initializeControllers();
-    _loadCurrentPoints();
+    _loadDefaultPoints();
+    _startFirebaseEvents();
+  }
+
+  Future<void> _startFirebaseEvents() async {
+    _fetchLiftInfos();
+  }
+
+  Future<void> _fetchLiftInfos() async {
+    safeSetState(() {
+      _isLoading = true;
+    });
+
+    try {
+      List<LiftInfo> liftInfos = await FirebaseManager.instance.fetchAllLiftsInfo();
+
+      safeSetState(() {
+        _isLoading = false;
+        _liftInfos = liftInfos;
+
+        // Update controllers with Firebase data
+        for (var liftInfo in _liftInfos) {
+          if (_controllers.containsKey(liftInfo.name)) {
+            _controllers[liftInfo.name]!.text = liftInfo.points.toString();
+            _lastSavedPoints[liftInfo.name] = liftInfo.points;
+          }
+        }
+      });
+    } catch (e) {
+      safeSetState(() {
+        _isLoading = false;
+      });
+      debugPrint('Error fetching lift infos: $e');
+    }
   }
 
   void _initializeControllers() {
@@ -36,32 +79,69 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     }
   }
 
-  void _loadCurrentPoints() {
-    // TODO: Load from Firebase or SharedPreferences
+  void _loadDefaultPoints() {
     // Load default values from kLiftDefaultPointsMap
     _controllers.forEach((liftName, controller) {
       final points = kLiftDefaultPointsMap[liftName] ?? 0;
       controller.text = points.toString();
-      _lastSavedPoints[liftName] = points; // Initialize last saved
+      _lastSavedPoints[liftName] = points;
     });
   }
 
   Future<void> _savePoints() async {
-    // Store current values as last saved
-    _controllers.forEach((liftName, controller) {
-      _lastSavedPoints[liftName] = int.tryParse(controller.text) ?? 0;
-    });
-    
-    // TODO: Save to Firebase or SharedPreferences
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Points saved successfully!'),
-          backgroundColor: Colors.green,
-        ),
+    try {
+      safeSetState(() {
+        _isLoading = true;
+      });
+
+      // Prepare data for batch update
+      final Map<String, int> liftsPoints = {};
+      final Map<String, String> liftsTypes = {};
+
+      for (var entry in _controllers.entries) {
+        final liftName = entry.key;
+        final points = int.tryParse(entry.value.text) ?? 0;
+
+        liftsPoints[liftName] = points;
+        liftsTypes[liftName] = _getLiftType(liftName);
+
+        // Store as last saved
+        _lastSavedPoints[liftName] = points;
+      }
+
+      // Save all lifts in one batch operation
+      await FirebaseManager.instance.updateAllLiftValuePoints(
+        liftsPoints: liftsPoints,
+        liftsTypes: liftsTypes,
+        modifiedAt: DateTime.now(),
+        modifiedBy: widget.instructor.shortName,
       );
-      Navigator.pop(context);
+
+      safeSetState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarSuccess(('Points saved successfully!'));
+        // Navigator.pop(context);
+      }
+    } catch (e) {
+      safeSetState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('Error saving points: $e');
+      }
     }
+  }
+
+  String _getLiftType(String liftName) {
+    if (kCableCars.contains(liftName)) return kCableCar;
+    if (kGondolas.contains(liftName)) return kGondola;
+    if (kChairlifts.contains(liftName)) return kChairlift;
+    if (kSkilifts.contains(liftName)) return kSkilift;
+    return 'Unknown';
   }
 
   void _resetToDefaults() {
@@ -71,13 +151,8 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         controller.text = points.toString();
       });
     });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reset to default values'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+
+    ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to default values');
   }
 
   void _resetToLastSaved() {
@@ -87,13 +162,8 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         controller.text = points.toString();
       });
     });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reset to last saved values'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+
+    ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to last saved values');
   }
 
   @override
@@ -111,22 +181,24 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         title: const Text('Edit Lift Points'),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
                 children: [
                   // Cable Cars
                   ..._buildLiftSection(kCableCars, kCableCarIcon),
-                  
+
                   // Gondolas
                   ..._buildLiftSection(kGondolas, kGondolaIcon),
-                  
+
                   // Chairlifts
                   ..._buildLiftSection(kChairlifts, kChairliftIcon),
-                  
+
                   // Skilifts
                   ..._buildLiftSection(kSkilifts, kSkiliftIcon),
                 ],
@@ -175,9 +247,19 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Loading indicator overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -263,7 +345,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                 ),
 
                 const SizedBox(width: 6),
-                
+
                 // Increase button
                 IconButton(
                   onPressed: () => _incrementPoints(controller),
