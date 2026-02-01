@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/data/lift_info.dart';
+import 'package:pdf_points/data/lift_participant_info.dart';
 import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
@@ -189,7 +189,7 @@ class AddLiftsModal {
               selectedLiftUsers: _selectedLiftUsers,
               onSelectedLiftUsersChanged: (List<LiftUser> liftUsers) {
                 final allUsers = [instructor, ...students];
-                
+
                 _selectedLiftUsers.clear();
                 _selectedLiftUsers.addAll(liftUsers);
 
@@ -217,10 +217,10 @@ class AddLiftsModal {
     for (final liftUser in selectedLiftUsers) {
       await FirebaseManager.instance.addLift(
         campId: campId,
-        lift: LiftInfo(
+        lift: LiftParticipantInfo(
           name: lift,
           type: liftType,
-          personId: liftUser.id,
+          participantId: liftUser.id,
           createdAt: DateTime.now(),
           createdBy: instructor.id,
         ),

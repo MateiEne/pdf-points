@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
+import 'package:pdf_points/utils/dummy_data_utils.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
 import 'package:pdf_points/view/pages/instructor_home.dart';
 import 'package:pdf_points/view/pages/login.dart';
@@ -23,6 +24,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // await DummyDataUtils.instance.addLiftValuePoints();
 
   runApp(const PdfPointsApp());
 }

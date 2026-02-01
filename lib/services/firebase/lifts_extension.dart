@@ -5,7 +5,7 @@ const kCampLiftsCollection = 'lifts';
 extension LiftsExtension on FirebaseManager {
   Future<void> addLift({
     required String campId,
-    required LiftInfo lift,
+    required LiftParticipantInfo lift,
   }) async {
     await FirebaseFirestore.instance
         .collection(kCampsCollection)
@@ -14,7 +14,7 @@ extension LiftsExtension on FirebaseManager {
         .add(lift.toJson());
   }
 
-  Future<List<LiftInfo>> fetchLiftsForPerson({
+  Future<List<LiftParticipantInfo>> fetchLiftsForPerson({
     required String campId,
     required String personId,
   }) async {
@@ -26,10 +26,10 @@ extension LiftsExtension on FirebaseManager {
         .orderBy('createdAt', descending: true)
         .get();
 
-    return snapshot.docs.map((doc) => LiftInfo.fromSnapshot(doc)).toList();
+    return snapshot.docs.map((doc) => LiftParticipantInfo.fromSnapshot(doc)).toList();
   }
 
-  Stream<List<LiftInfo>> listenToLiftsForPerson({
+  Stream<List<LiftParticipantInfo>> listenToLiftsForPerson({
     required String campId,
     required String personId,
   }) {
@@ -40,6 +40,6 @@ extension LiftsExtension on FirebaseManager {
         .where('personId', isEqualTo: personId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => LiftInfo.fromSnapshot(doc)).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => LiftParticipantInfo.fromSnapshot(doc)).toList());
   }
 }

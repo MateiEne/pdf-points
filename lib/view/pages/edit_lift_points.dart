@@ -11,6 +11,7 @@ class EditLiftPointsScreen extends StatefulWidget {
 
 class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, TextEditingController> _controllers = {};
+  final Map<String, int> _lastSavedPoints = {};
 
   @override
   void initState() {
@@ -41,10 +42,16 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     _controllers.forEach((liftName, controller) {
       final points = kLiftDefaultPointsMap[liftName] ?? 0;
       controller.text = points.toString();
+      _lastSavedPoints[liftName] = points; // Initialize last saved
     });
   }
 
   Future<void> _savePoints() async {
+    // Store current values as last saved
+    _controllers.forEach((liftName, controller) {
+      _lastSavedPoints[liftName] = int.tryParse(controller.text) ?? 0;
+    });
+    
     // TODO: Save to Firebase or SharedPreferences
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,6 +62,38 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       );
       Navigator.pop(context);
     }
+  }
+
+  void _resetToDefaults() {
+    setState(() {
+      _controllers.forEach((liftName, controller) {
+        final points = kLiftDefaultPointsMap[liftName] ?? 0;
+        controller.text = points.toString();
+      });
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Reset to default values'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _resetToLastSaved() {
+    setState(() {
+      _controllers.forEach((liftName, controller) {
+        final points = _lastSavedPoints[liftName] ?? 0;
+        controller.text = points.toString();
+      });
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Reset to last saved values'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -93,7 +132,35 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            // Reset buttons row
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _resetToDefaults,
+                    icon: const Icon(Icons.restart_alt, size: 20),
+                    label: const Text('Reset Defaults'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _resetToLastSaved,
+                    icon: const Icon(Icons.history, size: 20),
+                    label: const Text('Reset Last Saved'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Save button
             SizedBox(
               width: double.infinity,
               height: 56,

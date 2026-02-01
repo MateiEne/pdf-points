@@ -4,7 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/camp.dart';
-import 'package:pdf_points/data/lift_info.dart';
+import 'package:pdf_points/data/lift_participant_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/modals/add_lifts.dart';
@@ -419,23 +419,21 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     return Card(
       key: ValueKey(participant.id),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: StreamBuilder<List<LiftInfo>>(
+      child: StreamBuilder<List<LiftParticipantInfo>>(
         stream: FirebaseManager.instance.listenToLiftsForPerson(
           campId: widget.camp.id,
           personId: participant.id,
         ),
         builder: (context, liftSnapshot) {
           final allLifts = liftSnapshot.data ?? [];
-          
+
           // Filter lifts for today only
           final now = DateTime.now();
           final lifts = allLifts.where((lift) {
             final liftDate = lift.createdAt;
-            return liftDate.year == now.year &&
-                   liftDate.month == now.month &&
-                   liftDate.day == now.day;
+            return liftDate.year == now.year && liftDate.month == now.month && liftDate.day == now.day;
           }).toList();
-          
+
           lifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
           return ExpansionTile(
@@ -468,7 +466,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _buildParticipantTitleRow(Participant participant, List<LiftInfo> lifts) {
+  Widget _buildParticipantTitleRow(Participant participant, List<LiftParticipantInfo> lifts) {
     return Row(
       children: [
         Expanded(
@@ -544,7 +542,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _buildLiftDetails(List<LiftInfo> lifts) {
+  Widget _buildLiftDetails(List<LiftParticipantInfo> lifts) {
     if (lifts.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -585,7 +583,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
     );
   }
 
-  Widget _buildLiftListTile(LiftInfo lift) {
+  Widget _buildLiftListTile(LiftParticipantInfo lift) {
     return ListTile(
       dense: true,
       leading: lift.icon != null

@@ -3,25 +3,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class LiftInfo {
   final String name;
   final String type;
-  final String personId;
-  final DateTime createdAt;
-  final String createdBy;
+  final int points;
+  final DateTime modifiedAt;
+  final String modifiedBy;
 
   LiftInfo({
     required this.name,
     required this.type,
-    required this.personId,
-    required this.createdAt,
-    required this.createdBy,
+    required this.points,
+    required this.modifiedAt,
+    required this.modifiedBy,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'type': type,
-      'personId': personId,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'createdBy': createdBy,
+      'points': points,
+      'modifiedAt': Timestamp.fromDate(modifiedAt),
+      'modifiedBy': modifiedBy,
     };
   }
 
@@ -29,9 +29,9 @@ class LiftInfo {
     return LiftInfo(
       name: json['name'],
       type: json['type'],
-      personId: json['personId'],
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
-      createdBy: json['createdBy'],
+      points: json['points'],
+      modifiedAt: (json['modifiedAt'] as Timestamp).toDate(),
+      modifiedBy: json['modifiedBy'],
     );
   }
 
@@ -41,6 +41,6 @@ class LiftInfo {
 
   @override
   String toString() {
-    return 'LiftInfo{name: $name, type: $type, personId: $personId, createdAt: $createdAt, createdBy: $createdBy}';
+    return 'LiftInfo{name: $name, type: $type, points: $points, modifiedAt: $modifiedAt, modifiedBy: $modifiedBy}';
   }
 }
