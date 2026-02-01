@@ -20,6 +20,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, int> _lastSavedPoints = {};
+  final Map<String, int> _originalFirebasePoints = {}; // Track original values from Firebase
 
   @override
   void initState() {
@@ -50,10 +51,11 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     try {
       List<LiftInfo> liftInfos = await FirebaseManager.instance.fetchAllLiftsInfo();
 
-      // Override controllers values with Firebase data
+      // Override controllers values with Firebase data and track original values
       for (var liftInfo in liftInfos) {
         _controllers[liftInfo.name]?.text = liftInfo.points.toString();
         _lastSavedPoints[liftInfo.name] = liftInfo.points;
+        _originalFirebasePoints[liftInfo.name] = liftInfo.points; // Track original
       }
     } catch (e) {
       debugPrint('Error loading lift points: $e');
@@ -62,7 +64,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     }
   }
 
-  /// Save all lift points to Firebase in a single batch operation
+  /// Save only modified lift points to Firebase in a batch operation
   Future<void> _savePoints() async {
     safeSetState(() => _isLoading = true);
 
@@ -70,17 +72,29 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       final liftsPoints = <String, int>{};
       final liftsTypes = <String, String>{};
 
-      // Gather all current values
+      // Gather only modified values
       _controllers.forEach((liftName, controller) {
-        final points = int.tryParse(controller.text) ?? 0;
+        final currentPoints = int.tryParse(controller.text) ?? 0;
+        final originalPoints = _originalFirebasePoints[liftName] ?? _lastSavedPoints[liftName] ?? 0;
 
-        liftsPoints[liftName] = points;
-        liftsTypes[liftName] = kLiftTypeMap[liftName] ?? 'Unknown';
-
-        _lastSavedPoints[liftName] = points;
+        // Only include if value has changed
+        if (currentPoints != originalPoints) {
+          liftsPoints[liftName] = currentPoints;
+          liftsTypes[liftName] = _getLiftType(liftName);
+          _lastSavedPoints[liftName] = currentPoints;
+          _originalFirebasePoints[liftName] = currentPoints; // Update original
+        }
       });
 
-      // Batch save to Firebase
+      // Only save if there are changes
+      if (liftsPoints.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBarSuccess('No changes to save');
+        }
+        return;
+      }
+
+      // Batch save only modified lifts to Firebase
       await FirebaseManager.instance.updateAllLiftValuePoints(
         liftsPoints: liftsPoints,
         liftsTypes: liftsTypes,
@@ -89,7 +103,9 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBarSuccess('Points saved successfully!');
+        ScaffoldMessenger.of(context).showSnackBarSuccess(
+          'Saved ${liftsPoints.length} lift${liftsPoints.length > 1 ? 's' : ''}!',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -98,6 +114,15 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     } finally {
       safeSetState(() => _isLoading = false);
     }
+  }
+
+  /// Determine lift type based on lift name
+  String _getLiftType(String liftName) {
+    if (kCableCars.contains(liftName)) return kCableCar;
+    if (kGondolas.contains(liftName)) return kGondola;
+    if (kChairlifts.contains(liftName)) return kChairlift;
+    if (kSkilifts.contains(liftName)) return kSkilift;
+    return 'Unknown';
   }
 
   /// Reset all points to default values from constants
@@ -305,6 +330,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kAppSeedColor,
                       foregroundColor: Colors.white,
+                      maximumSize: const Size(double.infinity, 56),
                     ),
                     child: const Text(
                       'Save Lift Points',
