@@ -443,7 +443,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Save button
+                // Update button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -455,7 +455,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                       maximumSize: const Size(double.infinity, 56),
                     ),
                     child: const Text(
-                      'Save Lift Points',
+                      'Update Lift Points',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
