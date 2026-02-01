@@ -27,7 +27,6 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, bool> _selectedLifts = {}; // Track which lifts are selected for saving
   
   StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
-  Timer? _timeUpdateTimer;
 
   @override
   void initState() {
@@ -35,18 +34,6 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
     _initializeControllers();
     _listenToLiftPointsChanges();
-    _startTimeUpdateTimer();
-  }
-
-  /// Start a timer that updates the UI every minute to refresh relative time displays
-  void _startTimeUpdateTimer() {
-    _timeUpdateTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (mounted) {
-        safeSetState(() {
-          // Force rebuild to update "Xm ago" text
-        });
-      }
-    });
   }
 
   /// Initialize text controllers for all lift types
@@ -380,17 +367,19 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   String _formatModificationInfo(LiftInfo liftInfo) {
     final now = DateTime.now();
     final modifiedAt = liftInfo.modifiedAt;
-    final difference = now.difference(modifiedAt);
+    
+    // Normalize to compare calendar days, not 24-hour periods
+    final today = DateTime(now.year, now.month, now.day);
+    final modifiedDay = DateTime(modifiedAt.year, modifiedAt.month, modifiedAt.day);
+    final daysDifference = today.difference(modifiedDay).inDays;
 
     String timeAgo;
-    if (difference.inDays > 0) {
-      timeAgo = '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      timeAgo = '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      timeAgo = '${difference.inMinutes}m ago';
+    if (daysDifference == 0) {
+      timeAgo = 'today';
+    } else if (daysDifference == 1) {
+      timeAgo = '1 day ago';
     } else {
-      timeAgo = 'Just now';
+      timeAgo = '$daysDifference days ago';
     }
 
     return 'Modified $timeAgo by ${liftInfo.modifiedBy}';
@@ -486,7 +475,6 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
   @override
   void dispose() {
-    _timeUpdateTimer?.cancel();
     _liftsStreamSubscription?.cancel();
     _controllers.forEach((key, controller) {
       controller.dispose();
