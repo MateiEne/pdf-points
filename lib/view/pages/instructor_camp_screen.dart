@@ -447,14 +447,14 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
           return ExpansionTile(
             shape: RoundedRectangleBorder(
               side: BorderSide(
-                color: Colors.grey.shade300,
+                color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(8),
             ),
             collapsedShape: RoundedRectangleBorder(
               side: BorderSide(
-                color: Colors.grey.shade300,
+                color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(8),
@@ -564,31 +564,13 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       );
     }
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Lifts (${lifts.length})',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
-          ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: lifts.length,
-          itemBuilder: (context, liftIndex) {
-            return _buildLiftListTile(lifts[liftIndex], participant);
-          },
-        ),
-      ],
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: lifts.length,
+      itemBuilder: (context, liftIndex) {
+        return _buildLiftListTile(lifts[liftIndex], participant);
+      },
     );
   }
 
