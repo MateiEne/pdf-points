@@ -24,6 +24,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, int> _lastSavedPoints = {};
   final Map<String, int> _originalFirebasePoints = {}; // Track original values from Firebase
   final Map<String, LiftInfo> _liftInfoMap = {}; // Store complete LiftInfo for metadata
+  final Map<String, bool> _selectedLifts = {}; // Track which lifts are selected for saving
   
   StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
   Timer? _timeUpdateTimer;
@@ -95,7 +96,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     );
   }
 
-  /// Save only modified lift points to Firebase in a batch operation
+  /// Save only selected lift points to Firebase in a batch operation
   Future<void> _savePoints() async {
     safeSetState(() => _isLoading = true);
 
@@ -103,13 +104,10 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       final liftsPoints = <String, int>{};
       final liftsTypes = <String, String>{};
 
-      // Gather only modified values
-      _controllers.forEach((liftName, controller) {
-        final currentPoints = int.tryParse(controller.text) ?? 0;
-        final originalPoints = _originalFirebasePoints[liftName] ?? _lastSavedPoints[liftName] ?? 0;
-
-        // Only include if value has changed
-        if (currentPoints != originalPoints) {
+      // Gather only selected lifts
+      _selectedLifts.forEach((liftName, isSelected) {
+        if (isSelected) {
+          final currentPoints = int.tryParse(_controllers[liftName]?.text ?? '0') ?? 0;
           liftsPoints[liftName] = currentPoints;
           liftsTypes[liftName] = _getLiftType(liftName);
           _lastSavedPoints[liftName] = currentPoints;
@@ -117,21 +115,26 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         }
       });
 
-      // Only save if there are changes
+      // Only save if there are selected lifts
       if (liftsPoints.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBarSuccess('No changes to save');
+          ScaffoldMessenger.of(context).showSnackBarSuccess('No lifts selected to save');
         }
         return;
       }
 
-      // Batch save only modified lifts to Firebase
+      // Batch save selected lifts to Firebase
       await FirebaseManager.instance.updateAllLiftValuePoints(
         liftsPoints: liftsPoints,
         liftsTypes: liftsTypes,
         modifiedAt: DateTime.now(),
         modifiedBy: widget.instructor.shortName,
       );
+
+      // Uncheck all checkboxes after successful save
+      safeSetState(() {
+        _selectedLifts.clear();
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBarSuccess(
@@ -156,27 +159,38 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     return 'Unknown';
   }
 
-  /// Reset all points to default values from constants
+  /// Reset all points to default values from constants and auto-select modified ones
   void _resetToDefaults() {
-    _updateAllControllers((liftName) => kLiftDefaultPointsMap[liftName] ?? 0);
+    safeSetState(() {
+      _selectedLifts.clear();
+      
+      _controllers.forEach((liftName, controller) {
+        final defaultPoints = kLiftDefaultPointsMap[liftName] ?? 0;
+        controller.text = defaultPoints.toString();
+        
+        // Auto-select if different from Firebase value
+        final firebasePoints = _originalFirebasePoints[liftName] ?? _lastSavedPoints[liftName] ?? 0;
+        if (defaultPoints != firebasePoints) {
+          _selectedLifts[liftName] = true;
+        }
+      });
+    });
 
     ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to default values');
   }
 
-  /// Reset all points to last saved values
+  /// Reset all points to last saved values and clear selections
   void _resetToLastSaved() {
-    _updateAllControllers((liftName) => _lastSavedPoints[liftName] ?? 0);
-
-    ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to last saved values');
-  }
-
-  /// Helper method to update all controllers with values from a function
-  void _updateAllControllers(int Function(String) getPoints) {
     safeSetState(() {
+      _selectedLifts.clear();
+      
       _controllers.forEach((liftName, controller) {
-        controller.text = getPoints(liftName).toString();
+        final savedPoints = _lastSavedPoints[liftName] ?? 0;
+        controller.text = savedPoints.toString();
       });
     });
+
+    ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to last saved values');
   }
 
   List<Widget> _buildLiftSection(List<String> lifts, String icon) {
@@ -201,6 +215,10 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   }) {
     final liftInfo = _liftInfoMap[name];
     final hasModificationInfo = liftInfo != null;
+    final currentPoints = int.tryParse(controller.text) ?? 0;
+    final firebasePoints = _originalFirebasePoints[name] ?? _lastSavedPoints[name] ?? 0;
+    final isModified = currentPoints != firebasePoints;
+    final isSelected = _selectedLifts[name] ?? false;
     
     return Card(
       elevation: 2,
@@ -208,10 +226,20 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           children: [
+            // Checkbox
+            Checkbox(
+              value: isSelected,
+              onChanged: isModified ? null : (value) {
+                setState(() {
+                  _selectedLifts[name] = value ?? false;
+                });
+              },
+            ),
+            const SizedBox(width: 8),
             // Lift Icon
             Image.asset(
               icon,
-              width: 36,
+              width: 36,  
               height: 36,
             ),
             const SizedBox(width: 12),
@@ -296,16 +324,54 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
   void _incrementPoints(TextEditingController controller) {
     setState(() {
+      // Find which lift this controller belongs to
+      String? liftName;
+      _controllers.forEach((name, ctrl) {
+        if (ctrl == controller) liftName = name;
+      });
+      
       int currentValue = int.tryParse(controller.text) ?? 0;
-      controller.text = (currentValue + 1).toString();
+      final newValue = currentValue + 1;
+      controller.text = newValue.toString();
+      
+      // Auto-check/uncheck checkbox based on whether value matches Firebase
+      if (liftName != null) {
+        final firebasePoints = _originalFirebasePoints[liftName!] ?? _lastSavedPoints[liftName!] ?? 0;
+        if (newValue == firebasePoints) {
+          // Value matches Firebase - uncheck
+          _selectedLifts[liftName!] = false;
+        } else {
+          // Value differs from Firebase - check
+          _selectedLifts[liftName!] = true;
+        }
+      }
     });
   }
 
   void _decrementPoints(TextEditingController controller) {
     setState(() {
+      // Find which lift this controller belongs to
+      String? liftName;
+      _controllers.forEach((name, ctrl) {
+        if (ctrl == controller) liftName = name;
+      });
+      
       int currentValue = int.tryParse(controller.text) ?? 0;
       if (currentValue > 0) {
-        controller.text = (currentValue - 1).toString();
+        final newValue = currentValue - 1;
+        controller.text = newValue.toString();
+        
+        // Auto-check/uncheck checkbox based on whether value matches Firebase
+        if (liftName != null) {
+          final firebasePoints = _originalFirebasePoints[liftName!] ?? _lastSavedPoints[liftName!] ?? 0;
+          if (newValue == firebasePoints) {
+            // Value matches Firebase - uncheck
+            _selectedLifts[liftName!] = false;
+          } else {
+            // Value differs from Firebase - check
+            _selectedLifts[liftName!] = true;
+          }
+        }
       }
     });
   }
