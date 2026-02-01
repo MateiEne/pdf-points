@@ -60,4 +60,12 @@ extension LiftValuePointsExtension on FirebaseManager {
     // Commit all updates at once
     await batch.commit();
   }
+
+  /// Listen to real-time updates for all lift points
+  Stream<List<LiftInfo>> listenToAllLiftsInfo() {
+    return FirebaseFirestore.instance
+        .collection(kLiftValuePointsCollection)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => LiftInfo.fromSnapshot(doc)).toList());
+  }
 }

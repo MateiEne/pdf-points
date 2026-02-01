@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/lift_info.dart';
@@ -22,13 +24,15 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, int> _lastSavedPoints = {};
   final Map<String, int> _originalFirebasePoints = {}; // Track original values from Firebase
   final Map<String, LiftInfo> _liftInfoMap = {}; // Store complete LiftInfo for metadata
+  
+  StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
 
   @override
   void initState() {
     super.initState();
 
     _initializeControllers();
-    _loadPointsFromFirebase();
+    _listenToLiftPointsChanges();
   }
 
   /// Initialize text controllers for all lift types
@@ -45,25 +49,37 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     }
   }
 
-  /// Load points from Firebase and update controllers
-  Future<void> _loadPointsFromFirebase() async {
+  /// Listen to real-time changes in lift points from Firebase
+  void _listenToLiftPointsChanges() {
     safeSetState(() => _isLoading = true);
 
-    try {
-      List<LiftInfo> liftInfos = await FirebaseManager.instance.fetchAllLiftsInfo();
+    _liftsStreamSubscription = FirebaseManager.instance.listenToAllLiftsInfo().listen(
+      (liftInfos) {
+        if (!mounted) return;
 
-      // Override controllers values with Firebase data and store complete info
-      for (var liftInfo in liftInfos) {
-        _controllers[liftInfo.name]?.text = liftInfo.points.toString();
-        _lastSavedPoints[liftInfo.name] = liftInfo.points;
-        _originalFirebasePoints[liftInfo.name] = liftInfo.points;
-        _liftInfoMap[liftInfo.name] = liftInfo; // Store complete LiftInfo
-      }
-    } catch (e) {
-      debugPrint('Error loading lift points: $e');
-    } finally {
-      safeSetState(() => _isLoading = false);
-    }
+        // Update controllers with Firebase data
+        for (var liftInfo in liftInfos) {
+          // Only update if user hasn't manually edited this field
+          final currentValue = int.tryParse(_controllers[liftInfo.name]?.text ?? '0') ?? 0;
+          final originalValue = _originalFirebasePoints[liftInfo.name] ?? 0;
+          
+          // If user hasn't modified this value locally, update with Firebase value
+          if (currentValue == originalValue) {
+            _controllers[liftInfo.name]?.text = liftInfo.points.toString();
+          }
+          
+          _lastSavedPoints[liftInfo.name] = liftInfo.points;
+          _originalFirebasePoints[liftInfo.name] = liftInfo.points;
+          _liftInfoMap[liftInfo.name] = liftInfo;
+        }
+
+        safeSetState(() => _isLoading = false);
+      },
+      onError: (error) {
+        debugPrint('Error listening to lift points: $error');
+        safeSetState(() => _isLoading = false);
+      },
+    );
   }
 
   /// Save only modified lift points to Firebase in a batch operation
@@ -391,6 +407,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
   @override
   void dispose() {
+    _liftsStreamSubscription?.cancel();
     _controllers.forEach((key, controller) {
       controller.dispose();
     });
