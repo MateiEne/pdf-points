@@ -69,6 +69,9 @@ class SkiGroupSummaryModal {
     List<Participant> students,
     String groupName,
   ) {
+    // Create a GlobalKey to access the state directly
+    final contentKey = GlobalKey<_SkiGroupSummaryContentState>();
+
     return WoltModalSheetPage(
       topBarTitle: Text(
         'Group Summary',
@@ -86,7 +89,7 @@ class SkiGroupSummaryModal {
       stickyActionBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton.icon(
-          onPressed: () => _copySummaryToClipboard(modalSheetContext, campId, instructor, students, groupName),
+          onPressed: () => _copySummaryToClipboard(modalSheetContext, contentKey),
           icon: const Icon(Icons.copy),
           label: const Text('Copy Summary to Clipboard'),
           style: ElevatedButton.styleFrom(
@@ -99,6 +102,7 @@ class SkiGroupSummaryModal {
       child: Padding(
         padding: const EdgeInsets.all(16.0).add(const EdgeInsets.only(bottom: 56 + 16)),
         child: SkiGroupSummaryContent(
+          key: contentKey,
           campId: campId,
           instructor: instructor,
           students: students,
@@ -110,72 +114,29 @@ class SkiGroupSummaryModal {
 
   static Future<void> _copySummaryToClipboard(
     BuildContext context,
-    String campId,
-    Instructor instructor,
-    List<Participant> students,
-    String groupName,
+    GlobalKey<_SkiGroupSummaryContentState> contentKey,
   ) async {
-    final summaryText = await _generateSummaryText(campId, instructor, students, groupName);
+    // Access the state directly using the GlobalKey
+    final state = contentKey.currentState;
+
+    if (state == null || state._isLoading) {
+      // If state not found or still loading, show message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('Please wait for data to load');
+      }
+      return;
+    }
+
+    // Use the cached data from state (no duplicate Firebase calls!)
+    final summaryText = state.generateSummaryText();
     await Clipboard.setData(ClipboardData(text: summaryText));
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBarSuccess('Summary copied to clipboard!');
-      
+
       // close the modal
       Navigator.of(context).pop();
     }
-  }
-
-  static Future<String> _generateSummaryText(
-    String campId,
-    Instructor instructor,
-    List<Participant> students,
-    String groupName,
-  ) async {
-    final buffer = StringBuffer();
-    buffer.writeln('$groupName - Group Summary');
-    buffer.writeln('Date: ${DateTime.now().toString().split(' ')[0]}');
-    buffer.writeln('');
-
-    
-    // Fetch all lift info from Firebase to calculate points
-    final allLiftsInfo = await FirebaseManager.instance.fetchAllLiftsInfo();
-    final liftPointsMap = <String, int>{};
-    for (var liftInfo in allLiftsInfo) {
-      liftPointsMap[liftInfo.name] = liftInfo.points;
-    }
-
-    // Calculate instructor points
-    final instructorLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
-      campId: campId,
-      personId: instructor.id,
-    );
-    int instructorPoints = 0;
-    for (var lift in instructorLifts) {
-      instructorPoints += liftPointsMap[lift.name] ?? 0;
-    }
-
-    // Add instructor first
-    buffer.writeln('${instructor.fullName}:\t $instructorPoints pts');
-
-    // Add students
-    for (var i = 0; i < students.length; i++) {
-      final student = students[i];
-      final todayLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
-        campId: campId,
-        personId: student.id,
-      );
-
-      // Calculate total points
-      int totalPoints = 0;
-      for (var lift in todayLifts) {
-        totalPoints += liftPointsMap[lift.name] ?? 0;
-      }
-
-      buffer.writeln('${student.fullName}:\t $totalPoints pts');
-    }
-
-    return buffer.toString();
   }
 }
 
@@ -208,13 +169,35 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     _loadPointsForAllStudents();
   }
 
+  // Generate summary text using already calculated points (avoids duplicate Firebase calls)
+  String generateSummaryText() {
+    final buffer = StringBuffer();
+    buffer.writeln('${widget.groupName} - Group Summary');
+    buffer.writeln('Date: ${DateTime.now().toString().split(' ')[0]}');
+    buffer.writeln('');
+
+    // Add students
+    for (var i = 0; i < widget.students.length; i++) {
+      final student = widget.students[i];
+      final studentPoints = _totalPoints[student.id] ?? 0;
+
+      buffer.writeln('${student.fullName}: $studentPoints pts');
+    }
+
+    // Add instructor last
+    final instructorPoints = _totalPoints[widget.instructor.id] ?? 0;
+    buffer.writeln('${widget.instructor.fullName}:\t $instructorPoints pts');
+
+    return buffer.toString();
+  }
+
   Future<void> _loadPointsForAllStudents() async {
     setState(() => _isLoading = true);
 
     try {
       // Fetch all lift info from Firebase
       final allLiftsInfo = await FirebaseManager.instance.fetchAllLiftsInfo();
-      
+
       // Build a map of lift name -> points
       for (var liftInfo in allLiftsInfo) {
         _liftPointsMap[liftInfo.name] = liftInfo.points;
