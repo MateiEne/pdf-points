@@ -17,7 +17,6 @@ class EditLiftPointsScreen extends StatefulWidget {
 
 class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   bool _isLoading = true;
-  List<LiftInfo> _liftInfos = [];
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, int> _lastSavedPoints = {};
@@ -27,89 +26,61 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     super.initState();
 
     _initializeControllers();
-    _loadDefaultPoints();
-    _startFirebaseEvents();
+    _loadPointsFromFirebase();
   }
 
-  Future<void> _startFirebaseEvents() async {
-    _fetchLiftInfos();
+  /// Initialize text controllers for all lift types
+  void _initializeControllers() {
+    final allLifts = [...kCableCars, ...kGondolas, ...kChairlifts, ...kSkilifts];
+
+    for (var liftName in allLifts) {
+      _controllers[liftName] = TextEditingController();
+
+      // Set default points from constants
+      final defaultPoints = kLiftDefaultPointsMap[liftName] ?? 0;
+      _controllers[liftName]!.text = defaultPoints.toString();
+      _lastSavedPoints[liftName] = defaultPoints;
+    }
   }
 
-  Future<void> _fetchLiftInfos() async {
-    safeSetState(() {
-      _isLoading = true;
-    });
+  /// Load points from Firebase and update controllers
+  Future<void> _loadPointsFromFirebase() async {
+    safeSetState(() => _isLoading = true);
 
     try {
       List<LiftInfo> liftInfos = await FirebaseManager.instance.fetchAllLiftsInfo();
 
-      safeSetState(() {
-        _isLoading = false;
-        _liftInfos = liftInfos;
-
-        // Update controllers with Firebase data
-        for (var liftInfo in _liftInfos) {
-          if (_controllers.containsKey(liftInfo.name)) {
-            _controllers[liftInfo.name]!.text = liftInfo.points.toString();
-            _lastSavedPoints[liftInfo.name] = liftInfo.points;
-          }
-        }
-      });
+      // Override controllers values with Firebase data
+      for (var liftInfo in liftInfos) {
+        _controllers[liftInfo.name]?.text = liftInfo.points.toString();
+        _lastSavedPoints[liftInfo.name] = liftInfo.points;
+      }
     } catch (e) {
-      safeSetState(() {
-        _isLoading = false;
-      });
-      debugPrint('Error fetching lift infos: $e');
+      debugPrint('Error loading lift points: $e');
+    } finally {
+      safeSetState(() => _isLoading = false);
     }
   }
 
-  void _initializeControllers() {
-    // Initialize controllers for all lifts
-    for (var lift in kCableCars) {
-      _controllers[lift] = TextEditingController();
-    }
-    for (var lift in kGondolas) {
-      _controllers[lift] = TextEditingController();
-    }
-    for (var lift in kChairlifts) {
-      _controllers[lift] = TextEditingController();
-    }
-    for (var lift in kSkilifts) {
-      _controllers[lift] = TextEditingController();
-    }
-  }
-
-  void _loadDefaultPoints() {
-    // Load default values from kLiftDefaultPointsMap
-    _controllers.forEach((liftName, controller) {
-      final points = kLiftDefaultPointsMap[liftName] ?? 0;
-      controller.text = points.toString();
-      _lastSavedPoints[liftName] = points;
-    });
-  }
-
+  /// Save all lift points to Firebase in a single batch operation
   Future<void> _savePoints() async {
+    safeSetState(() => _isLoading = true);
+
     try {
-      safeSetState(() {
-        _isLoading = true;
-      });
+      final liftsPoints = <String, int>{};
+      final liftsTypes = <String, String>{};
 
-      // Prepare data for batch update
-      final Map<String, int> liftsPoints = {};
-      final Map<String, String> liftsTypes = {};
-
-      for (var entry in _controllers.entries) {
-        final liftName = entry.key;
-        final points = int.tryParse(entry.value.text) ?? 0;
+      // Gather all current values
+      _controllers.forEach((liftName, controller) {
+        final points = int.tryParse(controller.text) ?? 0;
 
         liftsPoints[liftName] = points;
-        liftsTypes[liftName] = _getLiftType(liftName);
+        liftsTypes[liftName] = kLiftTypeMap[liftName] ?? 'Unknown';
 
-        // Store as last saved
         _lastSavedPoints[liftName] = points;
-      }
+      });
 
-      // Save all lifts in one batch operation
+      // Batch save to Firebase
       await FirebaseManager.instance.updateAllLiftValuePoints(
         liftsPoints: liftsPoints,
         liftsTypes: liftsTypes,
@@ -117,151 +88,39 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         modifiedBy: widget.instructor.shortName,
       );
 
-      safeSetState(() {
-        _isLoading = false;
-      });
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBarSuccess(('Points saved successfully!'));
-        // Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBarSuccess('Points saved successfully!');
       }
     } catch (e) {
-      safeSetState(() {
-        _isLoading = false;
-      });
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBarError('Error saving points: $e');
       }
+    } finally {
+      safeSetState(() => _isLoading = false);
     }
   }
 
-  String _getLiftType(String liftName) {
-    if (kCableCars.contains(liftName)) return kCableCar;
-    if (kGondolas.contains(liftName)) return kGondola;
-    if (kChairlifts.contains(liftName)) return kChairlift;
-    if (kSkilifts.contains(liftName)) return kSkilift;
-    return 'Unknown';
-  }
-
+  /// Reset all points to default values from constants
   void _resetToDefaults() {
-    setState(() {
-      _controllers.forEach((liftName, controller) {
-        final points = kLiftDefaultPointsMap[liftName] ?? 0;
-        controller.text = points.toString();
-      });
-    });
+    _updateAllControllers((liftName) => kLiftDefaultPointsMap[liftName] ?? 0);
 
     ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to default values');
   }
 
+  /// Reset all points to last saved values
   void _resetToLastSaved() {
-    setState(() {
-      _controllers.forEach((liftName, controller) {
-        final points = _lastSavedPoints[liftName] ?? 0;
-        controller.text = points.toString();
-      });
-    });
+    _updateAllControllers((liftName) => _lastSavedPoints[liftName] ?? 0);
 
     ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to last saved values');
   }
 
-  @override
-  void dispose() {
-    _controllers.forEach((key, controller) {
-      controller.dispose();
+  /// Helper method to update all controllers with values from a function
+  void _updateAllControllers(int Function(String) getPoints) {
+    safeSetState(() {
+      _controllers.forEach((liftName, controller) {
+        controller.text = getPoints(liftName).toString();
+      });
     });
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Lift Points'),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                children: [
-                  // Cable Cars
-                  ..._buildLiftSection(kCableCars, kCableCarIcon),
-
-                  // Gondolas
-                  ..._buildLiftSection(kGondolas, kGondolaIcon),
-
-                  // Chairlifts
-                  ..._buildLiftSection(kChairlifts, kChairliftIcon),
-
-                  // Skilifts
-                  ..._buildLiftSection(kSkilifts, kSkiliftIcon),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Reset buttons row
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _resetToDefaults,
-                    icon: const Icon(Icons.restart_alt, size: 20),
-                    label: const Text('Reset Defaults'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _resetToLastSaved,
-                    icon: const Icon(Icons.history, size: 20),
-                    label: const Text('Reset Last Saved'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Save button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _savePoints,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kAppSeedColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text(
-                  'Save Lift Points',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-                ),
-              ],
-            ),
-          ),
-          // Loading indicator overlay
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
   List<Widget> _buildLiftSection(List<String> lifts, String icon) {
@@ -377,5 +236,100 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
         controller.text = (currentValue - 1).toString();
       }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Lift Points'),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [
+                      // Cable Cars
+                      ..._buildLiftSection(kCableCars, kCableCarIcon),
+
+                      // Gondolas
+                      ..._buildLiftSection(kGondolas, kGondolaIcon),
+
+                      // Chairlifts
+                      ..._buildLiftSection(kChairlifts, kChairliftIcon),
+
+                      // Skilifts
+                      ..._buildLiftSection(kSkilifts, kSkiliftIcon),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Reset buttons row
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _resetToDefaults,
+                        icon: const Icon(Icons.restart_alt, size: 20),
+                        label: const Text('Reset Defaults'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _resetToLastSaved,
+                        icon: const Icon(Icons.history, size: 20),
+                        label: const Text('Reset Last Saved'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Save button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _savePoints,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kAppSeedColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text(
+                      'Save Lift Points',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Loading indicator overlay
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controllers.forEach((key, controller) {
+      controller.dispose();
+    });
+    super.dispose();
   }
 }
