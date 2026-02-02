@@ -69,9 +69,6 @@ class SkiGroupSummaryModal {
     List<Participant> students,
     String groupName,
   ) {
-    // Store the summary text when it's ready
-    String? summaryText;
-
     return WoltModalSheetPage(
       topBarTitle: Text(
         'Group Summary',
@@ -86,54 +83,18 @@ class SkiGroupSummaryModal {
         onPressed: () => Navigator.of(modalSheetContext).pop(),
       ),
       hasSabGradient: true,
-      stickyActionBar: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ElevatedButton.icon(
-          onPressed: () => _copySummaryToClipboard(modalSheetContext, summaryText),
-          icon: const Icon(Icons.copy),
-          label: const Text('Copy Summary to Clipboard'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kAppSeedColor,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.maxFinite, 56),
-          ),
-        ),
-      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0).add(const EdgeInsets.only(bottom: 56 + 16)),
+        padding: const EdgeInsets.all(16.0),
         child: SkiGroupSummaryContent(
           campId: campId,
           instructor: instructor,
           students: students,
           groupName: groupName,
-          onSummaryReady: (text) {
-            summaryText = text; // Store the summary text when ready
+          onCopyButtonPressed: () {
+            Navigator.of(modalSheetContext).pop();
           },
         ),
       ),
     );
-  }
-
-  static Future<void> _copySummaryToClipboard(
-    BuildContext context,
-    String? summaryText,
-  ) async {
-    if (summaryText == null) {
-      // Data not ready yet
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBarError('Please wait for data to load');
-      }
-      return;
-    }
-
-    // Copy the summary text to clipboard
-    await Clipboard.setData(ClipboardData(text: summaryText));
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBarSuccess('Summary copied to clipboard!');
-
-      // close the modal
-      Navigator.of(context).pop();
-    }
   }
 }

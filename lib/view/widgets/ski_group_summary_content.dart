@@ -1,15 +1,16 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 
 class SkiGroupSummaryContent extends StatefulWidget {
   final String campId;
   final List<Participant> students;
   final String groupName;
   final Instructor instructor;
-  final ValueChanged<String>? onSummaryReady; // Callback when summary text is ready
+  final VoidCallback? onCopyButtonPressed;
 
   const SkiGroupSummaryContent({
     super.key,
@@ -17,7 +18,7 @@ class SkiGroupSummaryContent extends StatefulWidget {
     required this.instructor,
     required this.students,
     required this.groupName,
-    this.onSummaryReady,
+    this.onCopyButtonPressed,
   });
 
   @override
@@ -35,10 +36,21 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     _loadPointsForAllStudents();
   }
 
+  Future<void> _copySummaryToClipboard() async {
+    final summaryText = _generateSummaryText();
+    await Clipboard.setData(ClipboardData(text: summaryText));
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBarSuccess('Summary copied to clipboard!');
+    }
+
+    widget.onCopyButtonPressed?.call();
+  }
+
   // Generate summary text using already calculated points (avoids duplicate Firebase calls)
   String _generateSummaryText() {
     final buffer = StringBuffer();
-    
+
     buffer.writeln('${widget.groupName} - Group Summary');
     buffer.writeln('Date: ${DateTime.now().toString().split(' ')[0]}');
     buffer.writeln('');
@@ -101,11 +113,6 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        
-        // Call the callback with the generated summary text
-        if (widget.onSummaryReady != null) {
-          widget.onSummaryReady!(_generateSummaryText());
-        }
       }
     }
   }
@@ -130,21 +137,20 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
               ),
 
               // Points
-              if (points > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: kAppSeedColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '$points pts',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: kAppSeedColor,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: kAppSeedColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$points pts',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: kAppSeedColor,
                   ),
                 ),
+              ),
             ],
           ),
         ),
@@ -166,14 +172,23 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
 
     return ListView.builder(
       shrinkWrap: true,
-      itemCount: widget.students.length + 2, // +1 for instructor +1 for total
+      itemCount: widget.students.length + 3, // +1 for instructor +1 for total +1 for button
       itemBuilder: (context, index) {
         // First row: Instructor
         if (index == 0) {
           return _buildRow(widget.instructor, index + 1, _totalPoints[widget.instructor.id] ?? 0);
         }
 
-        // Last row: Total
+        // Students rows
+        if (index <= widget.students.length) {
+          return _buildRow(
+            widget.students[index - 1],
+            index + 1,
+            _totalPoints[widget.students[index - 1].id] ?? 0,
+          );
+        }
+
+        // Total row
         if (index == widget.students.length + 1) {
           final totalPoints = _totalPoints.values.fold<int>(0, (sum, pts) => sum + pts);
           return Center(
@@ -189,11 +204,19 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
           );
         }
 
-        // Subsequent rows: Students
-        return _buildRow(
-          widget.students[index - 1],
-          index + 1,
-          _totalPoints[widget.students[index - 1].id] ?? 0,
+        // Last row: Button
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton.icon(
+            onPressed: _copySummaryToClipboard,
+            icon: const Icon(Icons.copy),
+            label: const Text('Copy Summary to Clipboard'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kAppSeedColor,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.maxFinite, 56),
+            ),
+          ),
         );
       },
     );
