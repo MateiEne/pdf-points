@@ -209,8 +209,16 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
     return Card(
       elevation: 2,
+      // if selected, color is card color; else default
+      color: isSelected
+          ? Color.lerp(
+              Theme.of(context).colorScheme.surface,
+              kAppSeedColor,
+              0.3,
+            )
+          : null,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(2.0),
         child: Row(
           children: [
             // Checkbox
@@ -227,12 +235,11 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                       }
                     },
             ),
-            const SizedBox(width: 8),
             // Lift Icon
             Image.asset(
               icon,
-              width: 36,
-              height: 36,
+              width: 24,
+              height: 24,
             ),
             const SizedBox(width: 12),
 
@@ -243,7 +250,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                 children: [
                   Text(
                     name,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -251,7 +258,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                     const SizedBox(height: 2),
                     Text(
                       _formatModificationInfo(liftInfo),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.grey.shade600,
                           ),
                     ),
@@ -259,7 +266,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
 
             // Points Controls
             Row(
@@ -270,17 +277,17 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                   onPressed: () => _decrementPoints(controller),
                   icon: const Icon(Icons.remove_circle_outline),
                   color: Colors.red.shade900,
-                  iconSize: 28,
+                  iconSize: 24,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
 
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
 
                 // Points display
                 Container(
-                  width: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                  width: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
@@ -288,21 +295,20 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                   child: Text(
                     controller.text,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
 
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
 
                 // Increase button
                 IconButton(
                   onPressed: () => _incrementPoints(controller),
                   icon: const Icon(Icons.add_circle_outline),
                   color: Colors.green.shade900,
-                  iconSize: 28,
+                  iconSize: 24,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -398,7 +404,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       body: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
                 Expanded(
@@ -451,15 +457,19 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _savePoints,
+                    onPressed: _selectedLifts.values.any((v) => v) ? _savePoints : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kAppSeedColor,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
                       maximumSize: const Size(double.infinity, 56),
                     ),
-                    child: const Text(
-                      'Update Lift Points',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    child: Text(
+                      _selectedLifts.values.any((v) => v)
+                          ? 'Update ${_selectedLifts.values.where((v) => v).length} Lifts Points'
+                          : 'Update Lifts Points',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
