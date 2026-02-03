@@ -55,7 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBarError(
         error.message ?? 'Authentication failed. Please try again.'
       );

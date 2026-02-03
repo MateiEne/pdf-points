@@ -7,7 +7,8 @@ import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
-import 'package:pdf_points/view/pages/instructor_home.dart';
+import 'package:pdf_points/view/pages/instructor_main_screen.dart';
+import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/widgets/user_image_picker.dart';
@@ -60,14 +61,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       // navigate to instructor's home screen
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => InstructorHomeScreen(instructor: instructor)),
+        MaterialPageRoute(builder: (_) => InstructorMainScreen(instructor: instructor)),
       );
     } on FirebaseAuthException catch (error) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBarSuccess(
         error.message ?? 'Authentication failed. Please try again.',
       );
@@ -135,7 +135,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 4),
-
                 Container(
                   margin: const EdgeInsets.only(
                     top: 30,

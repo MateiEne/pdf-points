@@ -6,7 +6,7 @@ import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/utils/dummy_data_utils.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
-import 'package:pdf_points/view/pages/instructor_home.dart';
+import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
 import 'package:pdf_points/view/pages/instructor_main_screen.dart';
 import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/view/pages/splash.dart';

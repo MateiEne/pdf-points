@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
-import 'package:pdf_points/view/pages/instructor_home.dart';
+import 'package:pdf_points/view/pages/instructor_camp_screen.dart';
+import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
+import 'package:pdf_points/view/pages/participants_screen.dart';
 
 class InstructorMainScreen extends StatefulWidget {
   final Instructor instructor;
@@ -61,7 +63,7 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
           navigator.pop();
           return;
         }
-        
+
         if (_selectedIndex != 2) {
           setState(() {
             _selectedIndex = 2;
@@ -77,8 +79,37 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
           index: _selectedIndex,
           children: [
             _buildNavigator(0, const Scaffold(body: Center(child: Text("Map Screen")))),
-            _buildNavigator(1, const Scaffold(body: Center(child: Text("Participants Screen")))),
-            _buildNavigator(2, InstructorHomeScreen(instructor: widget.instructor)),
+            _buildNavigator(
+              1,
+              InstructorSelectCampScreen(
+                instructor: widget.instructor,
+                onCampSelected: (camp) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ParticipantsScreen(campId: camp.id),
+                    ),
+                  );
+                },
+              ),
+            ),
+            _buildNavigator(
+              2,
+              InstructorSelectCampScreen(
+                instructor: widget.instructor,
+                onCampSelected: (camp) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InstructorCampScreen(
+                        instructor: widget.instructor,
+                        camp: camp,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             _buildNavigator(3, EditLiftPointsScreen(instructor: widget.instructor)),
             _buildNavigator(4, const Scaffold(body: Center(child: Text("More Screen")))),
           ],

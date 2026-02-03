@@ -4,22 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
-import 'package:pdf_points/view/pages/instructor_camp_screen.dart';
 import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/widgets/camp_card.dart';
 
-class InstructorHomeScreen extends StatefulWidget {
+class InstructorSelectCampScreen extends StatefulWidget {
   final Instructor instructor;
+  final Function(Camp) onCampSelected;
 
-  const InstructorHomeScreen({super.key, required this.instructor});
+  const InstructorSelectCampScreen({super.key, required this.instructor, required this.onCampSelected});
 
   @override
-  State<InstructorHomeScreen> createState() => _InstructorHomeScreenState();
+  State<InstructorSelectCampScreen> createState() => _InstructorSelectCampScreenState();
 }
 
-class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
+class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen> {
   bool _isLoading = true;
   List<Camp> _camps = [];
 
@@ -53,15 +53,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
       if (camps.length == 1 && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => InstructorCampScreen(
-                  instructor: widget.instructor,
-                  camp: camps.first,
-                ),
-              ),
-            );
+            widget.onCampSelected(camps.first);
           }
         });
       }
@@ -171,15 +163,7 @@ class _InstructorHomeScreenState extends State<InstructorHomeScreen> {
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => InstructorCampScreen(
-                                  instructor: widget.instructor,
-                                  camp: _camps[index],
-                                ),
-                              ),
-                            );
+                            widget.onCampSelected(_camps[index]);
                           },
                           child: CampCard(camp: _camps[index]),
                         );
