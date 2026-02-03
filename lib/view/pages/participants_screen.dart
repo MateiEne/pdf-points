@@ -38,10 +38,13 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
       appBar: AppBar(
         title: const Text('Participants'),
       ),
-      body: SearchParticipantContent(
-        key: _contentKey,
-        campId: widget.campId,
-        onSelected: _handleParticipantSelected,
+      body: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: SearchParticipantContent(
+          key: _contentKey,
+          campId: widget.campId,
+          onSelected: _handleParticipantSelected,
+        ),
       ),
     );
   }
