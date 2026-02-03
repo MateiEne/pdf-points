@@ -11,7 +11,7 @@ import 'package:pdf_points/view/widgets/camp_card.dart';
 
 class InstructorSelectCampScreen extends StatefulWidget {
   final Instructor instructor;
-  final Function(Camp) onCampSelected;
+  final Function(Camp, bool) onCampSelected;
 
   const InstructorSelectCampScreen({super.key, required this.instructor, required this.onCampSelected});
 
@@ -53,7 +53,7 @@ class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
       if (camps.length == 1 && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            widget.onCampSelected(camps.first);
+            widget.onCampSelected(camps.first, false);
           }
         });
       }
@@ -163,7 +163,7 @@ class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: () {
-                            widget.onCampSelected(_camps[index]);
+                            widget.onCampSelected(_camps[index], _camps.length > 1);
                           },
                           child: CampCard(camp: _camps[index]),
                         );

@@ -444,23 +444,27 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
 
           lifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-          return ExpansionTile(
-            shape: RoundedRectangleBorder(
-              side: BorderSide(
-                color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
-                width: 1,
+          return ListTileTheme(
+            minLeadingWidth: 0,
+            horizontalTitleGap: 8,
+            child: ExpansionTile(
+              shape: RoundedRectangleBorder(
+                side: BorderSide(
+                  color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
               ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            collapsedShape: RoundedRectangleBorder(
-              side: BorderSide(
-                color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
-                width: 1,
+              collapsedShape: RoundedRectangleBorder(
+                side: BorderSide(
+                  color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
               ),
-              borderRadius: BorderRadius.circular(8),
-            ),
+            tilePadding: const EdgeInsets.only(left: 8, right: 16, top: 4, bottom: 4),
             leading: Text(
-              "${index + 1}",
+              "${index + 1}.",
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
@@ -468,6 +472,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
               if (!isInstructor) _buildParticipantActions(participant),
               _buildLiftDetails(lifts, participant),
             ],
+          ),
           );
         },
       ),
@@ -707,7 +712,7 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       body: _isInitialLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(4.0),
               child: Stack(
                 children: [
                   // page content

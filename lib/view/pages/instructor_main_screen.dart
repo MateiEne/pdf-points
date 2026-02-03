@@ -83,13 +83,15 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
               1,
               InstructorSelectCampScreen(
                 instructor: widget.instructor,
-                onCampSelected: (camp) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ParticipantsScreen(campId: camp.id),
-                    ),
+                onCampSelected: (camp, hasMultiCamp) {
+                  final route = MaterialPageRoute(
+                    builder: (context) => ParticipantsScreen(campId: camp.id),
                   );
+                  if (hasMultiCamp) {
+                    _navigatorKeys[1].currentState?.push(route);
+                  } else {
+                    _navigatorKeys[1].currentState?.pushReplacement(route);
+                  }
                 },
               ),
             ),
@@ -97,16 +99,18 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
               2,
               InstructorSelectCampScreen(
                 instructor: widget.instructor,
-                onCampSelected: (camp) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InstructorCampScreen(
-                        instructor: widget.instructor,
-                        camp: camp,
-                      ),
+                onCampSelected: (camp, hasMultiCamp) {
+                  final route = MaterialPageRoute(
+                    builder: (context) => InstructorCampScreen(
+                      instructor: widget.instructor,
+                      camp: camp,
                     ),
                   );
+                  if (hasMultiCamp) {
+                    _navigatorKeys[2].currentState?.push(route);
+                  } else {
+                    _navigatorKeys[2].currentState?.pushReplacement(route);
+                  }
                 },
               ),
             ),
