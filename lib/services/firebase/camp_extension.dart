@@ -25,6 +25,18 @@ extension CampExtension on FirebaseManager {
     return snapshot.docs.map((doc) => Camp.fromSnapshot(doc)).toList();
   }
 
+  Future<List<Camp>> fetchActiveCamps() async {
+    final now = DateTime.now();
+    // Fetch all Camp documents and filter locally
+    // Firestore range queries on multiple fields are tricky without composite indexes
+    var snapshot = await FirebaseFirestore.instance.collection(kCampsCollection).get();
+
+    return snapshot.docs
+        .map((doc) => Camp.fromSnapshot(doc))
+        .where((camp) => camp.startDate.isBefore(now) && camp.endDate.isAfter(now))
+        .toList();
+  }
+
   Future<List<Camp>> fetchCampsForInstructor({required String instructorId}) async {
     var snapshot = await FirebaseFirestore.instance
         .collection(kCampsCollection)

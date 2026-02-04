@@ -91,4 +91,20 @@ extension LiftsExtension on FirebaseManager {
         .doc(liftId)
         .delete();
   }
+
+  Future<List<String>> fetchTodaysUsedLiftNames({required String campId}) async {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection(kCampsCollection)
+        .doc(campId)
+        .collection(kCampLiftsCollection)
+        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+        .get();
+
+    return snapshot.docs.map((doc) => doc.data()['name'] as String).toSet().toList();
+  }
 }

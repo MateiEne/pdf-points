@@ -25,6 +25,7 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
   final Map<String, int> _originalFirebasePoints = {}; // Track original values from Firebase
   final Map<String, LiftInfo> _liftInfoMap = {}; // Store complete LiftInfo for metadata
   final Map<String, bool> _selectedLifts = {}; // Track which lifts are selected for saving
+  Set<String> _usedLiftNames = {};
 
   StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
 
@@ -34,6 +35,25 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
     _initializeControllers();
     _listenToLiftPointsChanges();
+    _fetchUsedLifts();
+  }
+
+  Future<void> _fetchUsedLifts() async {
+    try {
+      final camps = await FirebaseManager.instance.fetchActiveCamps();
+      final allUsedLifts = <String>{};
+      for (var camp in camps) {
+        final used = await FirebaseManager.instance.fetchTodaysUsedLiftNames(campId: camp.id);
+        allUsedLifts.addAll(used);
+      }
+      if (mounted) {
+        safeSetState(() {
+          _usedLiftNames = allUsedLifts;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching used lifts: $e");
+    }
   }
 
   /// Initialize text controllers for all lift types
@@ -207,16 +227,26 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
     final isModified = currentPoints != firebasePoints;
     final isSelected = _selectedLifts[name] ?? false;
 
+    bool isUpdatedToday = false;
+    if (liftInfo != null) {
+      final now = DateTime.now();
+      final modifiedAt = liftInfo.modifiedAt;
+      isUpdatedToday = modifiedAt.year == now.year && modifiedAt.month == now.month && modifiedAt.day == now.day;
+    }
+
+    final isUsedToday = _usedLiftNames.contains(name);
+
+    Color? cardColor;
+    if (isUpdatedToday) {
+      cardColor = Colors.green.shade100;
+    } else if (isUsedToday) {
+      cardColor = Colors.red.shade100;
+    }
+
     return Card(
       elevation: 2,
       // if selected, color is card color; else default
-      color: isSelected
-          ? Color.lerp(
-              Theme.of(context).colorScheme.surface,
-              kAppSeedColor,
-              0.3,
-            )
-          : null,
+      color: cardColor,
       child: Padding(
         padding: const EdgeInsets.all(2.0),
         child: Row(
