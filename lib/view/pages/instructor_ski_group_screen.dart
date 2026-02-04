@@ -14,6 +14,7 @@ import 'package:pdf_points/modals/ski_group_summary.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/number_utils.dart';
+import 'package:pdf_points/utils/participant_action_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:styled_text/styled_text.dart';
@@ -220,27 +221,23 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
   }
 
   Future<void> _callStudent(Participant participant) async {
-    if (participant.phone == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBarError('This student has no phone number');
-      }
-      return;
-    }
+    final updatedParticipant = await ParticipantActionUtils.callOrUpdateParticipantPhone(
+      context: context,
+      campId: widget.camp.id,
+      participant: participant,
+    );
 
-    final Uri phoneUri = Uri(scheme: 'tel', path: participant.phone);
-
-    try {
-      if (await canLaunchUrl(phoneUri)) {
-        await launchUrl(phoneUri);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBarError('Cannot make phone call');
+    if (updatedParticipant != null) {
+      safeSetState(() {
+        int index = _students.indexWhere((p) => p.id == updatedParticipant.id);
+        if (index != -1) {
+          _students[index] = updatedParticipant;
         }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBarError('Error: ${e.toString()}');
-      }
+
+        if (_instructor.id == updatedParticipant.id) {
+          _instructor = updatedParticipant;
+        }
+      });
     }
   }
 

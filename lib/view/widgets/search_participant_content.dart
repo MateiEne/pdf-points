@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/add_participant.dart';
-import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/participant_action_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SearchParticipantContent extends StatefulWidget {
   const SearchParticipantContent({
@@ -117,40 +115,21 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
   }
 
   Future<void> _onCallPressed(Participant participant) async {
-    if (participant.phone == null) {
-      Participant? updatedParticipant = await UpdateParticipantModal.show(
-        context: context,
-        campId: widget.campId,
-        participant: participant,
-      );
+    var updatedParticipant = await ParticipantActionUtils.callOrUpdateParticipantPhone(
+      context: context,
+      campId: widget.campId,
+      participant: participant,
+    );
 
-      if (!mounted || updatedParticipant == null) return;
+    if (!mounted || updatedParticipant == null) return;
 
-      safeSetState(() {
-        int index = _allParticipants.indexWhere((p) => p.id == updatedParticipant.id);
-        if (index != -1) {
-          _allParticipants[index] = updatedParticipant;
-        }
-        _filterParticipantsByName();
-      });
-      return;
-    }
-
-    final Uri phoneUri = Uri(scheme: 'tel', path: participant.phone);
-
-    try {
-      if (await canLaunchUrl(phoneUri)) {
-        await launchUrl(phoneUri);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBarError('Cannot make phone call');
-        }
+    safeSetState(() {
+      int index = _allParticipants.indexWhere((p) => p.id == updatedParticipant.id);
+      if (index != -1) {
+        _allParticipants[index] = updatedParticipant;
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBarError('Error: ${e.toString()}');
-      }
-    }
+      _filterParticipantsByName();
+    });
   }
 
   @override
