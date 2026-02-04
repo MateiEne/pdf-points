@@ -1,82 +1,58 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
-import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
-import 'package:pdf_points/view/mixins/resumable_state.dart';
+import 'package:pdf_points/view/pages/instructor_main_screen.dart';
+import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/view/widgets/camp_card.dart';
 
 class InstructorSelectCampScreen extends StatefulWidget {
   final Instructor instructor;
-  final Function(Camp, bool) onCampSelected;
 
-  const InstructorSelectCampScreen({super.key, required this.instructor, required this.onCampSelected});
+  const InstructorSelectCampScreen({super.key, required this.instructor});
 
   @override
-  State<InstructorSelectCampScreen> createState() => InstructorSelectCampScreenState();
+  State<InstructorSelectCampScreen> createState() => _InstructorSelectCampScreenState();
 }
 
-class InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
-    with ResumableState<InstructorSelectCampScreen> {
+class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen> {
   bool _isLoading = true;
   List<Camp> _camps = [];
 
   @override
   void initState() {
     super.initState();
-
-    _startFirebaseEvents();
-  }
-
-  @override
-  void onResume() {
-    _fetchCamps();
-  }
-
-  Future<void> _startFirebaseEvents() async {
     _fetchCamps();
   }
 
   Future<void> _fetchCamps() async {
-    safeSetState(() {
-      _isLoading = true;
-    });
-
+    safeSetState(() => _isLoading = true);
     try {
-      List<Camp> camps = await FirebaseManager.instance.fetchCampsForInstructor(instructorId: widget.instructor.id);
-      camps = _sortCamps(camps);
+      final camps = await FirebaseManager.instance.fetchActiveCampsForInstructor(
+        instructorId: widget.instructor.id,
+      );
 
       safeSetState(() {
-        _isLoading = false;
-
         _camps = camps;
-      });
-
-      // Auto-navigate if instructor has only one camp
-      if (camps.length == 1 && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            widget.onCampSelected(camps.first, false);
-          }
-        });
-      }
-    } catch (e) {
-      safeSetState(() {
         _isLoading = false;
-        // TODO: better error handling
-        debugPrint(e.toString());
       });
+    } catch (e) {
+      debugPrint("Error fetching camps: $e");
+      safeSetState(() => _isLoading = false);
     }
   }
 
-  List<Camp> _sortCamps(List<Camp> camps) {
-    camps.sort((a, b) => a.startDate.compareTo(b.startDate));
-
-    return camps.toList();
+  void _onCampSelected(Camp camp) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => InstructorMainScreen(
+          instructor: widget.instructor,
+          camp: camp,
+        ),
+      ),
+    );
   }
 
   Widget _buildNoCampsContent(BuildContext context) {
@@ -111,6 +87,15 @@ class InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
     );
   }
 
+  Future<void> _onLogout() async {
+    await FirebaseManager.instance.signOut();
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
   Future<void> _openEnrollInstructorToCampDialog() async {
     var camp = await EnrollInstructorToCampModal.show(
       context: context,
@@ -129,18 +114,14 @@ class InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
       return;
     }
 
-    safeSetState(() {
-      _camps.add(camp);
-      _camps = _sortCamps(_camps);
-    });
-  }
-
-  Future<void> _onLogout() async {
-    await FirebaseManager.instance.signOut();
-    if (!mounted) return;
-
+    // Navigate to the main screen with the newly enrolled camp
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(
+        builder: (_) => InstructorMainScreen(
+          instructor: widget.instructor,
+          camp: camp,
+        ),
+      ),
     );
   }
 
@@ -148,7 +129,8 @@ class InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Select Camp'),
+        centerTitle: true,
         actions: [
           IconButton(
             onPressed: _onLogout,
@@ -156,38 +138,25 @@ class InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
           ),
         ],
       ),
-      drawer: const Drawer(),
-      body: RefreshIndicator(
-        onRefresh: _fetchCamps,
-        child: Center(
-          child: _isLoading
-              ? const CircularProgressIndicator()
-              : _camps.isEmpty
-                  ? _buildNoCampsContent(context)
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      itemCount: _camps.length,
-                      itemBuilder: (context, index) {
-                        return InkWell(
-                          onTap: () {
-                            widget.onCampSelected(_camps[index], _camps.length > 1);
-                          },
-                          child: CampCard(camp: _camps[index]),
-                        );
-                      },
-                    ),
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _camps.isEmpty
+              ? _buildNoCampsContent(context)
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  itemCount: _camps.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: () => _onCampSelected(_camps[index]),
+                      child: CampCard(camp: _camps[index]),
+                    );
+                  },
+                ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: _openEnrollInstructorToCampDialog,
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

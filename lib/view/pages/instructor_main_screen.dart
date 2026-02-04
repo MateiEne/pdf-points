@@ -5,13 +5,14 @@ import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/view/mixins/resumable_state.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
 import 'package:pdf_points/view/pages/instructor_ski_group_screen.dart';
-import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
+import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/view/pages/participants_screen.dart';
 
 class InstructorMainScreen extends StatefulWidget {
   final Instructor instructor;
+  final Camp camp;
 
-  const InstructorMainScreen({super.key, required this.instructor});
+  const InstructorMainScreen({super.key, required this.instructor, required this.camp});
 
   @override
   State<InstructorMainScreen> createState() => _InstructorMainScreenState();
@@ -29,8 +30,6 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
   ];
 
   final Map<int, GlobalKey<ResumableState>> _resumableKeys = {
-    1: GlobalKey<ResumableState>(),
-    2: GlobalKey<ResumableState>(),
     3: GlobalKey<ResumableState>(),
   };
 
@@ -94,39 +93,13 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
             _buildNavigator(0, const Scaffold(body: Center(child: Text("Map Screen")))),
             _buildNavigator(
               1,
-              InstructorSelectCampScreen(
-                key: _resumableKeys[1],
-                instructor: widget.instructor,
-                onCampSelected: (camp, hasMultiCamp) {
-                  final route = MaterialPageRoute(
-                    builder: (context) => ParticipantsScreen(campId: camp.id),
-                  );
-                  if (hasMultiCamp) {
-                    _navigatorKeys[1].currentState?.push(route);
-                  } else {
-                    _navigatorKeys[1].currentState?.pushReplacement(route);
-                  }
-                },
-              ),
+              ParticipantsScreen(campId: widget.camp.id),
             ),
             _buildNavigator(
               2,
-              InstructorSelectCampScreen(
-                key: _resumableKeys[2],
+              InstructorSkiGroupScreen(
                 instructor: widget.instructor,
-                onCampSelected: (camp, hasMultiCamp) {
-                  final route = MaterialPageRoute(
-                    builder: (context) => InstructorSkiGroupScreen(
-                      instructor: widget.instructor,
-                      camp: camp,
-                    ),
-                  );
-                  if (hasMultiCamp) {
-                    _navigatorKeys[2].currentState?.push(route);
-                  } else {
-                    _navigatorKeys[2].currentState?.pushReplacement(route);
-                  }
-                },
+                camp: widget.camp,
               ),
             ),
             _buildNavigator(

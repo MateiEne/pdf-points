@@ -7,6 +7,7 @@ import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
 import 'package:pdf_points/view/pages/instructor_main_screen.dart';
 import 'package:pdf_points/view/pages/register.dart';
 import 'package:pdf_points/view/pages/superuser_home.dart';
@@ -44,12 +45,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted || pdFUser == null) return;
 
-      // navigate to the user screen
-      final userHome = pdFUser is SuperUser
-          ? SuperUserHomeScreen(superUser: pdFUser)
-          : InstructorMainScreen(instructor: pdFUser as Instructor);
+      if (pdFUser is SuperUser) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => SuperUserHomeScreen(superUser: pdFUser)),
+        );
+        return;
+      }
 
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => userHome));
+      final instructor = pdFUser as Instructor;
+      final activeCamps = await FirebaseManager.instance.fetchActiveCampsForInstructor(instructorId: instructor.id);
+
+      if (!mounted) return;
+
+      if (activeCamps.length == 1) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => InstructorMainScreen(instructor: instructor, camp: activeCamps.first),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => InstructorSelectCampScreen(instructor: instructor),
+          ),
+        );
+      }
     } on FirebaseAuthException catch (error) {
       if (!mounted) {
         return;

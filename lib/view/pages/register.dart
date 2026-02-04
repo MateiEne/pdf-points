@@ -7,7 +7,6 @@ import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
-import 'package:pdf_points/view/pages/instructor_main_screen.dart';
 import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
@@ -59,9 +58,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted || instructor == null) return;
 
-      // navigate to instructor's home screen
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => InstructorMainScreen(instructor: instructor)),
+        MaterialPageRoute(builder: (_) => InstructorSelectCampScreen(instructor: instructor)),
       );
     } on FirebaseAuthException catch (error) {
       if (!mounted) {
