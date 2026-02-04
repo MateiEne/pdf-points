@@ -139,17 +139,24 @@ extension ParticipantsExtension on FirebaseManager {
         .collection(kCampParticipantsCollection)
         .doc(participant.id);
 
+    final groupName = skiGroupSnapshot.data()?['name'];
+
     await participantRef.update({
       'groupId': skiGroupId,
+      'groupName': groupName,
     });
 
-    return participant.copyWith(groupId: skiGroupId);
+    return participant.copyWith(
+      groupId: skiGroupId,
+      groupName: groupName,
+    );
   }
 
   Future<Participant> updateParticipantSkiGroup({
     required String campId,
     required String participantId,
     required String skiGroupId,
+    String? groupName,
   }) async {
     var participantRef = FirebaseFirestore.instance
         .collection(kCampsCollection)
@@ -160,6 +167,7 @@ extension ParticipantsExtension on FirebaseManager {
     // Update the groupId in the participant document
     await participantRef.update({
       'groupId': skiGroupId,
+      if (groupName != null) 'groupName': groupName,
     });
 
     // Get the participant document

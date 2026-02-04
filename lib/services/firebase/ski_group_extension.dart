@@ -113,6 +113,7 @@ extension SkiGroupExtension on FirebaseManager {
       campId: campId,
       participantId: instructorId,
       skiGroupId: skiGroup.id,
+      groupName: skiGroup.name,
     );
 
     // update the instructor ski group in the users collection
@@ -161,6 +162,9 @@ extension SkiGroupExtension on FirebaseManager {
         .doc(campId)
         .collection(kCampParticipantsCollection)
         .doc(participantId)
-        .update({'groupId': FieldValue.delete()});
+        .update({
+      'groupId': FieldValue.delete(),
+      'groupName': FieldValue.delete(),
+    });
   }
 }

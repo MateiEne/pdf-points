@@ -133,15 +133,15 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       _isLoading = true;
     });
 
-    FirebaseManager.instance.addParticipantToSkiGroup(
+    final updatedParticipant = await FirebaseManager.instance.addParticipantToSkiGroup(
       campId: widget.camp.id,
       skiGroupId: _skiGroup!.id,
       participant: participant,
     );
 
     safeSetState(() {
-      _skiGroup!.addStudent(participant);
-      _students = _sortStudents([..._students, participant]);
+      _skiGroup!.addStudent(updatedParticipant);
+      _students = _sortStudents([..._students, updatedParticipant]);
       _isLoading = false;
     });
   }

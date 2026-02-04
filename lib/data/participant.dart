@@ -12,6 +12,7 @@ class Participant implements PdFUser, LiftUser {
   final String? phone;
   final String? email;
   final String? groupId;
+  final String? groupName;
   final bool isInstructor;
 
   @override
@@ -36,6 +37,7 @@ class Participant implements PdFUser, LiftUser {
     this.phone,
     this.email,
     this.groupId,
+    this.groupName,
     this.isInstructor = false,
   }) : assert(firstName != null || lastName != null, 'Both firstName and lastName cannot be null at the same time.');
 
@@ -46,6 +48,7 @@ class Participant implements PdFUser, LiftUser {
     String? phone,
     String? email,
     String? groupId,
+    String? groupName,
     bool? isInstructor,
   }) {
     return Participant(
@@ -55,6 +58,7 @@ class Participant implements PdFUser, LiftUser {
       phone: phone ?? this.phone,
       email: email ?? this.email,
       groupId: groupId ?? this.groupId,
+      groupName: groupName ?? this.groupName,
       isInstructor: isInstructor ?? this.isInstructor,
     );
   }
@@ -72,6 +76,7 @@ class Participant implements PdFUser, LiftUser {
         other.phone == phone &&
         other.email == email &&
         other.groupId == groupId &&
+        other.groupName == groupName &&
         other.isInstructor == isInstructor;
   }
 
@@ -83,6 +88,7 @@ class Participant implements PdFUser, LiftUser {
         phone.hashCode ^
         email.hashCode ^
         groupId.hashCode ^
+        groupName.hashCode ^
         isInstructor.hashCode;
   }
 
@@ -94,6 +100,7 @@ class Participant implements PdFUser, LiftUser {
       'phone': phone,
       'email': email,
       'groupId': groupId,
+      'groupName': groupName,
       'isInstructor': isInstructor,
     };
   }
@@ -106,6 +113,7 @@ class Participant implements PdFUser, LiftUser {
       phone: json['phone'],
       email: json['email'],
       groupId: json['groupId'],
+      groupName: json['groupName'],
       isInstructor: json['isInstructor'] ?? false,
     );
   }
@@ -121,9 +129,9 @@ class Participant implements PdFUser, LiftUser {
   @override
   String toString() {
     if (isInstructor) {
-      return 'Instructor(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, email: $email groupId: $groupId)';
+      return 'Instructor(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, email: $email groupId: $groupId, groupName: $groupName)';
     }
 
-    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, email: $email groupId: $groupId)';
+    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, phone: $phone, email: $email groupId: $groupId, groupName: $groupName)';
   }
 }
