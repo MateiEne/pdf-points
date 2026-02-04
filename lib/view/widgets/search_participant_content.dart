@@ -4,6 +4,7 @@ import 'package:pdf_points/modals/add_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/participant_action_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
+import 'package:pdf_points/view/pages/participant_lifts_screen.dart';
 
 class SearchParticipantContent extends StatefulWidget {
   const SearchParticipantContent({
@@ -132,6 +133,17 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
     });
   }
 
+  void _onSeeLiftsPressed(Participant participant) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ParticipantLiftsScreen(
+          campId: widget.campId,
+          participant: participant,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -211,9 +223,7 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
                             TextButton.icon(
                               icon: const Icon(Icons.cable),
                               label: const Text("See Lifts"),
-                              onPressed: () {
-                                debugPrint("See Lifts pressed for ${participant.fullName}");
-                              },
+                              onPressed: () => _onSeeLiftsPressed(participant),
                             ),
                           ],
                         ),
