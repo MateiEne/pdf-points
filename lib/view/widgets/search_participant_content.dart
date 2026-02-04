@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/add_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
-import 'package:pdf_points/utils/pdf_points_exel_parser.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 
 class SearchParticipantContent extends StatefulWidget {
@@ -163,7 +162,10 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
                     Participant participant = _showParticipants[index];
                     return ListTile(
                       title: Text(participant.fullName),
-                      subtitle: Text(participant.phone ?? "No phone number"),
+                      subtitle: Text([
+                        participant.phone ?? "No phone number",
+                        if (participant.groupName != null) "Group: ${participant.groupName!}" else "No group",
+                      ].join("\n")),
                       leading: Text("${index + 1}"),
                       onTap: () => widget.onSelected(participant),
                     );

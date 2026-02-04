@@ -9,6 +9,7 @@ import 'package:pdf_points/view/pages/edit_lift_points.dart';
 import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
 import 'package:pdf_points/view/pages/instructor_main_screen.dart';
 import 'package:pdf_points/view/pages/login.dart';
+import 'package:pdf_points/view/pages/participants_screen.dart';
 import 'package:pdf_points/view/pages/splash.dart';
 import 'package:pdf_points/view/pages/superuser_home.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
@@ -68,7 +69,8 @@ class PdfPointsApp extends StatelessWidget {
                 return SuperUserHomeScreen(superUser: snapshot.data as SuperUser);
               } else {
                 // navigate to instructor screen
-                return InstructorMainScreen(instructor: snapshot.data as Instructor);
+                // return InstructorMainScreen(instructor: snapshot.data as Instructor);
+                return ParticipantsScreen(campId: "I2XwJMUGdW4IJQ5oJmDf");
               }
             },
           ),
