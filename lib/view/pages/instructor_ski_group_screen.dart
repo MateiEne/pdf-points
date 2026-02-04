@@ -19,17 +19,17 @@ import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class InstructorCampScreen extends StatefulWidget {
-  const InstructorCampScreen({super.key, required this.instructor, required this.camp});
+class InstructorSkiGroupScreen extends StatefulWidget {
+  const InstructorSkiGroupScreen({super.key, required this.instructor, required this.camp});
 
   final Instructor instructor;
   final Camp camp;
 
   @override
-  State<InstructorCampScreen> createState() => _InstructorCampScreenState();
+  State<InstructorSkiGroupScreen> createState() => _InstructorSkiGroupScreenState();
 }
 
-class _InstructorCampScreenState extends State<InstructorCampScreen> {
+class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
   bool _isLoading = false;
   bool _isInitialLoading = false;
   late Instructor _instructor = widget.instructor;
@@ -462,17 +462,17 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-            tilePadding: const EdgeInsets.only(left: 8, right: 16, top: 4, bottom: 4),
-            leading: Text(
-              "${index + 1}.",
-              style: Theme.of(context).textTheme.bodyLarge,
+              tilePadding: const EdgeInsets.only(left: 8, right: 16, top: 4, bottom: 4),
+              leading: Text(
+                "${index + 1}.",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
+              children: [
+                if (!isInstructor) _buildParticipantActions(participant),
+                _buildLiftDetails(lifts, participant),
+              ],
             ),
-            title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
-            children: [
-              if (!isInstructor) _buildParticipantActions(participant),
-              _buildLiftDetails(lifts, participant),
-            ],
-          ),
           );
         },
       ),
@@ -622,7 +622,8 @@ class _InstructorCampScreenState extends State<InstructorCampScreen> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove Lift'),
         content: StyledText(
-          text: 'Are you sure you want to remove this <bold>${lift.name} ${lift.type}</bold> from <bold>${participant.fullName}</bold>?',
+          text:
+              'Are you sure you want to remove this <bold>${lift.name} ${lift.type}</bold> from <bold>${participant.fullName}</bold>?',
           tags: {
             "bold": StyledTextTag(style: const TextStyle(fontWeight: FontWeight.w600)),
           },

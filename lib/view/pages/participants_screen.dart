@@ -16,21 +16,6 @@ class ParticipantsScreen extends StatefulWidget {
 }
 
 class _ParticipantsScreenState extends State<ParticipantsScreen> {
-  Key _contentKey = UniqueKey();
-
-  void _handleParticipantSelected(Participant participant) async {
-    final updatedParticipant = await UpdateParticipantModal.show(
-      context: context,
-      campId: widget.campId,
-      participant: participant,
-    );
-
-    if (updatedParticipant != null) {
-      setState(() {
-        _contentKey = UniqueKey();
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +26,7 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
       body: Padding(
         padding: const EdgeInsets.all(4.0),
         child: SearchParticipantContent(
-          key: _contentKey,
           campId: widget.campId,
-          onSelected: _handleParticipantSelected,
         ),
       ),
     );

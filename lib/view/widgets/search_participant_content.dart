@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/add_participant.dart';
+import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SearchParticipantContent extends StatefulWidget {
   const SearchParticipantContent({
     super.key,
     required this.campId,
-    required this.onSelected,
+    this.onSelected,
     this.excludeGroupId,
     this.addParticipantIfNotFound = true,
   });
 
   final String campId;
-  final void Function(Participant participant) onSelected;
+  final void Function(Participant participant)? onSelected;
   final String? excludeGroupId;
   final bool addParticipantIfNotFound;
 
@@ -110,7 +113,44 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
       _filterParticipantsByName();
     });
 
-    widget.onSelected(participant);
+    widget.onSelected?.call(participant);
+  }
+
+  Future<void> _onCallPressed(Participant participant) async {
+    if (participant.phone == null) {
+      Participant? updatedParticipant = await UpdateParticipantModal.show(
+        context: context,
+        campId: widget.campId,
+        participant: participant,
+      );
+
+      if (!mounted || updatedParticipant == null) return;
+
+      safeSetState(() {
+        int index = _allParticipants.indexWhere((p) => p.id == updatedParticipant.id);
+        if (index != -1) {
+          _allParticipants[index] = updatedParticipant;
+        }
+        _filterParticipantsByName();
+      });
+      return;
+    }
+
+    final Uri phoneUri = Uri(scheme: 'tel', path: participant.phone);
+
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBarError('Cannot make phone call');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBarError('Error: ${e.toString()}');
+      }
+    }
   }
 
   @override
@@ -160,14 +200,45 @@ class _SearchParticipantContentState extends State<SearchParticipantContent> {
                     }
 
                     Participant participant = _showParticipants[index];
-                    return ListTile(
+
+                    if (widget.onSelected != null) {
+                      return ListTile(
+                        title: Text(participant.fullName),
+                        subtitle: Text([
+                          participant.phone ?? "No phone number",
+                          if (participant.groupName != null) "Group: ${participant.groupName!}" else "No group",
+                        ].join("\n")),
+                        leading: Text("${index + 1}"),
+                        onTap: () => widget.onSelected!(participant),
+                      );
+                    }
+
+                    return ExpansionTile(
                       title: Text(participant.fullName),
                       subtitle: Text([
                         participant.phone ?? "No phone number",
                         if (participant.groupName != null) "Group: ${participant.groupName!}" else "No group",
                       ].join("\n")),
                       leading: Text("${index + 1}"),
-                      onTap: () => widget.onSelected(participant),
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            TextButton.icon(
+                              icon: Icon(participant.phone != null ? Icons.phone : Icons.add_call),
+                              label: Text(participant.phone != null ? "Call" : "Add Phone"),
+                              onPressed: () => _onCallPressed(participant),
+                            ),
+                            TextButton.icon(
+                              icon: const Icon(Icons.cable),
+                              label: const Text("See Lifts"),
+                              onPressed: () {
+                                debugPrint("See Lifts pressed for ${participant.fullName}");
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     );
                   },
                 ),

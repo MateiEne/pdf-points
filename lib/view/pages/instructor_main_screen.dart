@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
-import 'package:pdf_points/view/pages/instructor_camp_screen.dart';
+import 'package:pdf_points/view/pages/instructor_ski_group_screen.dart';
 import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
 import 'package:pdf_points/view/pages/participants_screen.dart';
 
@@ -17,7 +17,7 @@ class InstructorMainScreen extends StatefulWidget {
 }
 
 class _InstructorMainScreenState extends State<InstructorMainScreen> {
-  int _selectedIndex = 2; // Start at Home
+  int _selectedIndex = 1; // Start at Home
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
@@ -101,7 +101,7 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
                 instructor: widget.instructor,
                 onCampSelected: (camp, hasMultiCamp) {
                   final route = MaterialPageRoute(
-                    builder: (context) => InstructorCampScreen(
+                    builder: (context) => InstructorSkiGroupScreen(
                       instructor: widget.instructor,
                       camp: camp,
                     ),

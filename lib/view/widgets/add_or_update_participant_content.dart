@@ -219,8 +219,8 @@ class _AddOrUpdateParticipantContentWidgetState extends State<AddOrUpdatePartici
               maximumSize: const Size(double.maxFinite, 56),
             ),
             onPressed: _validData() ? _onAddParticipant : null,
-            child: const Center(
-              child: Text('Add Participant'),
+            child: Center(
+              child: Text(widget.participantId != null ? 'Update Participant' : 'Add Participant'),
             ),
           ),
         ],
