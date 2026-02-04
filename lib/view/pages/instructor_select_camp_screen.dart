@@ -7,6 +7,7 @@ import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
 import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
+import 'package:pdf_points/view/mixins/resumable_state.dart';
 import 'package:pdf_points/view/widgets/camp_card.dart';
 
 class InstructorSelectCampScreen extends StatefulWidget {
@@ -16,10 +17,11 @@ class InstructorSelectCampScreen extends StatefulWidget {
   const InstructorSelectCampScreen({super.key, required this.instructor, required this.onCampSelected});
 
   @override
-  State<InstructorSelectCampScreen> createState() => _InstructorSelectCampScreenState();
+  State<InstructorSelectCampScreen> createState() => InstructorSelectCampScreenState();
 }
 
-class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen> {
+class InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
+    with ResumableState<InstructorSelectCampScreen> {
   bool _isLoading = true;
   List<Camp> _camps = [];
 
@@ -28,6 +30,11 @@ class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
     super.initState();
 
     _startFirebaseEvents();
+  }
+
+  @override
+  void onResume() {
+    _fetchCamps();
   }
 
   Future<void> _startFirebaseEvents() async {

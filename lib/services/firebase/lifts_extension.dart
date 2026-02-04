@@ -10,12 +10,8 @@ extension LiftsExtension on FirebaseManager {
     required String participantId,
     required String instructorId,
   }) async {
-    var id = FirebaseFirestore.instance
-        .collection(kCampsCollection)
-        .doc(campId)
-        .collection(kCampLiftsCollection)
-        .doc()
-        .id;
+    var id =
+        FirebaseFirestore.instance.collection(kCampsCollection).doc(campId).collection(kCampLiftsCollection).doc().id;
 
     await FirebaseFirestore.instance
         .collection(kCampsCollection)

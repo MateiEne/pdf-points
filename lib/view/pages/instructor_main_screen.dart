@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/view/mixins/resumable_state.dart';
 import 'package:pdf_points/view/pages/edit_lift_points.dart';
 import 'package:pdf_points/view/pages/instructor_ski_group_screen.dart';
 import 'package:pdf_points/view/pages/instructor_select_camp_screen.dart';
@@ -27,6 +28,12 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
     GlobalKey<NavigatorState>(),
   ];
 
+  final Map<int, GlobalKey<ResumableState>> _resumableKeys = {
+    1: GlobalKey<ResumableState>(),
+    2: GlobalKey<ResumableState>(),
+    3: GlobalKey<ResumableState>(),
+  };
+
   void _onItemTapped(int index) {
     if (_selectedIndex == index) {
       // If tapping the active tab, pop to the first route
@@ -35,6 +42,12 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
       setState(() {
         _selectedIndex = index;
       });
+
+      // Call onResume on the selected tab's state.
+      // This is necessary because IndexedStack preserves the state of its children,
+      // so initState is not called again when switching tabs.
+      // onResume allows the screen to refresh its data (e.g. re-fetch from Firebase).
+      _resumableKeys[index]?.currentState?.onResume();
     }
   }
 
@@ -82,6 +95,7 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
             _buildNavigator(
               1,
               InstructorSelectCampScreen(
+                key: _resumableKeys[1],
                 instructor: widget.instructor,
                 onCampSelected: (camp, hasMultiCamp) {
                   final route = MaterialPageRoute(
@@ -98,6 +112,7 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
             _buildNavigator(
               2,
               InstructorSelectCampScreen(
+                key: _resumableKeys[2],
                 instructor: widget.instructor,
                 onCampSelected: (camp, hasMultiCamp) {
                   final route = MaterialPageRoute(
@@ -114,7 +129,13 @@ class _InstructorMainScreenState extends State<InstructorMainScreen> {
                 },
               ),
             ),
-            _buildNavigator(3, EditLiftPointsScreen(instructor: widget.instructor)),
+            _buildNavigator(
+              3,
+              EditLiftPointsScreen(
+                key: _resumableKeys[3],
+                instructor: widget.instructor,
+              ),
+            ),
             _buildNavigator(4, const Scaffold(body: Center(child: Text("More Screen")))),
           ],
         ),

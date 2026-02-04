@@ -7,6 +7,7 @@ import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:pdf_points/view/mixins/resumable_state.dart';
 
 class EditLiftPointsScreen extends StatefulWidget {
   final Instructor instructor;
@@ -14,10 +15,10 @@ class EditLiftPointsScreen extends StatefulWidget {
   const EditLiftPointsScreen({super.key, required this.instructor});
 
   @override
-  State<EditLiftPointsScreen> createState() => _EditLiftPointsScreenState();
+  State<EditLiftPointsScreen> createState() => EditLiftPointsScreenState();
 }
 
-class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
+class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with ResumableState<EditLiftPointsScreen> {
   bool _isLoading = true;
 
   final Map<String, TextEditingController> _controllers = {};
@@ -35,10 +36,16 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
 
     _initializeControllers();
     _listenToLiftPointsChanges();
-    _fetchUsedLifts();
+    fetchUsedLifts();
   }
 
-  Future<void> _fetchUsedLifts() async {
+  @override
+  void onResume() {
+    fetchUsedLifts();
+  }
+
+  Future<void> fetchUsedLifts() async {
+    safeSetState(() => _isLoading = true);
     try {
       final camps = await FirebaseManager.instance.fetchActiveCamps();
       final allUsedLifts = <String>{};
@@ -53,6 +60,8 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       }
     } catch (e) {
       debugPrint("Error fetching used lifts: $e");
+    } finally {
+      if (mounted) safeSetState(() => _isLoading = false);
     }
   }
 
@@ -430,6 +439,12 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
       appBar: AppBar(
         title: const Text('Edit Lift Points'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: fetchUsedLifts,
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -438,20 +453,23 @@ class _EditLiftPointsScreenState extends State<EditLiftPointsScreen> {
             child: Column(
               children: [
                 Expanded(
-                  child: ListView(
-                    children: [
-                      // Cable Cars
-                      ..._buildLiftSection(kCableCars, kCableCarIcon),
+                  child: RefreshIndicator(
+                    onRefresh: fetchUsedLifts,
+                    child: ListView(
+                      children: [
+                        // Cable Cars
+                        ..._buildLiftSection(kCableCars, kCableCarIcon),
 
-                      // Gondolas
-                      ..._buildLiftSection(kGondolas, kGondolaIcon),
+                        // Gondolas
+                        ..._buildLiftSection(kGondolas, kGondolaIcon),
 
-                      // Chairlifts
-                      ..._buildLiftSection(kChairlifts, kChairliftIcon),
+                        // Chairlifts
+                        ..._buildLiftSection(kChairlifts, kChairliftIcon),
 
-                      // Skilifts
-                      ..._buildLiftSection(kSkilifts, kSkiliftIcon),
-                    ],
+                        // Skilifts
+                        ..._buildLiftSection(kSkilifts, kSkiliftIcon),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
