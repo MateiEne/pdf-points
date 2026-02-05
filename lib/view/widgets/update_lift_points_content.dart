@@ -55,7 +55,7 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
       return;
     }
 
-    await FirebaseManager.instance.addLiftValuePoints(
+    await FirebaseManager.instance.updateLiftValuePoints(
       liftName: widget.liftInfo.name,
       points: points,
       type: kLiftTypeMap[widget.liftInfo.name] ?? 'Unknown',
@@ -89,9 +89,7 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
             onDecrement: _decrementPoints,
             onIncrement: _incrementPoints,
           ),
-
           const SizedBox(height: 16),
-          
           ElevatedAutoLoadingButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: kAppSeedColor,

@@ -10,7 +10,7 @@ class DummyDataUtils {
 
   Future<void> addLiftValuePoints() async {
     kLiftDefaultPointsMap.forEach((liftType, points) async {
-      await FirebaseManager.instance.addLiftValuePoints(
+      await FirebaseManager.instance.updateLiftValuePoints(
         liftName: liftType,
         points: points,
         type: kLiftTypeMap[liftType] ?? 'Unknown',

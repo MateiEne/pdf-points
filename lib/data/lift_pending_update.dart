@@ -1,29 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LiftPendingUpdate {
-  final String id;
   final String name;
-  final int currentPoints;
 
   LiftPendingUpdate({
-    required this.id,
     required this.name,
-    required this.currentPoints,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
-      'currentPoints': currentPoints,
     };
   }
 
   factory LiftPendingUpdate.fromJson(Map<String, dynamic> json) {
     return LiftPendingUpdate(
-      id: json['id'],
       name: json['name'],
-      currentPoints: json['currentPoints'],
     );
   }
 
@@ -33,6 +25,6 @@ class LiftPendingUpdate {
 
   @override
   String toString() {
-    return 'LiftPendingUpdate{id: $id, name: $name, currentPoints: $currentPoints}';
+    return 'LiftPendingUpdate{name: $name}';
   }
 }

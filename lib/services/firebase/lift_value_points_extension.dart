@@ -3,14 +3,14 @@ part of 'firebase_manager.dart';
 const kLiftValuePointsCollection = 'lift-points';
 
 extension LiftValuePointsExtension on FirebaseManager {
-  Future<void> addLiftValuePoints({
+  Future<void> updateLiftValuePoints({
     required String liftName,
     required int points,
     required String type,
     required DateTime modifiedAt,
     required String modifiedBy,
   }) async {
-    // add a new lift value point document with the id the same as the lift name
+    // update a lift value point document with the id the same as the lift name
     await FirebaseFirestore.instance.collection(kLiftValuePointsCollection).doc(liftName).set({
       'name': liftName,
       'points': points,
@@ -18,6 +18,9 @@ extension LiftValuePointsExtension on FirebaseManager {
       'modifiedAt': modifiedAt,
       'modifiedBy': modifiedBy,
     });
+
+    // remove the lift from today's pending lifts update collection
+    await deleteTodaysPendingLiftUpdate(liftName);
   }
 
   Future<List<LiftInfo>> fetchAllLiftsInfo() async {
@@ -44,10 +47,10 @@ extension LiftValuePointsExtension on FirebaseManager {
   }) async {
     // Use batch writes for efficiency - all updates in one transaction
     final batch = FirebaseFirestore.instance.batch();
-    
+
     liftsPoints.forEach((liftName, points) {
       final docRef = FirebaseFirestore.instance.collection(kLiftValuePointsCollection).doc(liftName);
-      
+
       batch.set(docRef, {
         'name': liftName,
         'points': points,
@@ -56,9 +59,12 @@ extension LiftValuePointsExtension on FirebaseManager {
         'modifiedBy': modifiedBy,
       });
     });
-    
+
     // Commit all updates at once
     await batch.commit();
+
+    // remove all lifts from today's pending lifts update collection
+    await deleteTodaysPendingLiftsUpdate(liftsPoints: liftsPoints);
   }
 
   /// Listen to real-time updates for all lift points

@@ -7,12 +7,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/lift_info.dart';
+import 'package:pdf_points/data/lift_pending_update.dart';
 import 'package:pdf_points/data/lift_participant_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/services/firebase/change_listener.dart';
+import 'package:pdf_points/utils/date_utils.dart';
 
 part 'auth_extension.dart';
 part 'camp_extension.dart';
@@ -21,6 +23,7 @@ part 'participants_extension.dart';
 part 'ski_group_extension.dart';
 part 'user_extension.dart';
 part 'lift_value_points_extension.dart';
+part 'todays_pending_lifts_update_extension.dart';
 
 class FirebaseManager {
   static final FirebaseManager _instance = FirebaseManager._();

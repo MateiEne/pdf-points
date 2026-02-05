@@ -34,4 +34,12 @@ extension DateTimeUtils on DateTime {
   static DateTime today() {
     return DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
   }
+
+  DateTime toEndOfDay() {
+    return copyWith(hour: 23, minute: 59, second: 59, millisecond: 999, microsecond: 999);
+  }
+
+  DateTime toBeginningOfDay() {
+    return copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+  }
 }

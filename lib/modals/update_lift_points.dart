@@ -10,8 +10,8 @@ class UpdateLiftPointsModal {
     required BuildContext context,
     required LiftInfo liftInfo,
     required Instructor instructor,
-  }) async {
-    WoltModalSheet.show(
+  }) {
+    return WoltModalSheet.show(
       context: context,
       pageListBuilder: (modalSheetContext) => [
         WoltModalSheetPage(

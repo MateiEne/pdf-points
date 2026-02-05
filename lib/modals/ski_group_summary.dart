@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/data/ski_group.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
-import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/widgets/ski_group_summary_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 

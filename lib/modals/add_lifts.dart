@@ -223,7 +223,10 @@ class AddLiftsModal {
       return;
     }
 
-    if (context.mounted && liftInfo.isNotFromToday()) {
+    if (context.mounted && liftInfo.isNotModifiedToday()) {
+      // add this lift to the today's pending lifts update collection if the lift info was not modified today
+      await FirebaseManager.instance.addTodaysPendingLiftUpdate(liftName: liftName);
+
       UpdateLiftPointsModal.show(
         context: context,
         liftInfo: liftInfo,
@@ -236,13 +239,13 @@ class AddLiftsModal {
     String campId,
     Instructor instructor,
     List<LiftUser> selectedLiftUsers,
-    String lift,
+    String liftName,
     String liftType,
   ) async {
     for (final liftUser in selectedLiftUsers) {
       await FirebaseManager.instance.addLift(
         campId: campId,
-        liftName: lift,
+        liftName: liftName,
         liftType: liftType,
         participantId: liftUser.id,
         instructorId: instructor.id,

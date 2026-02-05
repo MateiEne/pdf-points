@@ -39,13 +39,13 @@ class LiftInfo {
     return LiftInfo.fromJson(snapshot.data() as Map<String, dynamic>);
   }
 
-  bool isFromToday() {
+  bool isModifiedToday() {
     final now = DateTime.now();
     return modifiedAt.year == now.year && modifiedAt.month == now.month && modifiedAt.day == now.day;
   }
 
-  bool isNotFromToday() {
-    return !isFromToday();
+  bool isNotModifiedToday() {
+    return !isModifiedToday();
   }
 
   String getStatusInfo() {

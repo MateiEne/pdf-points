@@ -82,8 +82,8 @@ extension CampExtension on FirebaseManager {
       id: campRef.id,
       name: name,
       password: password,
-      startDate: startDate,
-      endDate: endDate,
+      startDate: startDate.toBeginningOfDay(),
+      endDate: endDate.toEndOfDay(),
     );
 
     // Save the main Camp document

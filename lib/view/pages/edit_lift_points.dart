@@ -236,10 +236,10 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
 
     return LiftPointsRow(
       liftName: name,
-      liftSubtitle:  liftInfo?.getStatusInfo(),
+      liftSubtitle: liftInfo?.getStatusInfo(),
       isSelected: isSelected,
       isModified: isModified,
-      isUpdatedToday: liftInfo?.isFromToday() ?? false,
+      isUpdatedToday: liftInfo?.isModifiedToday() ?? false,
       controller: controller,
       onChanged: (value) {
         if (!isModified) {
