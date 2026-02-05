@@ -15,6 +15,7 @@ class LiftPointsRow extends StatelessWidget {
     required this.onIncrement,
     this.onChanged,
     this.showCheckbox = true,
+    this.isLarge = false,
   });
 
   final String liftName;
@@ -28,6 +29,7 @@ class LiftPointsRow extends StatelessWidget {
   final VoidCallback onIncrement;
   final bool isUsedToday;
   final bool showCheckbox;
+  final bool isLarge;
 
   String _getLiftType(String liftName) {
     if (kCableCars.contains(liftName)) return kCableCar;
@@ -77,8 +79,8 @@ class LiftPointsRow extends StatelessWidget {
                 : const SizedBox(width: 10),
             Image.asset(
               _getLiftIcon(_getLiftType(liftName)),
-              width: 24,
-              height: 24,
+              width: isLarge ? 32 : 24,
+              height: isLarge ? 32 : 24,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -87,23 +89,31 @@ class LiftPointsRow extends StatelessWidget {
                 children: [
                   Text(
                     liftName,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: isLarge
+                        ? Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            )
+                        : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                   ),
                   if (liftSubtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       liftSubtitle!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
+                      style: isLarge
+                          ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey.shade600,
+                              )
+                          : Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.grey.shade600,
+                              ),
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: isLarge ? 6 : 4),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -111,7 +121,7 @@ class LiftPointsRow extends StatelessWidget {
                   onPressed: onDecrement,
                   icon: const Icon(Icons.remove_circle_outline),
                   color: Colors.red.shade900,
-                  iconSize: 24,
+                  iconSize: isLarge ? 32 : 24,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -126,9 +136,13 @@ class LiftPointsRow extends StatelessWidget {
                   child: Text(
                     controller.text,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: isLarge
+                        ? Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            )
+                        : Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -136,7 +150,7 @@ class LiftPointsRow extends StatelessWidget {
                   onPressed: onIncrement,
                   icon: const Icon(Icons.add_circle_outline),
                   color: Colors.green.shade900,
-                  iconSize: 24,
+                  iconSize: isLarge ? 32 : 24,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),

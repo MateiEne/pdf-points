@@ -84,6 +84,7 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
             isUpdatedToday: false,
             isUsedToday: false,
             showCheckbox: false,
+            isLarge: true,
             controller: _controller,
             onDecrement: _decrementPoints,
             onIncrement: _incrementPoints,
