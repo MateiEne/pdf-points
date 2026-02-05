@@ -39,6 +39,15 @@ class LiftInfo {
     return LiftInfo.fromJson(snapshot.data() as Map<String, dynamic>);
   }
 
+  bool isFromToday() {
+    final now = DateTime.now();
+    return modifiedAt.year == now.year && modifiedAt.month == now.month && modifiedAt.day == now.day;
+  }
+
+  bool isNotFromToday() {
+    return !isFromToday();
+  }
+
   @override
   String toString() {
     return 'LiftInfo{name: $name, type: $type, points: $points, modifiedAt: $modifiedAt, modifiedBy: $modifiedBy}';

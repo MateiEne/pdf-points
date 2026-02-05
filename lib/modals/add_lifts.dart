@@ -4,9 +4,12 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/widgets/lift_users_selector_widget.dart';
 import 'package:pdf_points/view/widgets/lifts_selector_widget.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
+
+import 'update_lift_points.dart';
 
 class AddLiftsModal {
   static String _defaultLift = kGondolas.first;
@@ -168,6 +171,8 @@ class AddLiftsModal {
                       if (!modalSheetContext.mounted) return;
 
                       Navigator.of(modalSheetContext).pop();
+
+                      _showUpdateLiftPointsModalIfNeeded(modalSheetContext, _defaultLift, instructor);
                     }
                   : null,
               child: const Text('Add Lifts'),
@@ -206,6 +211,27 @@ class AddLiftsModal {
     );
   }
 
+  static void _showUpdateLiftPointsModalIfNeeded(BuildContext context, String liftName, Instructor instructor) async {
+    final liftInfo = await FirebaseManager.instance.fetchLiftInfo(liftName);
+    if (liftInfo == null) {
+      if (context.mounted) {
+        // TODO: better error handling
+        ScaffoldMessenger.of(context).showSnackBarError(
+          "Failed to fetch lift info for '$liftName'. Please try updating the points manually.",
+        );
+      }
+      return;
+    }
+
+    if (context.mounted && liftInfo.isNotFromToday()) {
+      UpdateLiftPointsModal.show(
+        context: context,
+        liftInfo: liftInfo,
+        instructor: instructor,
+      );
+    }
+  }
+
   static Future<void> _addLifts(
     String campId,
     Instructor instructor,
@@ -216,10 +242,10 @@ class AddLiftsModal {
     for (final liftUser in selectedLiftUsers) {
       await FirebaseManager.instance.addLift(
         campId: campId,
-          liftName: lift,
-          liftType: liftType,
-          participantId: liftUser.id,
-          instructorId: instructor.id,
+        liftName: lift,
+        liftType: liftType,
+        participantId: liftUser.id,
+        instructorId: instructor.id,
       );
     }
   }
