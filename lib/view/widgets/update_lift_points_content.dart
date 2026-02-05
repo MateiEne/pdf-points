@@ -58,17 +58,7 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            "Instalația '${widget.liftInfo.name}' nu are punctajul actualizat pentru azi. Știi cât costă?",
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: "Points"),
-          ),
+          // Use lift_points_row widget
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

@@ -8,6 +8,7 @@ import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/mixins/resumable_state.dart';
+import 'package:pdf_points/view/widgets/lift_points_row.dart';
 
 class EditLiftPointsScreen extends StatefulWidget {
   final Instructor instructor;
@@ -209,12 +210,11 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
     ScaffoldMessenger.of(context).showSnackBarSuccess('Reset to last saved values');
   }
 
-  List<Widget> _buildLiftSection(List<String> lifts, String icon) {
+  List<Widget> _buildLiftSection(List<String> lifts) {
     List<Widget> widgets = [];
     for (var lift in lifts) {
       widgets.add(
         _buildLiftPointRow(
-          icon: icon,
           name: lift,
           controller: _controllers[lift]!,
         ),
@@ -225,137 +225,31 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
   }
 
   Widget _buildLiftPointRow({
-    required String icon,
     required String name,
     required TextEditingController controller,
   }) {
     final liftInfo = _liftInfoMap[name];
-    final hasModificationInfo = liftInfo != null;
     final currentPoints = int.tryParse(controller.text) ?? 0;
     final firebasePoints = _originalFirebasePoints[name] ?? _lastSavedPoints[name] ?? 0;
     final isModified = currentPoints != firebasePoints;
     final isSelected = _selectedLifts[name] ?? false;
 
-    bool isUpdatedToday = false;
-    if (liftInfo != null) {
-      final now = DateTime.now();
-      final modifiedAt = liftInfo.modifiedAt;
-      isUpdatedToday = modifiedAt.year == now.year && modifiedAt.month == now.month && modifiedAt.day == now.day;
-    }
-
-    final isUsedToday = _usedLiftNames.contains(name);
-
-    Color? cardColor;
-    if (isUpdatedToday) {
-      cardColor = Colors.green.shade100;
-    } else if (isUsedToday) {
-      cardColor = Colors.red.shade100;
-    }
-
-    return Card(
-      elevation: 2,
-      // if selected, color is card color; else default
-      color: cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: Row(
-          children: [
-            // Checkbox
-            Checkbox(
-              value: isSelected,
-              fillColor: isModified ? WidgetStatePropertyAll(kAppSeedColor) : null,
-              onChanged: isModified
-                  ? null
-                  : (value) {
-                      if (!isModified) {
-                        setState(() {
-                          _selectedLifts[name] = value ?? false;
-                        });
-                      }
-                    },
-            ),
-            // Lift Icon
-            Image.asset(
-              icon,
-              width: 24,
-              height: 24,
-            ),
-            const SizedBox(width: 12),
-
-            // Lift Name and Modification Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  if (hasModificationInfo) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      _formatModificationInfo(liftInfo),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 4),
-
-            // Points Controls
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Decrease button
-                IconButton(
-                  onPressed: () => _decrementPoints(controller),
-                  icon: const Icon(Icons.remove_circle_outline),
-                  color: Colors.red.shade900,
-                  iconSize: 24,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-
-                const SizedBox(width: 4),
-
-                // Points display
-                Container(
-                  width: 42,
-                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    controller.text,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-
-                const SizedBox(width: 4),
-
-                // Increase button
-                IconButton(
-                  onPressed: () => _incrementPoints(controller),
-                  icon: const Icon(Icons.add_circle_outline),
-                  color: Colors.green.shade900,
-                  iconSize: 24,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return LiftPointsRow(
+      liftName: name,
+      liftInfo: liftInfo,
+      isSelected: isSelected,
+      isModified: isModified,
+      controller: controller,
+      onChanged: (value) {
+        if (!isModified) {
+          setState(() {
+            _selectedLifts[name] = value ?? false;
+          });
+        }
+      },
+      onDecrement: () => _decrementPoints(controller),
+      onIncrement: () => _incrementPoints(controller),
+      usedLiftNames: _usedLiftNames,
     );
   }
 
@@ -413,26 +307,6 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
     });
   }
 
-  /// Format modification info to display when and by whom it was last modified
-  String _formatModificationInfo(LiftInfo liftInfo) {
-    final now = DateTime.now();
-    final modifiedAt = liftInfo.modifiedAt;
-
-    // Normalize to compare calendar days, not 24-hour periods
-    final today = DateTime(now.year, now.month, now.day);
-    final modifiedDay = DateTime(modifiedAt.year, modifiedAt.month, modifiedAt.day);
-    final daysDifference = today.difference(modifiedDay).inDays;
-
-    String timeAgo;
-    if (daysDifference == 0) {
-      timeAgo = 'today';
-    } else {
-      timeAgo = '${daysDifference}d ago';
-    }
-
-    return '${liftInfo.points}p • Modified $timeAgo by ${liftInfo.modifiedBy}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -458,16 +332,16 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
                     child: ListView(
                       children: [
                         // Cable Cars
-                        ..._buildLiftSection(kCableCars, kCableCarIcon),
+                        ..._buildLiftSection(kCableCars),
 
                         // Gondolas
-                        ..._buildLiftSection(kGondolas, kGondolaIcon),
+                        ..._buildLiftSection(kGondolas),
 
                         // Chairlifts
-                        ..._buildLiftSection(kChairlifts, kChairliftIcon),
+                        ..._buildLiftSection(kChairlifts),
 
                         // Skilifts
-                        ..._buildLiftSection(kSkilifts, kSkiliftIcon),
+                        ..._buildLiftSection(kSkilifts),
                       ],
                     ),
                   ),
