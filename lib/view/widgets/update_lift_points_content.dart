@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:pdf_points/view/widgets/lift_points_row.dart';
 
 class UpdateLiftPointsContent extends StatefulWidget {
   const UpdateLiftPointsContent({
@@ -31,6 +33,22 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
     );
   }
 
+  void _incrementPoints() {
+    setState(() {
+      int currentValue = int.tryParse(_controller.text) ?? 0;
+      _controller.text = (currentValue + 1).toString();
+    });
+  }
+
+  void _decrementPoints() {
+    setState(() {
+      int currentValue = int.tryParse(_controller.text) ?? 0;
+      if (currentValue > 0) {
+        _controller.text = (currentValue - 1).toString();
+      }
+    });
+  }
+
   Future<void> _onUpdatePoints() async {
     final points = int.tryParse(_controller.text);
     if (points == null) {
@@ -54,26 +72,37 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Use lift_points_row widget
+          LiftPointsRow(
+            liftName: widget.liftInfo.name,
+            liftSubtitle: widget.liftInfo.getStatusInfo(),
+            isSelected: false,
+            isModified: int.tryParse(_controller.text) != widget.liftInfo.points,
+            isUpdatedToday: false,
+            isUsedToday: false,
+            showCheckbox: false,
+            controller: _controller,
+            onDecrement: _decrementPoints,
+            onIncrement: _incrementPoints,
+          ),
+
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: widget.onCancel,
-                child: const Text("Cancel"),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _onUpdatePoints,
-                child: const Text("Update"),
-              ),
-            ],
-          )
+          
+          ElevatedAutoLoadingButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kAppSeedColor,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(128, 56),
+              maximumSize: const Size(double.maxFinite, 56),
+            ),
+            onPressed: _onUpdatePoints,
+            child: const Center(
+              child: Text('Update Points'),
+            ),
+          ),
         ],
       ),
     );

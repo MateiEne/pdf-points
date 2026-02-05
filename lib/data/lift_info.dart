@@ -48,6 +48,23 @@ class LiftInfo {
     return !isFromToday();
   }
 
+  String getStatusInfo() {
+    final now = DateTime.now();
+    final modifiedAt = this.modifiedAt;
+    final today = DateTime(now.year, now.month, now.day);
+    final modifiedDay = DateTime(modifiedAt.year, modifiedAt.month, modifiedAt.day);
+    final daysDifference = today.difference(modifiedDay).inDays;
+
+    String timeAgo;
+    if (daysDifference == 0) {
+      timeAgo = 'today';
+    } else {
+      timeAgo = '${daysDifference}d ago';
+    }
+
+    return '${points}p • Modified $timeAgo by $modifiedBy';
+  }
+
   @override
   String toString() {
     return 'LiftInfo{name: $name, type: $type, points: $points, modifiedAt: $modifiedAt, modifiedBy: $modifiedBy}';

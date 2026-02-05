@@ -236,9 +236,10 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
 
     return LiftPointsRow(
       liftName: name,
-      liftInfo: liftInfo,
+      liftSubtitle:  liftInfo?.getStatusInfo(),
       isSelected: isSelected,
       isModified: isModified,
+      isUpdatedToday: liftInfo?.isFromToday() ?? false,
       controller: controller,
       onChanged: (value) {
         if (!isModified) {
@@ -249,7 +250,7 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
       },
       onDecrement: () => _decrementPoints(controller),
       onIncrement: () => _incrementPoints(controller),
-      usedLiftNames: _usedLiftNames,
+      isUsedToday: _usedLiftNames.contains(name),
     );
   }
 

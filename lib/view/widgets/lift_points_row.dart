@@ -1,30 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
-import 'package:pdf_points/data/lift_info.dart';
 
 class LiftPointsRow extends StatelessWidget {
   const LiftPointsRow({
     super.key,
     required this.liftName,
-    required this.liftInfo,
+    this.liftSubtitle,
     required this.isSelected,
     required this.isModified,
+    required this.isUpdatedToday,
+    required this.isUsedToday,
     required this.controller,
-    required this.onChanged,
     required this.onDecrement,
     required this.onIncrement,
-    required this.usedLiftNames,
+    this.onChanged,
+    this.showCheckbox = true,
   });
 
   final String liftName;
-  final LiftInfo? liftInfo;
+  final String? liftSubtitle;
   final bool isSelected;
   final bool isModified;
+  final bool isUpdatedToday;
   final TextEditingController controller;
-  final ValueChanged<bool?> onChanged;
+  final ValueChanged<bool?>? onChanged;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
-  final Set<String> usedLiftNames;
+  final bool isUsedToday;
+  final bool showCheckbox;
 
   String _getLiftType(String liftName) {
     if (kCableCars.contains(liftName)) return kCableCar;
@@ -51,10 +54,6 @@ class LiftPointsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasModificationInfo = liftInfo != null;
-    final isUpdatedToday = liftInfo?.isFromToday() ?? false;
-    final isUsedToday = usedLiftNames.contains(liftName);
-
     Color? cardColor;
     if (isUpdatedToday) {
       cardColor = Colors.green.shade100;
@@ -69,11 +68,13 @@ class LiftPointsRow extends StatelessWidget {
         padding: const EdgeInsets.all(2.0),
         child: Row(
           children: [
-            Checkbox(
-              value: isSelected,
-              fillColor: isModified ? MaterialStateProperty.all(kAppSeedColor) : null,
-              onChanged: onChanged,
-            ),
+            showCheckbox
+                ? Checkbox(
+                    value: isSelected,
+                    fillColor: isModified ? WidgetStateProperty.all(kAppSeedColor) : null,
+                    onChanged: onChanged,
+                  )
+                : const SizedBox(width: 10),
             Image.asset(
               _getLiftIcon(_getLiftType(liftName)),
               width: 24,
@@ -90,10 +91,10 @@ class LiftPointsRow extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                   ),
-                  if (hasModificationInfo) ...[
+                  if (liftSubtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      _formatModificationInfo(liftInfo!),
+                      liftSubtitle!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.grey.shade600,
                           ),
@@ -145,22 +146,5 @@ class LiftPointsRow extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatModificationInfo(LiftInfo liftInfo) {
-    final now = DateTime.now();
-    final modifiedAt = liftInfo.modifiedAt;
-    final today = DateTime(now.year, now.month, now.day);
-    final modifiedDay = DateTime(modifiedAt.year, modifiedAt.month, modifiedAt.day);
-    final daysDifference = today.difference(modifiedDay).inDays;
-
-    String timeAgo;
-    if (daysDifference == 0) {
-      timeAgo = 'today';
-    } else {
-      timeAgo = '${daysDifference}d ago';
-    }
-
-    return '${liftInfo.points}p • Modified $timeAgo by ${liftInfo.modifiedBy}';
   }
 }

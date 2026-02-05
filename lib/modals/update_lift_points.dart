@@ -17,7 +17,7 @@ class UpdateLiftPointsModal {
         WoltModalSheetPage(
           hasSabGradient: false,
           topBarTitle: Text(
-            "Update '${liftInfo.name}'",
+            "Update Lift Points",
             style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
           ),
           isTopBarLayerAlwaysVisible: true,
