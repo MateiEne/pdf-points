@@ -15,7 +15,7 @@ class UpdateLiftPointsContent extends StatefulWidget {
   });
 
   final LiftInfo liftInfo;
-  final VoidCallback onPointsUpdated;
+  final void Function(LiftInfo updatedLiftInfo) onPointsUpdated;
   final VoidCallback onCancel;
 
   @override
@@ -55,17 +55,28 @@ class _UpdateLiftPointsContentState extends State<UpdateLiftPointsContent> {
       return;
     }
 
+    final now = DateTime.now();
     await FirebaseManager.instance.updateLiftValuePoints(
       liftName: widget.liftInfo.name,
       points: points,
       type: kLiftTypeMap[widget.liftInfo.name] ?? 'Unknown',
-      modifiedAt: DateTime.now(),
+      modifiedAt: now,
       modifiedBy: widget.liftInfo.modifiedBy,
     );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBarSuccess("Points updated!");
-      widget.onPointsUpdated();
+      
+      // Create updated lift info with new points and modification date
+      final updatedLiftInfo = LiftInfo(
+        name: widget.liftInfo.name,
+        type: kLiftTypeMap[widget.liftInfo.name] ?? 'Unknown',
+        points: points,
+        modifiedAt: now,
+        modifiedBy: widget.liftInfo.modifiedBy,
+      );
+      
+      widget.onPointsUpdated(updatedLiftInfo);
     }
   }
 

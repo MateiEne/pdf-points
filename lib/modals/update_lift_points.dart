@@ -7,12 +7,12 @@ import 'package:pdf_points/view/widgets/update_lift_points_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class UpdateLiftPointsModal {
-  static Future<void> show({
+  static Future<LiftInfo?> show({
     required BuildContext context,
     required LiftInfo liftInfo,
     required Instructor instructor,
-  }) {
-    return WoltModalSheet.show<bool>(
+  }) async {
+    final result = await WoltModalSheet.show<LiftInfo>(
       context: context,
       pageListBuilder: (context) => [
         WoltModalSheetPage(
@@ -29,8 +29,8 @@ class UpdateLiftPointsModal {
           ),
           child: UpdateLiftPointsContent(
             liftInfo: liftInfo,
-            onCancel: () => Navigator.of(context).pop(false),
-            onPointsUpdated: () => Navigator.of(context).pop(true),
+            onCancel: () => Navigator.of(context).pop(null),
+            onPointsUpdated: (updatedLiftInfo) => Navigator.of(context).pop(updatedLiftInfo),
           ),
         ),
       ],
@@ -42,13 +42,15 @@ class UpdateLiftPointsModal {
             : const WoltDialogType();
       },
       onModalDismissedWithBarrierTap: () {
-        // Navigator.of(context).pop(false);
+        // Navigator.of(context).pop(null);
       },
-    ).then((bool? pointsUpdated) async {
-      if (pointsUpdated != true) {
-        // add this lift to the today's pending lifts update collection if the lift info was not modified today
-        await FirebaseManager.instance.addTodaysPendingLiftUpdate(liftName: liftInfo.name);
-      }
-    });
+    );
+
+    if (result == null) {
+      // Points were not updated - add to pending updates
+      await FirebaseManager.instance.addTodaysPendingLiftUpdate(liftName: liftInfo.name);
+    }
+
+    return result;
   }
 }

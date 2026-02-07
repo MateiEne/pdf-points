@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:material_loading_buttons/material_loading_buttons.dart';
 import 'package:pdf_points/const/values.dart';
+import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/services/preferences_service.dart';
-import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/widgets/lift_users_selector_widget.dart';
 import 'package:pdf_points/view/widgets/lifts_selector_widget.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
@@ -21,7 +21,7 @@ class AddLiftsModal {
   static PreferencesService? _prefsService;
   static bool _prefsInitialized = false;
 
-  static Future<void> show({
+  static Future<LiftInfo?> show({
     required BuildContext context,
     required String campId,
     required Instructor instructor,
@@ -35,7 +35,9 @@ class AddLiftsModal {
     // Load saved preferences
     await _loadPreferences(instructor, students);
 
-    return WoltModalSheet.show(
+    if (!context.mounted) return null;
+
+    return WoltModalSheet.show<LiftInfo>(
       context: context,
       pageListBuilder: (modalSheetContext) {
         _checkSelectedStudents(instructor, students);
@@ -60,7 +62,15 @@ class AddLiftsModal {
       onModalDismissedWithBarrierTap: () {
         Navigator.of(context).pop();
       },
-    );
+    ).then((liftInfo) async {
+      if (liftInfo != null && context.mounted) {
+        // If lift info is returned, check if points update is needed
+        final updatedLiftInfo = await _promptForLiftPointsUpdateIfNeeded(context, liftInfo, instructor);
+        return updatedLiftInfo;
+      }
+
+      return null;
+    });
   }
 
   static void _checkSelectedStudents(Instructor instructor, List<LiftUser> students) {
@@ -181,11 +191,10 @@ class AddLiftsModal {
                   ? () async {
                       await _addLifts(campId, instructor, _selectedLiftUsers, _defaultLift, _defaultLiftType);
 
+                      LiftInfo? liftInfo = await FirebaseManager.instance.fetchLiftInfo(_defaultLift);
                       if (!modalSheetContext.mounted) return;
 
-                      _showUpdateLiftPointsModalIfNeeded(context, _defaultLift, instructor);
-
-                      Navigator.of(modalSheetContext).pop();
+                      Navigator.of(modalSheetContext).pop(liftInfo);
                     }
                   : null,
               child: const Text('Add Lifts'),
@@ -227,27 +236,17 @@ class AddLiftsModal {
     );
   }
 
-  static void _showUpdateLiftPointsModalIfNeeded(BuildContext context, String liftName, Instructor instructor) async {
-    final liftInfo = await FirebaseManager.instance.fetchLiftInfo(liftName);
-    if (liftInfo == null) {
-      if (context.mounted) {
-        // TODO: better error handling
-        ScaffoldMessenger.of(context).showSnackBarError(
-          "Failed to fetch lift info for '$liftName'. Please try updating the points manually.",
-        );
-      }
-      return;
-    }
-
-    if (context.mounted && liftInfo.isNotModifiedToday()) {
-      if (context.mounted) {
-        UpdateLiftPointsModal.show(
+  static Future<LiftInfo?> _promptForLiftPointsUpdateIfNeeded(BuildContext context, LiftInfo liftInfo, Instructor instructor) async {
+    if (liftInfo.isNotModifiedToday()) {
+        final updatedLiftInfo = await UpdateLiftPointsModal.show(
           context: context,
           liftInfo: liftInfo,
           instructor: instructor,
         );
-      }
+        return updatedLiftInfo;
     }
+
+    return liftInfo;
   }
 
   static Future<void> _addLifts(
