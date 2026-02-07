@@ -13,12 +13,14 @@ import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/ski_group_summary.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/services/lift_points_service.dart';
 import 'package:pdf_points/utils/logout_utils.dart';
 import 'package:pdf_points/utils/number_utils.dart';
 import 'package:pdf_points/utils/participant_action_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/widgets/numbered_expansion_tile.dart';
+import 'package:provider/provider.dart';
 import 'package:styled_text/styled_text.dart';
 
 class InstructorSkiGroupScreen extends StatefulWidget {
@@ -446,6 +448,12 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
 
           lifts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
+          // Calculate total points using LiftPointsService
+          final liftNames = lifts.map((lift) => lift.name).toList();
+          final totalPoints = context.select<LiftPointsService, int>(
+            (service) => service.calculateTotalPoints(liftNames),
+          );
+
           return ListTileTheme(
             minLeadingWidth: 0,
             horizontalTitleGap: 8,
@@ -470,7 +478,7 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
-              topText: "38p",
+              topText: "${totalPoints}p",
               children: [
                 if (!isInstructor) _buildParticipantActions(participant),
                 _buildLiftDetails(lifts, participant),

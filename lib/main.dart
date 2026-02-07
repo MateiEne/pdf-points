@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/pdf_user.dart';
 import 'package:pdf_points/data/super_user.dart';
+import 'package:pdf_points/services/lift_points_service.dart';
 import 'package:pdf_points/view/pages/auth_check_screen.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 final ColorScheme kColorScheme = ColorScheme.fromSeed(
@@ -13,13 +15,23 @@ final ColorScheme kColorScheme = ColorScheme.fromSeed(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialize LiftPointsService
+  final liftPointsService = LiftPointsService();
+  await liftPointsService.initialize();
+
   // await DummyDataUtils.instance.addLiftValuePoints();
 
-  runApp(const PdfPointsApp());
+  runApp(
+    ChangeNotifierProvider.value(
+      value: liftPointsService,
+      child: const PdfPointsApp(),
+    ),
+  );
 }
 
 class PdfPointsApp extends StatelessWidget {
