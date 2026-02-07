@@ -18,6 +18,7 @@ import 'package:pdf_points/utils/number_utils.dart';
 import 'package:pdf_points/utils/participant_action_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:pdf_points/view/widgets/numbered_expansion_tile.dart';
 import 'package:styled_text/styled_text.dart';
 
 class InstructorSkiGroupScreen extends StatefulWidget {
@@ -448,7 +449,7 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
           return ListTileTheme(
             minLeadingWidth: 0,
             horizontalTitleGap: 8,
-            child: ExpansionTile(
+            child: NumberedExpansionTile(
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                   color: isInstructor ? kAppSeedColor : Colors.grey.shade300,
@@ -469,6 +470,7 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               title: _buildParticipantTitleRow(participant, lifts, isInstructor: isInstructor),
+              topText: "38p",
               children: [
                 if (!isInstructor) _buildParticipantActions(participant),
                 _buildLiftDetails(lifts, participant),
