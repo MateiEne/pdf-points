@@ -170,9 +170,9 @@ class AddLiftsModal {
 
                       if (!modalSheetContext.mounted) return;
 
-                      Navigator.of(modalSheetContext).pop();
+                      _showUpdateLiftPointsModalIfNeeded(context, _defaultLift, instructor);
 
-                      _showUpdateLiftPointsModalIfNeeded(modalSheetContext, _defaultLift, instructor);
+                      Navigator.of(modalSheetContext).pop();
                     }
                   : null,
               child: const Text('Add Lifts'),
@@ -224,14 +224,13 @@ class AddLiftsModal {
     }
 
     if (context.mounted && liftInfo.isNotModifiedToday()) {
-      // add this lift to the today's pending lifts update collection if the lift info was not modified today
-      await FirebaseManager.instance.addTodaysPendingLiftUpdate(liftName: liftName);
-
-      UpdateLiftPointsModal.show(
-        context: context,
-        liftInfo: liftInfo,
-        instructor: instructor,
-      );
+      if (context.mounted) {
+        UpdateLiftPointsModal.show(
+          context: context,
+          liftInfo: liftInfo,
+          instructor: instructor,
+        );
+      }
     }
   }
 

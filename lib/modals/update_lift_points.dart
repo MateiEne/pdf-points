@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/participant.dart';
+import 'package:pdf_points/services/firebase/firebase_manager.dart';
 import 'package:pdf_points/view/widgets/update_lift_points_content.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
@@ -11,9 +12,9 @@ class UpdateLiftPointsModal {
     required LiftInfo liftInfo,
     required Instructor instructor,
   }) {
-    return WoltModalSheet.show(
+    return WoltModalSheet.show<bool>(
       context: context,
-      pageListBuilder: (modalSheetContext) => [
+      pageListBuilder: (context) => [
         WoltModalSheetPage(
           hasSabGradient: false,
           topBarTitle: Text(
@@ -24,12 +25,12 @@ class UpdateLiftPointsModal {
           trailingNavBarWidget: IconButton(
             padding: const EdgeInsets.all(16.0),
             icon: const Icon(Icons.close),
-            onPressed: Navigator.of(modalSheetContext).pop,
+            onPressed: Navigator.of(context).pop,
           ),
           child: UpdateLiftPointsContent(
             liftInfo: liftInfo,
-            onCancel: () => Navigator.of(modalSheetContext).pop(),
-            onPointsUpdated: () => Navigator.of(modalSheetContext).pop(),
+            onCancel: () => Navigator.of(context).pop(false),
+            onPointsUpdated: () => Navigator.of(context).pop(true),
           ),
         ),
       ],
@@ -41,8 +42,13 @@ class UpdateLiftPointsModal {
             : const WoltDialogType();
       },
       onModalDismissedWithBarrierTap: () {
-        Navigator.of(context).pop();
+        // Navigator.of(context).pop(false);
       },
-    );
+    ).then((bool? pointsUpdated) async {
+      if (pointsUpdated != true) {
+        // add this lift to the today's pending lifts update collection if the lift info was not modified today
+        await FirebaseManager.instance.addTodaysPendingLiftUpdate(liftName: liftInfo.name);
+      }
+    });
   }
 }
