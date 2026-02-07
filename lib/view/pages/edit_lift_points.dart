@@ -5,10 +5,12 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/services/lift_points_service.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/mixins/resumable_state.dart';
 import 'package:pdf_points/view/widgets/lift_points_row.dart';
+import 'package:provider/provider.dart';
 
 class EditLiftPointsScreen extends StatefulWidget {
   final Instructor instructor;
@@ -29,14 +31,12 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
   final Map<String, bool> _selectedLifts = {}; // Track which lifts are selected for saving
   Set<String> _usedLiftNames = {};
 
-  StreamSubscription<List<LiftInfo>>? _liftsStreamSubscription;
-
   @override
   void initState() {
     super.initState();
 
     _initializeControllers();
-    _listenToLiftPointsChanges();
+    _loadInitialLiftData();
     fetchUsedLifts();
   }
 
@@ -80,37 +80,55 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
     }
   }
 
-  /// Listen to real-time changes in lift points from Firebase
-  void _listenToLiftPointsChanges() {
+  /// Load initial lift data from LiftPointsService (uses cached data)
+  void _loadInitialLiftData() {
     safeSetState(() => _isLoading = true);
 
-    _liftsStreamSubscription = FirebaseManager.instance.listenToAllLiftsInfo().listen(
-      (liftInfos) {
-        if (!mounted) return;
+    try {
+      // Get lift points from LiftPointsService (already listening to Firebase)
+      final liftPointsService = context.read<LiftPointsService>();
+      final allLifts = liftPointsService.allLifts;
 
-        // Update controllers with Firebase data
-        for (var liftInfo in liftInfos) {
-          // Only update if user hasn't manually edited this field
-          final currentValue = int.tryParse(_controllers[liftInfo.name]?.text ?? '0') ?? 0;
-          final originalValue = _originalFirebasePoints[liftInfo.name] ?? 0;
+      // Update controllers with cached data
+      for (var liftInfo in allLifts.values) {
+        _controllers[liftInfo.name]?.text = liftInfo.points.toString();
+        _lastSavedPoints[liftInfo.name] = liftInfo.points;
+        _originalFirebasePoints[liftInfo.name] = liftInfo.points;
+        _liftInfoMap[liftInfo.name] = liftInfo;
+      }
 
-          // If user hasn't modified this value locally, update with Firebase value
-          if (currentValue == originalValue) {
-            _controllers[liftInfo.name]?.text = liftInfo.points.toString();
-          }
+      // Listen to real-time updates from LiftPointsService
+      liftPointsService.addListener(_onLiftPointsChanged);
+    } catch (e) {
+      debugPrint('Error loading lift points: $e');
+    } finally {
+      safeSetState(() => _isLoading = false);
+    }
+  }
 
-          _lastSavedPoints[liftInfo.name] = liftInfo.points;
-          _originalFirebasePoints[liftInfo.name] = liftInfo.points;
-          _liftInfoMap[liftInfo.name] = liftInfo;
+  /// Called when LiftPointsService notifies of changes (real-time Firebase updates)
+  void _onLiftPointsChanged() {
+    if (!mounted) return;
+
+    final liftPointsService = context.read<LiftPointsService>();
+    final allLifts = liftPointsService.allLifts;
+
+    safeSetState(() {
+      for (var liftInfo in allLifts.values) {
+        // Only update if user hasn't manually edited this field
+        final currentValue = int.tryParse(_controllers[liftInfo.name]?.text ?? '0') ?? 0;
+        final originalValue = _originalFirebasePoints[liftInfo.name] ?? 0;
+
+        // If user hasn't modified this value locally, update with Firebase value
+        if (currentValue == originalValue) {
+          _controllers[liftInfo.name]?.text = liftInfo.points.toString();
         }
 
-        safeSetState(() => _isLoading = false);
-      },
-      onError: (error) {
-        debugPrint('Error listening to lift points: $error');
-        safeSetState(() => _isLoading = false);
-      },
-    );
+        _lastSavedPoints[liftInfo.name] = liftInfo.points;
+        _originalFirebasePoints[liftInfo.name] = liftInfo.points;
+        _liftInfoMap[liftInfo.name] = liftInfo;
+      }
+    });
   }
 
   /// Save only selected lift points to Firebase in a batch operation
@@ -411,7 +429,15 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
 
   @override
   void dispose() {
-    _liftsStreamSubscription?.cancel();
+    // Remove listener from LiftPointsService
+    try {
+      context.read<LiftPointsService>().removeListener(_onLiftPointsChanged);
+    } catch (e) {
+      // Context might not be available during dispose
+      debugPrint('Could not remove listener: $e');
+    }
+    
+    // Dispose controllers
     _controllers.forEach((key, controller) {
       controller.dispose();
     });

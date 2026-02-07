@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/services/lift_points_service.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
+import 'package:provider/provider.dart';
 
 class SkiGroupSummaryContent extends StatefulWidget {
   final String campId;
@@ -27,7 +29,6 @@ class SkiGroupSummaryContent extends StatefulWidget {
 
 class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
   final Map<String, int> _totalPoints = {};
-  final Map<String, int> _liftPointsMap = {}; // Cache for lift points from Firebase
   bool _isLoading = true;
 
   @override
@@ -47,7 +48,7 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     widget.onCopyButtonPressed?.call();
   }
 
-  // Generate summary text using already calculated points (avoids duplicate Firebase calls)
+  // Generate summary text using already calculated points
   String _generateSummaryText() {
     final buffer = StringBuffer();
 
@@ -73,24 +74,16 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
     setState(() => _isLoading = true);
 
     try {
-      // Fetch all lift info from Firebase
-      final allLiftsInfo = await FirebaseManager.instance.fetchAllLiftsInfo();
-
-      // Build a map of lift name -> points
-      for (var liftInfo in allLiftsInfo) {
-        _liftPointsMap[liftInfo.name] = liftInfo.points;
-      }
+      // Get LiftPointsService (uses cached data, no Firebase call needed!)
+      final liftPointsService = context.read<LiftPointsService>();
 
       // Load instructor points
       final instructorLifts = await FirebaseManager.instance.fetchTodaysLiftsForPerson(
         campId: widget.campId,
         personId: widget.instructor.id,
       );
-      int instructorPoints = 0;
-      for (var lift in instructorLifts) {
-        final liftPoints = _liftPointsMap[lift.name] ?? 0;
-        instructorPoints += liftPoints;
-      }
+      final instructorLiftNames = instructorLifts.map((lift) => lift.name).toList();
+      final instructorPoints = liftPointsService.calculateTotalPoints(instructorLiftNames);
       _totalPoints[widget.instructor.id] = instructorPoints;
 
       // Load students points
@@ -100,12 +93,9 @@ class _SkiGroupSummaryContentState extends State<SkiGroupSummaryContent> {
           personId: student.id,
         );
 
-        // Calculate total points
-        int totalPoints = 0;
-        for (var lift in todayLifts) {
-          final liftPoints = _liftPointsMap[lift.name] ?? 0;
-          totalPoints += liftPoints;
-        }
+        // Calculate total points using LiftPointsService
+        final liftNames = todayLifts.map((lift) => lift.name).toList();
+        final totalPoints = liftPointsService.calculateTotalPoints(liftNames);
         _totalPoints[student.id] = totalPoints;
       }
     } catch (e) {

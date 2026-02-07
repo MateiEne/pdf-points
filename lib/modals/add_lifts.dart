@@ -5,9 +5,11 @@ import 'package:pdf_points/data/lift_info.dart';
 import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/services/lift_points_service.dart';
 import 'package:pdf_points/services/preferences_service.dart';
 import 'package:pdf_points/view/widgets/lift_users_selector_widget.dart';
 import 'package:pdf_points/view/widgets/lifts_selector_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 import 'update_lift_points.dart';
@@ -190,9 +192,10 @@ class AddLiftsModal {
               onPressed: enable
                   ? () async {
                       await _addLifts(campId, instructor, _selectedLiftUsers, _defaultLift, _defaultLiftType);
-
-                      LiftInfo? liftInfo = await FirebaseManager.instance.fetchLiftInfo(_defaultLift);
                       if (!modalSheetContext.mounted) return;
+
+                      // Get lift info from LiftPointsService BEFORE async gap (cached, no Firebase call)
+                      final liftInfo = context.read<LiftPointsService>().getLiftInfo(_defaultLift);
 
                       Navigator.of(modalSheetContext).pop(liftInfo);
                     }
