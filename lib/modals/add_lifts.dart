@@ -4,6 +4,7 @@ import 'package:pdf_points/const/values.dart';
 import 'package:pdf_points/data/lift_user.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/services/preferences_service.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
 import 'package:pdf_points/view/widgets/lift_users_selector_widget.dart';
 import 'package:pdf_points/view/widgets/lifts_selector_widget.dart';
@@ -17,13 +18,23 @@ class AddLiftsModal {
   static final List<LiftUser> _selectedLiftUsers = [];
   static final List<LiftUser> _unselectedLiftUsers = [];
   static final ValueNotifier<bool> _isButtonEnabledNotifier = ValueNotifier(false);
+  static PreferencesService? _prefsService;
+  static bool _prefsInitialized = false;
 
   static Future<void> show({
     required BuildContext context,
     required String campId,
     required Instructor instructor,
     required List<LiftUser> students,
-  }) {
+  }) async {
+    // Initialize preferences service if not already initialized
+    if (!_prefsInitialized) {
+      await _initializePreferences();
+    }
+
+    // Load saved preferences
+    await _loadPreferences(instructor, students);
+
     return WoltModalSheet.show(
       context: context,
       pageListBuilder: (modalSheetContext) {
@@ -116,9 +127,11 @@ class AddLiftsModal {
           child: Builder(builder: (context) {
             return LiftsSelectorWidget(
               defaultLift: _defaultLift,
-              onLiftSelected: (String lift, String liftType) {
+              onLiftSelected: (String lift, String liftType) async {
                 _defaultLift = lift;
                 _defaultLiftType = liftType;
+                // Save preferences immediately when lift is changed
+                await _savePreferences();
               },
             );
           }),
@@ -191,7 +204,7 @@ class AddLiftsModal {
             return LiftUsersSelectorWidget(
               liftUsers: [instructor, ...students],
               selectedLiftUsers: _selectedLiftUsers,
-              onSelectedLiftUsersChanged: (List<LiftUser> liftUsers) {
+              onSelectedLiftUsersChanged: (List<LiftUser> liftUsers) async {
                 final allUsers = [instructor, ...students];
 
                 _selectedLiftUsers.clear();
@@ -203,6 +216,9 @@ class AddLiftsModal {
                 );
 
                 _isButtonEnabledNotifier.value = _selectedLiftUsers.isNotEmpty;
+
+                // Save preferences immediately when user selection changes
+                await _savePreferences();
               },
             );
           }),
@@ -241,6 +257,9 @@ class AddLiftsModal {
     String liftName,
     String liftType,
   ) async {
+    // Save preferences before adding lifts
+    await _savePreferences();
+
     for (final liftUser in selectedLiftUsers) {
       await FirebaseManager.instance.addLift(
         campId: campId,
@@ -250,5 +269,70 @@ class AddLiftsModal {
         instructorId: instructor.id,
       );
     }
+  }
+
+  // Initialize preferences service
+  static Future<void> _initializePreferences() async {
+    _prefsService = await PreferencesService.getInstance();
+    _prefsInitialized = true;
+  }
+
+  // Load saved preferences
+  static Future<void> _loadPreferences(Instructor instructor, List<LiftUser> students) async {
+    if (_prefsService == null) return;
+
+    // Load default lift
+    final savedLift = _prefsService!.getDefaultLift();
+    if (savedLift != null) {
+      _defaultLift = savedLift;
+    }
+
+    // Load default lift type
+    final savedLiftType = _prefsService!.getDefaultLiftType();
+    if (savedLiftType != null) {
+      _defaultLiftType = savedLiftType;
+    }
+
+    // Load selected lift users
+    final savedSelectedIds = _prefsService!.getSelectedLiftUserIds();
+    if (savedSelectedIds.isNotEmpty) {
+      _selectedLiftUsers.clear();
+      final allUsers = [instructor, ...students];
+      for (final id in savedSelectedIds) {
+        final user = allUsers.firstWhere(
+          (u) => u.id == id,
+          orElse: () => instructor, // fallback to instructor if not found
+        );
+        if (!_selectedLiftUsers.contains(user)) {
+          _selectedLiftUsers.add(user);
+        }
+      }
+    }
+
+    // Load unselected lift users
+    final savedUnselectedIds = _prefsService!.getUnselectedLiftUserIds();
+    if (savedUnselectedIds.isNotEmpty) {
+      _unselectedLiftUsers.clear();
+      final allUsers = [instructor, ...students];
+      for (final id in savedUnselectedIds) {
+        final user = allUsers.firstWhere(
+          (u) => u.id == id,
+          orElse: () => instructor, // fallback to instructor if not found
+        );
+        if (!_unselectedLiftUsers.contains(user)) {
+          _unselectedLiftUsers.add(user);
+        }
+      }
+    }
+  }
+
+  // Save current preferences
+  static Future<void> _savePreferences() async {
+    if (_prefsService == null) return;
+
+    await _prefsService!.saveDefaultLift(_defaultLift);
+    await _prefsService!.saveDefaultLiftType(_defaultLiftType);
+    await _prefsService!.saveSelectedLiftUsers(_selectedLiftUsers);
+    await _prefsService!.saveUnselectedLiftUsers(_unselectedLiftUsers);
   }
 }
