@@ -15,6 +15,7 @@ class AddOrUpdateParticipantContentWidget extends StatefulWidget {
     this.defaultLastName,
     this.defaultPhone,
     this.participantId,
+    this.canEditNames = false,
   });
 
   final String campId;
@@ -23,6 +24,7 @@ class AddOrUpdateParticipantContentWidget extends StatefulWidget {
   final String? defaultLastName;
   final String? defaultPhone;
   final String? participantId;
+  final bool canEditNames;
 
   @override
   State<AddOrUpdateParticipantContentWidget> createState() => _AddOrUpdateParticipantContentWidgetState();
@@ -119,6 +121,38 @@ class _AddOrUpdateParticipantContentWidgetState extends State<AddOrUpdatePartici
     return true;
   }
 
+  /// Returns true if the first name field can be edited
+  /// The field is editable when:
+  /// - canEditNames flag is true, OR
+  /// - no default first name was provided (null or empty)
+  bool _canEditFirstName() {
+    return widget.canEditNames || widget.defaultFirstName == null || widget.defaultFirstName!.isEmpty;
+  }
+
+  /// Returns true if the last name field can be edited
+  /// The field is editable when:
+  /// - canEditNames flag is true, OR
+  /// - no default last name was provided (null or empty)
+  bool _canEditLastName() {
+    return widget.canEditNames || widget.defaultLastName == null || widget.defaultLastName!.isEmpty;
+  }
+
+  /// Returns true if the clear button should be shown for the first name field
+  /// The button is shown when:
+  /// - the field has text, AND
+  /// - the field is editable
+  bool _shouldShowFirstNameClearButton() {
+    return _firstNameController.text.isNotEmpty && _canEditFirstName();
+  }
+
+  /// Returns true if the clear button should be shown for the last name field
+  /// The button is shown when:
+  /// - the field has text, AND
+  /// - the field is editable
+  bool _shouldShowLastNameClearButton() {
+    return _lastNameController.text.isNotEmpty && _canEditLastName();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -133,10 +167,11 @@ class _AddOrUpdateParticipantContentWidgetState extends State<AddOrUpdatePartici
               Expanded(
                 child: TextFormField(
                   controller: _firstNameController,
+                  enabled: _canEditFirstName(),
                   autofocus: _firstNameController.text.isEmpty,
                   decoration: InputDecoration(
                     labelText: "First Name",
-                    suffixIcon: _firstNameController.text.isNotEmpty
+                    suffixIcon: _shouldShowFirstNameClearButton()
                         ? IconButton(
                             onPressed: _firstNameController.clear,
                             icon: const Icon(Icons.clear),
@@ -154,11 +189,13 @@ class _AddOrUpdateParticipantContentWidgetState extends State<AddOrUpdatePartici
                 ),
               ),
               IconButton(
-                onPressed: () {
-                  var temp = _firstNameController.text;
-                  _firstNameController.text = _lastNameController.text;
-                  _lastNameController.text = temp;
-                },
+                onPressed: widget.canEditNames
+                    ? () {
+                        var temp = _firstNameController.text;
+                        _firstNameController.text = _lastNameController.text;
+                        _lastNameController.text = temp;
+                      }
+                    : null,
                 icon: const Icon(Icons.swap_vert_rounded),
               ),
             ],
@@ -167,10 +204,11 @@ class _AddOrUpdateParticipantContentWidgetState extends State<AddOrUpdatePartici
           // Last name
           TextFormField(
             controller: _lastNameController,
+            enabled: _canEditLastName(),
             autofocus: _lastNameController.text.isEmpty,
             decoration: InputDecoration(
               labelText: "Last Name",
-              suffixIcon: _lastNameController.text.isNotEmpty
+              suffixIcon: _shouldShowLastNameClearButton()
                   ? IconButton(
                       onPressed: _lastNameController.clear,
                       icon: const Icon(Icons.clear),
