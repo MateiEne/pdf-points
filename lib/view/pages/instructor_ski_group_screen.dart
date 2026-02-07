@@ -591,6 +591,9 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
   }
 
   Widget _buildLiftListTile(LiftParticipantInfo lift, Participant participant) {
+    // Get lift points from LiftPointsService
+    final liftPoints = context.read<LiftPointsService>().getLiftPoints(lift.name);
+
     return ListTile(
       dense: true,
       leading: lift.icon != null
@@ -601,7 +604,7 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
         style: const TextStyle(fontSize: 14),
       ),
       subtitle: Text(
-        lift.type,
+        '${lift.type}${liftPoints != null ? ' • $liftPoints pts' : ''}',
         style: const TextStyle(fontSize: 12),
       ),
       trailing: Row(
