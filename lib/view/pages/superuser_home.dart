@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/super_user.dart';
 import 'package:pdf_points/view/pages/camp_screen.dart';
-import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/logout_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/widgets/add_camp_fab.dart';
 import 'package:pdf_points/view/widgets/camp_card.dart';
@@ -90,14 +90,8 @@ class _SuperUserHomeScreenState extends State<SuperUserHomeScreen> {
   }
 
   Future<void> _onLogout() async {
+    await LogoutUtils.showLogoutConfirmationDialog(context);
     _campChangedSubscription?.cancel();
-
-    await FirebaseManager.instance.signOut();
-    if (!mounted) return;
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
   }
 
   Widget _buildNoCampsContent(BuildContext context) {

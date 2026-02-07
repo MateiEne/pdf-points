@@ -13,11 +13,11 @@ import 'package:pdf_points/modals/search_participant.dart';
 import 'package:pdf_points/modals/ski_group_summary.dart';
 import 'package:pdf_points/modals/update_participant.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/logout_utils.dart';
 import 'package:pdf_points/utils/number_utils.dart';
 import 'package:pdf_points/utils/participant_action_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/extensions/snackbar_extensions.dart';
-import 'package:pdf_points/view/pages/login.dart';
 import 'package:styled_text/styled_text.dart';
 
 class InstructorSkiGroupScreen extends StatefulWidget {
@@ -242,12 +242,7 @@ class _InstructorSkiGroupScreenState extends State<InstructorSkiGroupScreen> {
   }
 
   Future<void> _onLogout() async {
-    await FirebaseManager.instance.signOut();
-    if (!mounted) return;
-
-    Navigator.of(context, rootNavigator: true).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    await LogoutUtils.showLogoutConfirmationDialog(context);
   }
 
   Future<void> _removeStudentFromGroup(Participant participant) async {

@@ -3,9 +3,9 @@ import 'package:pdf_points/data/camp.dart';
 import 'package:pdf_points/data/participant.dart';
 import 'package:pdf_points/modals/enroll_instructor_to_camp.dart';
 import 'package:pdf_points/services/firebase/firebase_manager.dart';
+import 'package:pdf_points/utils/logout_utils.dart';
 import 'package:pdf_points/utils/safe_setState.dart';
 import 'package:pdf_points/view/pages/instructor_main_screen.dart';
-import 'package:pdf_points/view/pages/login.dart';
 import 'package:pdf_points/view/widgets/camp_card.dart';
 
 class InstructorSelectCampScreen extends StatefulWidget {
@@ -88,12 +88,7 @@ class _InstructorSelectCampScreenState extends State<InstructorSelectCampScreen>
   }
 
   Future<void> _onLogout() async {
-    await FirebaseManager.instance.signOut();
-    if (!mounted) return;
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    await LogoutUtils.showLogoutConfirmationDialog(context);
   }
 
   Future<void> _openEnrollInstructorToCampDialog() async {
