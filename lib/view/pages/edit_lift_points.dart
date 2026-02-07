@@ -241,7 +241,7 @@ class EditLiftPointsScreenState extends State<EditLiftPointsScreen> with Resumab
       isModified: isModified,
       isUpdatedToday: liftInfo?.isModifiedToday() ?? false,
       controller: controller,
-      onChanged: (value) {
+      onSelectedChanged: (value) {
         if (!isModified) {
           setState(() {
             _selectedLifts[name] = value ?? false;
